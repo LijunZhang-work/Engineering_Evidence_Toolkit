@@ -1,0 +1,24 @@
+schema_version: 1
+id: change-safety
+name: Change Safety
+version: 0.1.0-draft
+status: DESIGNED
+kind: independent_capability
+spec: SPEC.md
+entrypoint:
+  operation: inspect_change_integrity
+  callable_without_profile: true
+inputs:
+  required: [workspace_snapshot, change_set]
+  optional: [baseline_snapshot, language_profiles, generated_file_policy]
+outputs:
+  primary: change_safety_report
+  includes: [diff_inventory, structural_checks, symbol_delta, truncation_checks, suspicious_deletions]
+side_effects:
+  repository_mutation: forbidden
+  external_mutation: forbidden
+  allowed_writes: [run_artifacts]
+failure_policy: fail_closed
+result_states: [SAFE_WITHIN_SCOPE, UNSAFE, SUSPICIOUS, UNKNOWN, NOT_QUALIFIED]
+evidence_ceiling: "结构安全通过不等于语义正确或可构建；只能证明已执行探测器覆盖内未发现破坏"
+

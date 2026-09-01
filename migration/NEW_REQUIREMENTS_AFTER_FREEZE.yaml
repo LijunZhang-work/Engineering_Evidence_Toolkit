@@ -1,0 +1,136 @@
+schema_version: "1.0"
+register_id: EET-NEW-REQUIREMENTS-2026-08-29
+meaning: >-
+  以下要求产生于三份历史来源冻结后的讨论与再设计。它们不是旧文档的原文，
+  必须以NEW_AFTER_FREEZE身份进入新规范，避免伪造历史来源。
+
+requirements:
+  - id: EET-NEW-001
+    title: 工具集而非单体工作流
+    requirement: 每个能力必须可独立调用、独立产出证据；Profile只是可选组合，不拥有事实语义。
+    targets: [architecture, capability-contract, profile-contract]
+  - id: EET-NEW-002
+    title: 文档入口必须生成可执行约束资产
+    requirement: 文档仅作建设与使用入口；实施阶段必须生成schema、检查器、状态文件、receipt、canary与测试夹具，不能只依赖提示词服从。
+    targets: [roadmap, acceptance-tests]
+  - id: EET-NEW-003
+    title: 建设确认与运行确认分离
+    requirement: >-
+      用户确认“确认并锁定工具集建设基线，开始自主建设”只授权建设治理工具集，
+      不授权修改业务源码；工具实现并通过Release Gate后才可激活相应Profile。
+    targets: [roadmap, release-gates]
+  - id: EET-NEW-004
+    title: 协作拓扑与未交付消费者
+    requirement: 启动时识别个人交付或多人协作，并记录他人未上库修改、未知消费端、交接样本与可验证边界。
+    targets: [collaboration-snapshot, contract-reconciliation]
+  - id: EET-NEW-005
+    title: 消费端缺失不等于生产端错误
+    requirement: 当消费端由他人开发或尚未交付时，结论必须限定为生产端契约一致性、样本一致性或UNKNOWN，禁止据此发明使用关系。
+    targets: [contract-reconciliation, evidence-kernel]
+  - id: EET-NEW-006
+    title: Signal Lineage独立能力
+    requirement: 对每个关键数据建立跨模块路径、类型、单位/增益、默认/上下限、转换、序列化、消费与预期值证据线。
+    targets: [signal-lineage]
+  - id: EET-NEW-007
+    title: 双层观测规划
+    requirement: >-
+      DT侧可设计自由度较高的追踪点；业务侧必须复用各模块既有日志、数据库或采样机制，
+      遵守性能、刷屏、存储和隐私约束。两者通过统一trace/correlation字段串联。
+    targets: [observability-planner, test-trace-preparation-profile]
+  - id: EET-NEW-008
+    title: Windows-only证据边界
+    requirement: Windows静态检查用于尽早发现结构、依赖、目标归属、include、宏与DT契约风险，不得声称与产品镜像真实编译等价。
+    targets: [windows-static-precheck, build-dependency-audit]
+  - id: EET-NEW-009
+    title: 传递依赖与编译进入性
+    requirement: 必须单独证明文件是否进入目标、include由谁提供、PUBLIC/PRIVATE/INTERFACE传播、条件宏和生成依赖；仅能找到文件不等于编译进入。
+    targets: [build-dependency-audit]
+  - id: EET-NEW-010
+    title: 基础结构人眼级错误的多探测门禁
+    requirement: 每次编辑后对完整文件执行词法分隔符、Parser error/missing、顶层符号增删、文件尾、冲突标记、changed-byte binding与负向canary，任一失败不得声称通过。
+    targets: [change-safety]
+  - id: EET-NEW-011
+    title: 用户提供错误的证据优先
+    requirement: 用户给出的原始错误一旦与当前改动/范围可关联，必须覆盖本地“未发现错误”；未经证据闭环不得淡化为无问题。
+    targets: [external-evidence, evidence-kernel]
+  - id: EET-NEW-012
+    title: 预检资格与效力证明
+    requirement: 记录编译器、版本、命令、目标、include、宏、生成文件和退出码，并用负向canary证明命令确实能失败；环境不完整时结论必须降级。
+    targets: [windows-static-precheck]
+  - id: EET-NEW-013
+    title: 增量事实同步闭环
+    requirement: 修改代码后，所有依赖源字节的事实索引必须增量刷新并产出绑定快照与内容哈希的receipt，之后才能用于结论。
+    targets: [code-fact, provider-adapters]
+  - id: EET-NEW-014
+    title: 准确度与证据优先
+    requirement: 目标函数按证据充分性、可追溯性、准确性排序；速度和报告完整感不能覆盖UNKNOWN、冲突或未生效检查。
+    targets: [evidence-kernel, report-renderer]
+  - id: EET-NEW-015
+    title: 自主长时运行但不得随便冻结
+    requirement: >-
+      用户离席后持续执行诊断阶梯、同根因合并、替代证据与无写入任务；
+      只有权限/权威选择/不可逆操作等真实人类决策才进入WAITING_HUMAN。
+    targets: [autonomous-runner]
+  - id: EET-NEW-016
+    title: 修复必须符合软件设计
+    requirement: 修复前区分症状、触发与根因，恢复不变量，检索既有设计，比较方案并检查责任归属；禁止为测试变绿贴膏药，也禁止无依据过度设计。
+    targets: [design-fit-review]
+  - id: EET-NEW-017
+    title: 静态规范与运行实例分离
+    requirement: 版本化规范、Provider适配说明和动态runs/<run_id>产物必须分离；示例不得进入真实状态计算。
+    targets: [architecture, run-layout]
+  - id: EET-NEW-018
+    title: CodeGraph去硬编码
+    requirement: CodeGraph可作为当前Provider适配器，但核心规则只依赖Code Fact能力契约；Provider缺失时允许证据限定的替代路径，不能伪装同等能力。
+    targets: [code-fact, adapters]
+  - id: EET-NEW-019
+    title: 专业版与小白版共用事实集
+    requirement: 两种报告只是同一证据图的渲染视图，不允许各自重算或产生不同结论。
+    targets: [report-renderer]
+  - id: EET-NEW-020
+    title: 旧文档退出运行入口
+    requirement: 新工具集通过激活Gate后，三份旧文档只作历史来源；运行入口必须是新START_HERE与具体能力/Profile清单。
+    targets: [supersession-manifest]
+  - id: EET-NEW-021
+    title: Behavior 语义禁止缩写为 BEH
+    requirement: >-
+      所有表达通用 behavior 的新规则、字段和标识必须使用完整拼写 BEHAVIOR；
+      BEH 只保留给仓内有权威依据的 BEH 产品、工具、模型或专名。旧 RR-BEH 编号仅作历史别名。
+    targets: [naming-policy, recovery-review-rule-catalog, migration-aliases]
+  - id: EET-NEW-022
+    title: 合入文本采用仓库读者视角
+    requirement: >-
+      AI 修改的代码、注释、标识符、测试、配置、构建文件和运行消息必须仅凭仓库上下文可理解；
+      禁止把 fix1.1、会话轮次、用户与 AI 审批语或其他私有上下文写入合入候选。
+      仓库既有可解析编号允许保留，但必须有仓内证据并通过无聊天上下文的冷读检查。
+    targets: [mutation-policy, safe-ai-edit-profile, recovery-review-profile, acceptance-tests]
+  - id: EET-NEW-023
+    title: 可纠错的工程经验 Memory
+    requirement: >-
+      用户明确要求记住或总结工程经验时，AI将其整理为人可读Canonical Page并回读确认；
+      召回仅作线索，进入当前结论前必须重新验证；错误经验采用WRONG、STALE或SUPERSEDED追加链，禁止静默覆盖。
+    targets: [experience-memory, memory-mvp, evidence-kernel]
+  - id: EET-NEW-024
+    title: 公司环境访问策略单一所有者
+    requirement: >-
+      网络、模型API、密钥、数据外发、运行期下载与制品来源仅由最外层运行边界决定；
+      Capability和普通Adapter只声明需求并消费决定Receipt，不得复制公司环境限制。
+    targets: [company-runtime-boundary, toolkit-manifest, specification-validator]
+  - id: EET-NEW-025
+    title: 首次环境工具路径与下载策略对齐
+    requirement: >-
+      用户提供或确认CodeGraph、Memory、clangd等工具源码/制品保存路径Markdown清单；AI检查遗漏、错误和版本不符，
+      并逐项对齐AI授权下载、用户自行下载或本次不下载及其影响。可选工具缺失不得冻结独立工作。
+    targets: [third-party-supply-chain, recovery-review-alignment, outer-runtime-boundary]
+  - id: EET-NEW-026
+    title: 证据驱动的能力拼图进度
+    requirement: >-
+      能力进度必须由规格、实现、验证、公司环境资格和激活五个可定位证据轴计算，不允许AI凭观感估计。
+      只有五轴全部完成才显示绿色100%，只有五轴均为0才显示红色0%；任何缺失轴必须显示灰色UNKNOWN并标注已知下限。
+      页面渲染成功不得升级任何Capability状态，源事实变化后旧页面必须能被检测为过期。
+    targets: [capability-progress-dashboard, report-renderer, specification-validator]
+
+status:
+  specification_status: REGISTERED
+  implementation_status: NOT_IMPLEMENTED
+  validation_status: NOT_VALIDATED

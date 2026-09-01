@@ -1,0 +1,51 @@
+schema: engineering-evidence-toolkit/experience-memory-provider-registry/v1
+registry_version: 0.1.0-draft
+spec_status: DESIGNED
+verification_status: NOT_RUN
+as_of: 2026-09-01
+
+notice: >-
+  Research candidates are not installations or approvals. The capability remains
+  provider-neutral, and no entry may become ACTIVE without the Memory MVP cases,
+  environment qualification, and immutable receipts.
+
+preferred_mvp_candidate:
+  provider_id: ai-memory
+  status: RESEARCH_CANDIDATE
+  verification_status: NOT_RUN
+  selection_reasons:
+    - explicit durable page write
+    - human-readable versioned Markdown
+    - correction feedback and supersession history
+    - project and global scope support
+    - authority-aware retrieval design
+  known_risks:
+    - fast-moving and operationally non-trivial
+    - native Windows support requires project validation
+    - independent benchmark evidence is limited
+    - no current DeepSeek Harness qualification receipt
+
+comparison_candidates:
+  - provider_id: basic-memory
+    status: RESEARCH_CANDIDATE
+    strength: Markdown-first local knowledge with MCP access
+    concern: weaker engineering-specific correction and authority semantics
+  - provider_id: agentmemory
+    status: RESEARCH_CANDIDATE
+    strength: rich provenance, versions, supersession, and existing Harness integration
+    concern: heavier runtime and broader tool surface than the current MVP needs
+  - provider_id: hindsight
+    status: RESEARCH_CANDIDATE
+    strength: automatic long-term recall and existing Harness integration
+    concern: extracted facts may not preserve the user's original wording and conditions
+
+admission_rule:
+  required_cases:
+    - MEM-MVP-001
+    - MEM-MVP-002
+    - MEM-MVP-003
+    - MEM-MVP-004
+    - MEM-MVP-005
+    - MEM-MVP-006
+  no_result_by_reputation: true
+  no_integration_bonus_as_correctness_proof: true

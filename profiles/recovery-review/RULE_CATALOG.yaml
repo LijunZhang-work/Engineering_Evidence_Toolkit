@@ -1,0 +1,223 @@
+status: DESIGNED
+schema_version: "1.0.0"
+profile: recovery-review@1.1.0
+id_policy:
+  format: RR-<DOMAIN>-<NNN>
+  immutable_meaning: true
+  retired_ids_are_never_reused: true
+  generic_behavior_domain_must_use_full_spelling: BEHAVIOR
+  beh_is_reserved_for_the_named_beh_product_or_tool: true
+
+rules:
+  - id: RR-ALIGN-001
+    domain: alignment
+    severity: BLOCKER
+    statement: The profile MUST NOT start unattended execution before the exact confirmation phrase is recorded.
+  - id: RR-ALIGN-002
+    domain: alignment
+    severity: BLOCKER
+    statement: The lock MUST bind repositories, revisions, dirty state, collaboration, authority, permissions, profile, contracts, and hashes.
+  - id: RR-ALIGN-003
+    domain: alignment
+    severity: BLOCKER
+    statement: A material lock-field change invalidates the launch lock and MUST be represented explicitly, never silently absorbed.
+  - id: RR-COLLAB-001
+    domain: collaboration
+    severity: HIGH
+    statement: Solo versus collaborative delivery MUST be declared before judging missing consumers or modules.
+  - id: RR-COLLAB-002
+    domain: collaboration
+    severity: HIGH
+    statement: Expected but not yet arrived collaborator code MUST be classified as an external dependency, not invented or automatically blamed on the current author.
+  - id: RR-COLLAB-003
+    domain: collaboration
+    severity: HIGH
+    statement: When no handoff sample exists, the uncertainty and contract evidence ceiling MUST be explicit.
+  - id: RR-AUTH-001
+    domain: authority
+    severity: BLOCKER
+    statement: Every normative claim MUST reference an authoritative source or be labeled hypothesis or unknown.
+  - id: RR-AUTH-002
+    domain: authority
+    severity: HIGH
+    statement: Conflicting authoritative sources MUST be preserved and resolved by declared priority; the model MUST NOT silently choose one.
+  - id: RR-EVID-001
+    domain: evidence
+    severity: BLOCKER
+    statement: Absence of evidence MUST NOT be converted to PASS.
+  - id: RR-EVID-002
+    domain: evidence
+    severity: BLOCKER
+    statement: A claim MUST carry source snapshot, derivation, freshness, coverage, limitations, and conclusion ceiling.
+  - id: RR-EVID-003
+    domain: evidence
+    severity: HIGH
+    statement: Conflicting evidence MUST remain visible until reconciled.
+  - id: RR-EVID-004
+    domain: evidence
+    severity: HIGH
+    statement: Tool success and semantic success are distinct claims and require distinct evidence.
+  - id: RR-FACT-001
+    domain: code_fact
+    severity: BLOCKER
+    statement: Indexed evidence MUST include a receipt proving the index corresponds to the locked source snapshot.
+  - id: RR-FACT-002
+    domain: code_fact
+    severity: HIGH
+    statement: A stale or partial index cannot support a whole-snapshot absence claim.
+  - id: RR-FACT-003
+    domain: code_fact
+    severity: HIGH
+    statement: The Profile MUST use capability outputs and MUST NOT query CodeGraph or any other Provider directly.
+  - id: RR-FACT-004
+    domain: code_fact
+    severity: BLOCKER
+    statement: A source, build-metadata, generated-input, or semantic-configuration change MUST invalidate affected evidence bound to the previous content_id before any new Provider query.
+  - id: RR-FACT-005
+    domain: code_fact
+    severity: BLOCKER
+    statement: When the bound Provider supports incremental refresh, the changed-file set and affected dependency closure MUST be refreshed, bound to the new content_id and build context, and recorded in a refresh receipt before re-query.
+  - id: RR-FACT-006
+    domain: code_fact
+    severity: BLOCKER
+    statement: If incremental refresh is unsupported, fails, or cannot prove its new-snapshot binding, the Provider evidence MUST be STALE and the old index MUST NOT support any claim about the new snapshot.
+  - id: RR-FACT-007
+    domain: code_fact
+    severity: HIGH
+    statement: Recovery may use a first-class Native Provider within its declared ceiling or a Profile-approved full rebuild; Provider-specific refresh commands MUST remain outside this Profile.
+  - id: RR-STRUCT-001
+    domain: structural_safety
+    severity: BLOCKER
+    statement: Modified source files MUST be checked for balanced function, declaration, class, namespace, conditional, and file boundaries.
+  - id: RR-STRUCT-002
+    domain: structural_safety
+    severity: BLOCKER
+    statement: Large deletion, deleted tail, or unexpected symbol loss MUST be reconciled against intent before acceptance.
+  - id: RR-STRUCT-003
+    domain: structural_safety
+    severity: HIGH
+    statement: Validation MUST inspect the whole modified construct and adjacent file boundary, not only the edited line.
+  - id: RR-STRUCT-004
+    domain: structural_safety
+    severity: HIGH
+    statement: Any automated edit MUST be followed by diff inventory and structural validation before another edit is trusted.
+  - id: RR-DEP-001
+    domain: dependency
+    severity: BLOCKER
+    statement: A new or changed source file MUST have proven target membership for every intended product or test target.
+  - id: RR-DEP-002
+    domain: dependency
+    severity: BLOCKER
+    statement: Direct and transitive include availability MUST be evaluated under the intended target context.
+  - id: RR-DEP-003
+    domain: dependency
+    severity: HIGH
+    statement: Generated headers, macros, include order, unity build, precompiled headers, and conditional compilation MUST be represented when applicable.
+  - id: RR-DEP-004
+    domain: dependency
+    severity: HIGH
+    statement: Textual presence of a file in the repository is not evidence that it is compiled or linked.
+  - id: RR-DT-001
+    domain: dt
+    severity: BLOCKER
+    statement: DT discovery or registration MUST be proven, not inferred from a test file name.
+  - id: RR-DT-002
+    domain: dt
+    severity: HIGH
+    statement: DT fixtures, parameter registration, generated lists, feature flags, and target linkage MUST be checked when applicable.
+  - id: RR-DT-003
+    domain: dt
+    severity: HIGH
+    statement: When DT cannot run on Windows, static findings MUST be labeled as static readiness, not runtime pass.
+  - id: RR-BEHAVIOR-001
+    domain: behavior
+    severity: BLOCKER
+    statement: Business behavior claims MUST trace input, transformation, transport, consumer, and externally observable result.
+  - id: RR-BEHAVIOR-002
+    domain: behavior
+    severity: HIGH
+    statement: DataBuff or equivalent dynamic binding MUST be proven through key, schema, registration, and consumption evidence rather than direct textual references alone.
+  - id: RR-BEHAVIOR-003
+    domain: behavior
+    severity: HIGH
+    statement: A signal trace MUST identify the first evidenced divergence or honestly report that the point is unknown.
+  - id: RR-REPOSITORY-READER-001
+    domain: repository_reader
+    severity: BLOCKER
+    statement: Text added to a merge candidate MUST be understandable from repository code and authoritative repository documentation without access to the user-AI conversation.
+  - id: RR-REPOSITORY-READER-002
+    domain: repository_reader
+    severity: HIGH
+    statement: Comments, identifiers, and messages MUST explain stable domain meaning, design invariants, contracts, or failure reasons and MUST NOT encode conversation-local approval or patch-history labels.
+  - id: RR-REPOSITORY-READER-003
+    domain: repository_reader
+    severity: BLOCKER
+    statement: A cold-reader check MUST reject unresolved labels such as fix1.1 or equivalent session-local markers unless repository evidence proves a stable, repository-wide meaning.
+  - id: RR-DESIGN-001
+    domain: design
+    severity: HIGH
+    statement: A fix MUST address the owning responsibility layer and MUST NOT merely suppress the observed symptom.
+  - id: RR-DESIGN-002
+    domain: design
+    severity: HIGH
+    statement: New special cases, duplicated policy, hidden coupling, or interface leakage require explicit design justification.
+  - id: RR-DESIGN-003
+    domain: design
+    severity: MEDIUM
+    statement: A locally passing patch can still fail design fit and MUST be reported as such.
+  - id: RR-PRECHECK-001
+    domain: windows_precheck
+    severity: BLOCKER
+    statement: Every claimed precheck mechanism MUST pass a negative canary proving the mechanism actually detects an injected error.
+  - id: RR-PRECHECK-002
+    domain: windows_precheck
+    severity: BLOCKER
+    statement: Compiler identity, version, flags, macros, include paths, generated inputs, language mode, and target context MUST be recorded.
+  - id: RR-PRECHECK-003
+    domain: windows_precheck
+    severity: HIGH
+    statement: Environment mismatch limits the conclusion and MUST NOT be hidden by a green exit code.
+  - id: RR-EXT-001
+    domain: external_evidence
+    severity: BLOCKER
+    statement: A user-supplied reproducible error overrides a conflicting local green conclusion until root cause and evidence conflict are reconciled.
+  - id: RR-EXT-002
+    domain: external_evidence
+    severity: HIGH
+    statement: External evidence MUST retain provenance, environment, revision, exact error, and ingestion time.
+  - id: RR-AUTO-001
+    domain: autonomy
+    severity: HIGH
+    statement: After launch lock, all independent READY items MUST continue without routine confirmation.
+  - id: RR-AUTO-002
+    domain: autonomy
+    severity: HIGH
+    statement: Failure MUST trigger diagnosis and bounded recovery before WAITING_HUMAN.
+  - id: RR-AUTO-003
+    domain: autonomy
+    severity: HIGH
+    statement: A local blocker MUST NOT globally freeze unrelated work.
+  - id: RR-AUTO-004
+    domain: autonomy
+    severity: MEDIUM
+    statement: Identical blockers MUST be fingerprinted, deduplicated, and summarized once with affected occurrences.
+  - id: RR-AUTO-005
+    domain: autonomy
+    severity: HIGH
+    statement: Exhausted time or unavailable environment yields INCOMPLETE with checkpoint, never fabricated PASS.
+  - id: RR-REPORT-001
+    domain: reporting
+    severity: BLOCKER
+    statement: Professional, plain-language, and machine views MUST derive from the same immutable fact set.
+  - id: RR-REPORT-002
+    domain: reporting
+    severity: HIGH
+    statement: All views MUST agree on verdict, counts, severity, evidence references, limitations, and unresolved items.
+  - id: RR-REPORT-003
+    domain: reporting
+    severity: HIGH
+    statement: Every PASS, FAIL, and INCONCLUSIVE gate result MUST cite evidence and reasoning.
+  - id: RR-AUDIT-001
+    domain: audit
+    severity: BLOCKER
+    statement: Invocations, state transitions, evidence ingestion, edits, retries, and gate evaluations MUST be append-only auditable.

@@ -1,0 +1,83 @@
+status: DESIGNED
+schema_version: "1.0.0"
+profile: test-trace-preparation@1.0.0
+
+steps:
+  - id: T0_LOCK_SIGNAL_AND_TEST_SCOPE
+    actions:
+      - capture_workspace_snapshot
+      - enumerate_signals_and_expected_external_behavior
+      - identify_dt_and_business_owners
+
+  - id: T1_STATIC_DT_MAP
+    invokes:
+      - code-fact
+      - build-dependency-audit
+    checks:
+      - test_source_presence
+      - discovery_or_registration
+      - fixture_and_parameter_binding
+      - test_target_membership
+      - direct_and_transitive_includes
+      - generated_lists_and_feature_flags
+    output_statuses:
+      - STATIC_READY
+      - STATIC_NOT_READY
+      - INCONCLUSIVE
+    forbidden_status: DT_RUNTIME_PASS
+
+  - id: T2_SIGNAL_LINEAGE
+    invokes:
+      - contract-reconciliation
+      - signal-lineage
+    stages:
+      - external_or_northbound_input
+      - cpp_ingest_and_storage
+      - transformation_and_gain
+      - databuff_or_transport
+      - consumer_or_graphical_element
+      - algorithm
+      - southbound_output
+    required_per_stage:
+      - location
+      - canonical_signal_id
+      - representation
+      - value_or_formula
+      - type
+      - unit
+      - gain
+      - default_min_max_when_applicable
+      - evidence_refs
+    output: first_evidenced_divergence_or_unknown
+
+  - id: T3_BUSINESS_OBSERVABILITY_PLAN
+    invokes:
+      - observability-planner
+    per_module_decision:
+      - existing_log_facility
+      - database_or_ring_buffer
+      - counter_or_trace
+      - export_to_csv_or_existing_tool
+    design_constraints:
+      - preserve_millisecond_task_budget
+      - sampling_or_triggered_capture_for_high_frequency_paths
+      - correlation_id_and_timestamp
+      - bounded_retention
+      - privacy_and_secret_redaction
+      - feature_flag_or_runtime_disable
+
+  - id: T4_CORRELATE_AND_REPORT
+    invokes:
+      - evidence-kernel
+      - report-renderer
+    outputs:
+      - dt_side_markdown
+      - business_side_observability_spec
+      - unified_signal_stage_table
+      - evidence_and_unknowns
+      - next_real_environment_test_steps
+
+autonomy:
+  continue_static_analysis_when_runtime_unavailable: true
+  do_not_wait_for_dt_runtime_just_to_finish_static_plan: true
+  wait_only_for_missing_authority_or_production_edit_permission: true

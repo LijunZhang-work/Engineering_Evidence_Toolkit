@@ -1,0 +1,24 @@
+schema_version: 1
+id: signal-lineage
+name: Signal Lineage
+version: 0.1.0-draft
+status: DESIGNED
+kind: independent_capability
+spec: SPEC.md
+entrypoint:
+  operation: trace_signal_lineage
+  callable_without_profile: true
+inputs:
+  required: [signal_contract, workspace_snapshot]
+  optional: [code_fact_evidence, dt_evidence, business_observations, collaboration_snapshot]
+outputs:
+  primary: signal_lineage
+  includes: [stages, representations, transforms, expected_values, observed_values, gaps]
+side_effects:
+  repository_mutation: forbidden
+  external_mutation: forbidden
+  allowed_writes: [run_artifacts]
+failure_policy: fail_closed
+result_states: [TRACED, MISMATCHED, PARTIAL, UNKNOWN, PENDING_EXTERNAL]
+evidence_ceiling: "静态线路证明映射与推导；没有运行观测时不能证明真实值经过每一阶段"
+

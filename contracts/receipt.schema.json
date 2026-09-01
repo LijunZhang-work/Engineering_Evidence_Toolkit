@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/receipt.schema.json",
+  "title": "Execution Receipt",
+  "description": "记录一次具体采集或检查怎样执行。退出码为 0 不等于 Claim 成立，也不等于检查对目标环境有效。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "receipt_id",
+    "workspace_snapshot_id",
+    "capability_id",
+    "provider",
+    "started_at",
+    "ended_at",
+    "execution_status",
+    "invocation",
+    "inputs",
+    "outputs",
+    "content_id",
+    "provenance_id",
+    "tool_qualification_status",
+    "effectiveness_status"
+  ],
+  "properties": {
+    "schema_version": {"type": "string", "minLength": 1},
+    "receipt_id": {"type": "string", "pattern": "^rcpt_[A-Za-z0-9._-]+$"},
+    "workspace_snapshot_id": {"type": "string", "pattern": "^wss_[A-Za-z0-9._-]+$"},
+    "capability_id": {"type": "string", "minLength": 1},
+    "provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider_id", "version"],
+      "properties": {
+        "provider_id": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1},
+        "artifact_content_id": {"$ref": "#/$defs/digest_id"},
+        "adapter_version": {"type": "string"}
+      }
+    },
+    "started_at": {"type": "string", "format": "date-time"},
+    "ended_at": {"type": "string", "format": "date-time"},
+    "duration_ms": {"type": "integer", "minimum": 0},
+    "execution_status": {
+      "enum": ["COMPLETED", "FAILED", "TIMED_OUT", "CANCELLED", "SKIPPED", "BLOCKED"]
+    },
+    "invocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "working_directory", "redacted"],
+      "properties": {
+        "kind": {"enum": ["COMMAND", "API", "LIBRARY", "MANUAL_OBSERVATION"]},
+        "command": {"type": "array", "items": {"type": "string"}},
+        "working_directory": {"type": "string"},
+        "environment_keys": {"type": "array", "items": {"type": "string"}},
+        "config_content_ids": {"type": "array", "items": {"$ref": "#/$defs/digest_id"}},
+        "redacted": {"type": "boolean"},
+        "redaction_notes": {"type": "string"}
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/io_artifact"}
+    },
+    "outputs": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/io_artifact"}
+    },
+    "exit_code": {"type": "integer"},
+    "stdout_content_id": {"$ref": "#/$defs/digest_id"},
+    "stderr_content_id": {"$ref": "#/$defs/digest_id"},
+    "content_id": {"$ref": "#/$defs/digest_id"},
+    "provenance_id": {"$ref": "#/$defs/digest_id"},
+    "tool_qualification_status": {
+      "enum": ["QUALIFIED", "QUALIFIED_WITH_LIMITS", "UNQUALIFIED", "UNKNOWN"]
+    },
+    "effectiveness_status": {
+      "description": "检查是否实际覆盖目标输入并在声明范围内有效，与 execution_status 分离。",
+      "enum": ["EFFECTIVE_FOR_SCOPE", "PARTIALLY_EFFECTIVE", "INEFFECTIVE", "UNKNOWN"]
+    },
+    "coverage_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expected_units": {"type": "integer", "minimum": 0},
+        "processed_units": {"type": "integer", "minimum": 0},
+        "failed_units": {"type": "integer", "minimum": 0},
+        "skipped_units": {"type": "integer", "minimum": 0}
+      }
+    },
+    "build_profile_id": {"type": "string"},
+    "limitations": {"type": "array", "items": {"type": "string"}},
+    "errors": {"type": "array", "items": {"type": "string"}}
+  },
+  "$defs": {
+    "digest_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]+:[A-Fa-f0-9]{16,}$"
+    },
+    "io_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "content_id"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "content_id": {"$ref": "#/$defs/digest_id"},
+        "provenance_id": {"$ref": "#/$defs/digest_id"},
+        "location": {"type": "string"},
+        "media_type": {"type": "string"}
+      }
+    }
+  }
+}

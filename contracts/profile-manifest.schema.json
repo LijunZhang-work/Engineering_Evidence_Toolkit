@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/profile-manifest.schema.json",
+  "title": "Optional Composition Profile Manifest",
+  "description": "可选组合规格。Profile 只能调用 Capability 公共契约，不能读取内部状态或绕过 Capability 直接访问 Provider。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "status_dimensions", "schema_version", "kind", "id", "version", "title", "intent", "profile_is_optional", "runner_contract", "capability_internal_access", "direct_provider_access", "capabilities"],
+  "properties": {
+    "status": {"const": "DESIGNED"},
+    "status_dimensions": {"$ref": "#/$defs/status_dimensions"},
+    "schema_version": {"const": "1.0.0"},
+    "kind": {"const": "ToolkitProfile"},
+    "id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$"},
+    "title": {"type": "string", "minLength": 1},
+    "intent": {"type": "string", "minLength": 1},
+    "profile_is_optional": {"const": true},
+    "standalone_capability_use_allowed": {"const": true},
+    "runner_contract": {"type": "string", "minLength": 1},
+    "capability_internal_access": {"const": "forbidden"},
+    "direct_provider_access": {"const": "forbidden"},
+    "default_mode": {"enum": ["EXPLORE", "EVIDENCE", "ENFORCE"]},
+    "supported_modes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"enum": ["EXPLORE", "EVIDENCE", "ENFORCE"]}
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required"],
+      "properties": {
+        "required": {"$ref": "#/$defs/capability_ids"},
+        "conditional": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["capability", "when"],
+            "properties": {
+              "capability": {"$ref": "#/$defs/id"},
+              "when": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    },
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "direct_provider_access": {"const": "forbidden"},
+        "source_mutation": {"const": "forbidden"},
+        "provider_private_state_read": {"const": "forbidden"},
+        "unknown_to_pass_promotion": {"const": "forbidden"},
+        "complete_review_claim": {"const": "forbidden"}
+      }
+    },
+    "outputs": {"$ref": "#/$defs/nonempty_string_array"},
+    "mandatory_confirmation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exact_phrase", "required_once_after_alignment_preview", "does_not_authorize"],
+      "properties": {
+        "exact_phrase": {"type": "string", "minLength": 1},
+        "required_once_after_alignment_preview": {"type": "boolean"},
+        "does_not_authorize": {"$ref": "#/$defs/nonempty_string_array"}
+      }
+    },
+    "alignment_lock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["canonical_serialization", "digest", "binds"],
+      "properties": {
+        "canonical_serialization": {"type": "string", "minLength": 1},
+        "digest": {"type": "string", "minLength": 1},
+        "binds": {
+          "type": "object",
+          "additionalProperties": {"$ref": "#/$defs/nonempty_string_array"},
+          "minProperties": 1
+        }
+      }
+    },
+    "execution_model": {
+      "type": "object",
+      "additionalProperties": {"type": "boolean"},
+      "minProperties": 1
+    },
+    "stages": {"$ref": "#/$defs/nonempty_string_array"},
+    "gates": {"$ref": "#/$defs/nonempty_string_array"},
+    "gate_result_values": {"$ref": "#/$defs/nonempty_string_array"},
+    "global_precedence_rules": {"$ref": "#/$defs/nonempty_string_array"},
+    "final_verdicts": {"$ref": "#/$defs/nonempty_string_array"},
+    "report_views": {"$ref": "#/$defs/nonempty_string_array"},
+    "single_fact_source_for_all_views": {"const": true},
+    "edit_authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["must_be_explicit", "scope_fields", "forbidden_without_new_authorization"],
+      "properties": {
+        "must_be_explicit": {"const": true},
+        "scope_fields": {"$ref": "#/$defs/nonempty_string_array"},
+        "forbidden_without_new_authorization": {"$ref": "#/$defs/nonempty_string_array"}
+      }
+    },
+    "hard_invariants": {"$ref": "#/$defs/nonempty_string_array"},
+    "repository_reader_policy": {"type": "string", "minLength": 1},
+    "results": {"$ref": "#/$defs/nonempty_string_array"},
+    "separate_outputs": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"$ref": "#/$defs/nonempty_string_array"}
+    },
+    "hard_rules": {"$ref": "#/$defs/nonempty_string_array"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"id": {"const": "recovery-review"}}, "required": ["id"]},
+      "then": {"required": ["mandatory_confirmation", "alignment_lock", "execution_model", "stages", "gates", "gate_result_values", "global_precedence_rules", "final_verdicts", "report_views", "single_fact_source_for_all_views", "repository_reader_policy"]}
+    },
+    {
+      "if": {"properties": {"id": {"const": "safe-ai-edit"}}, "required": ["id"]},
+      "then": {"required": ["edit_authorization", "hard_invariants", "results", "repository_reader_policy"]}
+    },
+    {
+      "if": {"properties": {"id": {"const": "ad-hoc-code-investigation"}}, "required": ["id"]},
+      "then": {"required": ["default_mode", "supported_modes", "boundaries", "outputs"]}
+    },
+    {
+      "if": {"properties": {"id": {"const": "test-trace-preparation"}}, "required": ["id"]},
+      "then": {"required": ["separate_outputs", "hard_rules"]}
+    }
+  ],
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "capability_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/id"}
+    },
+    "nonempty_string_array": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "status_dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["specification_status", "implementation_status", "validation_status", "activation_status"],
+      "properties": {
+        "specification_status": {"const": "DESIGNED"},
+        "implementation_status": {"enum": ["NOT_IMPLEMENTED", "PARTIAL", "IMPLEMENTED"]},
+        "validation_status": {"enum": ["NOT_RUN", "PARTIAL", "PASSED", "FAILED", "STALE"]},
+        "activation_status": {"enum": ["INACTIVE", "ACTIVE", "SUSPENDED", "RETIRED"]}
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+schema_version: 1
+id: workspace-snapshot
+name: Workspace Snapshot
+version: 0.1.0-draft
+status: DESIGNED
+kind: independent_capability
+spec: SPEC.md
+entrypoint:
+  operation: capture_workspace
+  callable_without_profile: true
+inputs:
+  required: [workspace_roots]
+  optional: [repo_manifest, build_profiles, generated_inputs]
+outputs:
+  primary: workspace_snapshot
+  includes: [repositories, revisions, dirty_state, submodules, lfs, patches, build_profiles]
+side_effects:
+  repository_mutation: forbidden
+  external_mutation: forbidden
+  allowed_writes: [snapshot_artifacts]
+failure_policy: fail_closed
+result_states: [CAPTURED, PARTIAL, UNKNOWN, NOT_QUALIFIED]
+evidence_ceiling: "只证明本次捕获到的工作区状态，不证明远端、他人分支或未提供仓库的状态"
+

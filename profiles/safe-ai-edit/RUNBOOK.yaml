@@ -1,0 +1,112 @@
+status: DESIGNED
+schema_version: "1.0.0"
+profile: safe-ai-edit@1.1.0
+
+steps:
+  - id: E0_LOCK_EDIT_SCOPE
+    actions:
+      - capture_workspace_snapshot
+      - record_explicit_edit_authorization
+      - inventory_preexisting_user_changes
+    fail_closed_if:
+      - target_path_outside_authorized_scope
+      - user_changes_cannot_be_distinguished
+
+  - id: E1_ESTABLISH_FACTS
+    invokes:
+      - code-fact
+      - build-dependency-audit
+    outputs:
+      - owning_symbols
+      - callers_and_consumers
+      - target_membership
+      - include_and_generated_dependencies
+      - uncertainty
+
+  - id: E2_DESIGN_FIX
+    invokes:
+      - design-fit-review
+    requirements:
+      - state_root_cause
+      - identify_owning_responsibility_layer
+      - compare_at_least_one_rejected_patch_like_alternative
+      - explain_contract_and_maintainability_effect
+    no_code_change_if: root_cause_or_scope_is_unknown
+
+  - id: E3_APPLY_BOUNDED_EDIT
+    requirements:
+      - preserve_unrelated_user_changes
+      - edit_only_authorized_paths
+      - record_each_changed_hunk
+      - stop_before_scope_expansion
+      - write_names_comments_tests_and_messages_for_repository_readers_without_chat_context
+      - do_not_encode_conversation_approval_patch_round_or_private_labels_in_merge_candidate
+
+  - id: E4_IMMEDIATE_STRUCTURAL_CHECK
+    invokes:
+      - change-safety
+    checks:
+      - before_after_file_size_and_line_count
+      - unexpected_large_deletion
+      - missing_closing_boundaries
+      - whole_function_class_namespace_and_conditional_balance
+      - end_of_file_truncation
+      - deleted_symbol_and_reference_reconciliation
+    response_to_failure:
+      - preserve_evidence
+      - diagnose_edit_mechanism_and_exact_damage
+      - do_not_claim_success
+
+  - id: E4A_REPOSITORY_READER_CHECK
+    policy: ../../governance/REPOSITORY_READER_AND_NAMING_POLICY.yaml
+    checks:
+      - enumerate_all_changed_identifiers_comments_tests_messages_and_committed_text
+      - flag_conversation_local_or_ambiguous_labels
+      - require_repository_evidence_for_allowed_issue_version_or_migration_references
+      - cold_read_without_user_ai_conversation
+    on_context_leak:
+      - rewrite_to_stable_domain_contract_invariant_or_failure_reason
+      - rerun_repository_reader_check
+      - do_not_accept_or_deliver_until_resolved
+    unknown_is_pass: false
+
+  - id: E5_IMPACT_AND_PRECHECK
+    invokes:
+      - build-dependency-audit
+      - windows-static-precheck
+    conditional: cpp_or_build_affected
+    checks:
+      - source_target_membership
+      - direct_and_transitive_include_resolution
+      - compiler_flags_macros_generated_inputs
+      - active_negative_canary
+      - environment_equivalence
+    conclusion_rule: A non-equivalent Windows precheck is supporting evidence only.
+
+  - id: E6_RECONCILE_EXTERNAL_ERRORS
+    invokes:
+      - external-evidence
+      - evidence-kernel
+    conditional: user_supplies_error
+    rule: A reproducible user error overrides a conflicting local green result until explained and reverified.
+
+  - id: E7_DELIVER
+    invokes:
+      - audit-ledger
+      - report-renderer
+    outputs:
+      - exact_diff_inventory
+      - design_rationale
+      - structural_and_dependency_results
+      - what_was_not_proven
+      - next_real_environment_validation
+      - repository_reader_check_result
+
+autonomy:
+  continue_ready_steps: true
+  diagnose_before_waiting_human: true
+  do_not_repeat_same_question: true
+  waiting_human_only_for:
+    - edit_scope_authority
+    - product_semantic_decision
+    - missing_required_external_input

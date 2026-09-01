@@ -1,0 +1,53 @@
+status: DESIGNED
+status_dimensions:
+  specification_status: DESIGNED
+  implementation_status: NOT_IMPLEMENTED
+  validation_status: NOT_RUN
+  activation_status: INACTIVE
+schema_version: "1.0.0"
+kind: ToolkitProfile
+id: test-trace-preparation
+version: "1.0.0"
+title: DT 静态追踪与业务侧观测准备
+
+intent: >-
+  在 Windows 无法真实运行产品 DT 时，静态建立测试入口、注册、目标、依赖和信号链，
+  同时按各业务模块已有观测机制设计后续真实测试记录点；不冒充 DT 已运行。
+
+profile_is_optional: true
+capability_internal_access: forbidden
+direct_provider_access: forbidden
+runner_contract: ../../composition/PROFILE_RUNNER_CONTRACT.yaml
+capabilities:
+  required:
+    - workspace-snapshot
+    - code-fact
+    - build-dependency-audit
+    - contract-reconciliation
+    - signal-lineage
+    - observability-planner
+    - evidence-kernel
+    - report-renderer
+
+separate_outputs:
+  dt_side:
+    - static_test_case_matrix
+    - discovery_and_registration_evidence
+    - fixture_parameter_and_target_evidence
+    - expected_value_trace
+    - runtime_execution_status
+  business_side:
+    - module_native_observation_inventory
+    - proposed_instrumentation_points
+    - performance_and_volume_constraints
+    - extraction_and_correlation_plan
+    - rollback_or_disable_plan
+
+hard_rules:
+  - static_dt_readiness_is_not_runtime_dt_pass
+  - business_observation_reuses_module_native_mechanism_when_safe
+  - high_frequency_module_must_not_receive_unbounded_log_spam
+  - every_signal_stage_records_type_unit_gain_default_min_max_when_applicable
+  - DataBuff_or_dynamic_binding_requires_registration_and_key_evidence
+  - first_divergence_is_reported_or_explicitly_unknown
+  - production_instrumentation_requires_separate_edit_authorization

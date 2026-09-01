@@ -1,0 +1,184 @@
+schema: engineering-evidence-toolkit/code-fact-provider-registry/v1
+registry_version: 1.0.0-draft
+spec_status: DESIGNED
+verification_status: NOT_RUN
+as_of: 2026-08-29
+
+notice: >-
+  This registry declares designs and research candidates. It is not a deployment
+  inventory. No entry is ACTIVE, installed, indexed, approved, or profile-bound
+  unless a future runtime registry attaches independent receipts.
+
+state_dimensions:
+  artifact_lifecycle: [DESIGNED, SOURCED, BUILT, VERIFIED, QUARANTINED, RETIRED]
+  deployment_index_lifecycle: [NOT_DEPLOYED, DEPLOYED_UNVALIDATED, INDEXING, VALIDATED, STALE, FAILED, REMOVED]
+  profile_binding_lifecycle: [UNBOUND, CANDIDATE, APPROVED, SUSPENDED, REVOKED]
+
+providers:
+  - provider_id: native-search
+    provider_class: BUILT_IN
+    spec_status: DESIGNED
+    verification_status: NOT_RUN
+    artifact_lifecycle: DESIGNED
+    deployment_index_lifecycle: NOT_DEPLOYED
+    profile_binding_lifecycle: UNBOUND
+    derivation_methods: [SOURCE_READ, LEXICAL_SEARCH]
+    query_kinds: [SOURCE_LOCATION, TEXT_OCCURRENCE, LOCAL_CONTEXT, MANUAL_RELATIONSHIP_TRACE]
+    requires_index: false
+    core_rule: first_class_provider_not_fallback
+    ceiling: No implicit compiler, build-target, or exhaustive cross-repository semantics.
+
+  - provider_id: ripgrep
+    provider_class: BUILT_IN
+    spec_status: DESIGNED
+    verification_status: NOT_RUN
+    artifact_lifecycle: DESIGNED
+    deployment_index_lifecycle: NOT_DEPLOYED
+    profile_binding_lifecycle: UNBOUND
+    derivation_methods: [LEXICAL_SEARCH]
+    query_kinds: [TEXT_OCCURRENCE, FILE_DISCOVERY, INCLUDE_CANDIDATE, CONFIG_REFERENCE]
+    requires_index: false
+    core_rule: first_class_provider_not_fallback
+    ceiling: Lexical matches do not prove active compilation, symbol resolution, or runtime use.
+
+  - provider_id: git
+    provider_class: BUILT_IN
+    spec_status: DESIGNED
+    verification_status: NOT_RUN
+    artifact_lifecycle: DESIGNED
+    deployment_index_lifecycle: NOT_DEPLOYED
+    profile_binding_lifecycle: UNBOUND
+    derivation_methods: [GIT_QUERY]
+    query_kinds: [HISTORY, BLAME, DIFF, REVISION_IDENTITY, PATH_LINEAGE]
+    requires_index: false
+    core_rule: first_class_provider_not_fallback
+    ceiling: Commit identity alone does not capture dirty state, generated inputs, submodules, or LFS materialization.
+
+  - provider_id: clangd
+    provider_class: OPTIONAL_LOCAL
+    spec_status: DESIGNED
+    verification_status: NOT_RUN
+    artifact_lifecycle: DESIGNED
+    deployment_index_lifecycle: NOT_DEPLOYED
+    profile_binding_lifecycle: UNBOUND
+    derivation_methods: [COMPILER_SEMANTIC]
+    query_kinds: [DEFINITION, REFERENCE, TYPE, INCLUDE_CANDIDATE, LOCAL_CALL_RELATIONSHIP]
+    requires_index: true
+    required_context: [compile_commands, target, generated_headers, include_paths, macro_definitions, query_driver_allowlist]
+    ceiling: Not proof of product compiler parity or complete cross-repository semantics.
+    detail: providers/clangd.md
+
+  - provider_id: codegraph
+    provider_class: EXTERNAL_CANDIDATE
+    spec_status: DESIGNED
+    verification_status: NOT_RUN
+    artifact_lifecycle: DESIGNED
+    deployment_index_lifecycle: NOT_DEPLOYED
+    profile_binding_lifecycle: UNBOUND
+    derivation_methods: [GRAPH_QUERY]
+    query_kinds: [SYMBOL_RELATIONSHIP, CROSS_FILE_NAVIGATION, DEPENDENCY_CANDIDATE]
+    requires_index: true
+    research_state: REVERIFY_REQUIRED
+    ceiling: Provider-native graph edges require corpus, extractor, build-profile, freshness, and coverage receipts.
+
+  - provider_id: codebase-memory
+    provider_class: EXTERNAL_CANDIDATE
+    spec_status: DESIGNED
+    verification_status: NOT_RUN
+    artifact_lifecycle: DESIGNED
+    deployment_index_lifecycle: NOT_DEPLOYED
+    profile_binding_lifecycle: UNBOUND
+    derivation_methods: [GRAPH_QUERY, MODEL_INFERENCE]
+    query_kinds: [CODEBASE_EXPLORATION, RELATIONSHIP_CANDIDATE]
+    requires_index: true
+    research_state: REVERIFY_REQUIRED
+    ceiling: >-
+      Inferred relationships are indicative until grounded in code/build evidence.
+      This code-exploration Provider is not the Experience Memory capability or a
+      durable engineering-experience store.
+
+  - provider_id: scip-clang
+    provider_class: EXTERNAL_CANDIDATE
+    spec_status: DESIGNED
+    verification_status: NOT_RUN
+    artifact_lifecycle: DESIGNED
+    deployment_index_lifecycle: NOT_DEPLOYED
+    profile_binding_lifecycle: UNBOUND
+    derivation_methods: [COMPILER_SEMANTIC, GRAPH_QUERY]
+    query_kinds: [CPP_SYMBOL_INDEX, REFERENCE, DEFINITION]
+    requires_index: true
+    research_state: REVERIFY_REQUIRED
+    ceiling: Extractor and compilation database fidelity must be proven per target.
+
+  - provider_id: graphify
+    provider_class: EXTERNAL_CANDIDATE
+    spec_status: DESIGNED
+    verification_status: NOT_RUN
+    artifact_lifecycle: DESIGNED
+    deployment_index_lifecycle: NOT_DEPLOYED
+    profile_binding_lifecycle: UNBOUND
+    derivation_methods: [AST_PARSE, GRAPH_QUERY]
+    query_kinds: [STRUCTURAL_RELATIONSHIP, DEPENDENCY_CANDIDATE]
+    requires_index: true
+    research_state: REVERIFY_REQUIRED
+    ceiling: Parser-derived structure does not establish active target compilation.
+
+  - provider_id: code-review-graph
+    provider_class: EXTERNAL_CANDIDATE
+    spec_status: DESIGNED
+    verification_status: NOT_RUN
+    artifact_lifecycle: DESIGNED
+    deployment_index_lifecycle: NOT_DEPLOYED
+    profile_binding_lifecycle: UNBOUND
+    derivation_methods: [GRAPH_QUERY]
+    query_kinds: [CHANGE_IMPACT_CANDIDATE, REVIEW_CONTEXT]
+    requires_index: true
+    research_state: REVERIFY_REQUIRED
+    ceiling: Review prioritization is not a correctness verdict.
+
+  - provider_id: zoekt
+    provider_class: EXTERNAL_CANDIDATE
+    spec_status: DESIGNED
+    verification_status: NOT_RUN
+    artifact_lifecycle: DESIGNED
+    deployment_index_lifecycle: NOT_DEPLOYED
+    profile_binding_lifecycle: UNBOUND
+    derivation_methods: [LEXICAL_SEARCH]
+    query_kinds: [INDEXED_TEXT_SEARCH, MULTI_REPOSITORY_TEXT_SEARCH]
+    requires_index: true
+    research_state: REVERIFY_REQUIRED
+    ceiling: Indexed lexical results do not prove semantic reachability.
+
+  - provider_id: understand-anything
+    provider_class: EXTERNAL_CANDIDATE
+    spec_status: DESIGNED
+    verification_status: NOT_RUN
+    artifact_lifecycle: DESIGNED
+    deployment_index_lifecycle: NOT_DEPLOYED
+    profile_binding_lifecycle: UNBOUND
+    derivation_methods: [GRAPH_QUERY, MODEL_INFERENCE]
+    query_kinds: [CODEBASE_EXPLORATION, DOCUMENTATION_CANDIDATE]
+    requires_index: true
+    research_state: REVERIFY_REQUIRED
+    ceiling: Generated explanations are not authoritative without grounded locations and receipts.
+
+watchlist:
+  - provider_id: joern
+    status: DESIGNED
+    verification_status: NOT_RUN
+    admission_trigger: A validated query family requires code-property-graph semantics unavailable from approved providers.
+  - provider_id: kythe
+    status: DESIGNED
+    verification_status: NOT_RUN
+    admission_trigger: A validated multi-language indexing need justifies its deployment and extraction cost.
+
+runtime_registry_requirement:
+  path_pattern: runs/<run_id>/provider-runtime-registry.yaml
+  must_record:
+    - selected provider IDs and versions
+    - artifact and integrity receipts
+    - deployment and index identities
+    - corpus/build-profile binding
+    - validation result
+    - caller/profile binding decision
+  rule: Runtime facts never overwrite this design registry.

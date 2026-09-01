@@ -1,0 +1,111 @@
+schema: engineering-evidence-toolkit/adapter/v1
+id: company-source-control
+version: 1.0.0-draft
+spec_status: DESIGNED
+verification_status: NOT_RUN
+
+purpose: >-
+  Isolate company Python pull/workspace/revision-freeze/submit semantics from
+  capability kernels and third-party provider supply chains.
+
+operations:
+  discover_repositories:
+    effect: READ_ONLY
+    authorization: normal_task_scope
+    status: DESIGNED
+    verification_status: NOT_RUN
+  create_task_workspace:
+    effect: LOCAL_REVERSIBLE_WRITE
+    authorization: explicit_task_scope
+    status: DESIGNED
+    verification_status: NOT_RUN
+  pull_or_sync:
+    effect: WORKSPACE_MUTATION
+    authorization: explicit_policy_or_user_request
+    status: DESIGNED
+    verification_status: NOT_RUN
+  freeze_revision_manifest:
+    effect: RUN_ARTIFACT_WRITE
+    authorization: normal_task_scope
+    status: DESIGNED
+    verification_status: NOT_RUN
+  inspect_local_changes:
+    effect: READ_ONLY
+    authorization: normal_task_scope
+    status: DESIGNED
+    verification_status: NOT_RUN
+  submit_changes:
+    effect: EXTERNAL_IRREVERSIBLE_OR_HIGH_IMPACT_WRITE
+    authorization: explicit_user_authority
+    default: DENY
+    status: DESIGNED
+    verification_status: NOT_RUN
+
+script_binding:
+  rule: >-
+    Actual company script paths, versions, command forms, and configuration are
+    environment-specific bindings. They must be discovered and receipted; no
+    illustrative command is authoritative.
+  required_for_each_script:
+    - canonical path or managed tool ID
+    - file/package digest and version
+    - owner and authoritative documentation reference
+    - read/write side effects
+    - arguments and configuration digest
+    - exit-status and error-channel behavior
+    - credential boundary
+
+snapshot_output:
+  workspace_manifest:
+    required_fields:
+      - task_workspace_id
+      - repositories
+      - repository_locations
+      - branches_and_revisions
+      - dirty_and_untracked_state
+      - local_patch_digests
+      - submodule_state
+      - lfs_state
+      - sparse_checkout_state
+      - generated_input_manifest
+      - collaborator_or_missing_repository_notes
+  identities:
+    content_id:
+      meaning: digest of query-relevant content and generated/build inputs
+      required: true
+    provenance_id:
+      meaning: origin and assembly history of the workspace
+      required: true
+    must_not_collapse: true
+
+failure_semantics:
+  missing_repository: BLOCKED_COVERAGE_OR_DECLARED_EXTERNAL_DEPENDENCY
+  dirty_state_unreadable: BLOCKED_SNAPSHOT
+  script_nonzero_exit: ADAPTER_ERROR
+  partial_pull: BLOCKED_SNAPSHOT
+  submit_without_authority: DENIED
+  rule: No failure may be summarized as an empty or clean repository.
+
+separation_from_provider_supply_chain:
+  company_adapter_owns:
+    - workspace acquisition and provenance
+    - repository/revision discovery
+    - company change/submit semantics
+  provider_supply_chain_owns:
+    - third-party source and license
+    - pinned provider revision and dependency lock
+    - provider build, artifact digest, verification, deployment
+  mixing_forbidden: true
+
+receipts:
+  - adapter and script identities
+  - requested operation and authorization basis
+  - arguments/configuration digest with secrets removed
+  - before/after workspace state
+  - standard output/error locations and exit status
+  - workspace manifest and both identities
+  - timestamps and duration
+
+implementation_note: >-
+  This file does not identify or execute actual company scripts. Integration and
+  real-project validation remain NOT_RUN.

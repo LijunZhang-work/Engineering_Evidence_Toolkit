@@ -1,0 +1,24 @@
+schema_version: 1
+id: audit-ledger
+name: Audit Ledger
+version: 0.1.0-draft
+status: DESIGNED
+kind: independent_capability
+spec: SPEC.md
+entrypoint:
+  operation: append_audit_event
+  callable_without_profile: true
+inputs:
+  required: [run_id, event]
+  optional: [previous_event_ref, artifact_refs, actor_receipt]
+outputs:
+  primary: ledger_entry
+  includes: [sequence, timestamp, actor, action, inputs, outputs, status, hash_link]
+side_effects:
+  repository_mutation: forbidden
+  external_mutation: forbidden
+  allowed_writes: [append_only_ledger]
+failure_policy: fail_closed
+result_states: [APPENDED, DUPLICATE, REJECTED, CORRUPT]
+evidence_ceiling: "账本证明记录链完整性，不证明被记录事件的内容真实或结论正确"
+

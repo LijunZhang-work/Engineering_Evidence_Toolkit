@@ -1,0 +1,57 @@
+status: DESIGNED
+status_dimensions:
+  specification_status: DESIGNED
+  implementation_status: NOT_IMPLEMENTED
+  validation_status: NOT_RUN
+  activation_status: INACTIVE
+schema_version: "1.0.0"
+kind: ToolkitProfile
+id: ad-hoc-code-investigation
+version: "1.0.0"
+title: 临时代码事实调查
+
+intent: >-
+  在不进入完整 Recovery Review 的情况下完成定义、引用、调用、配置、目标、依赖、
+  跨仓与数据流调查，并给出带证据与结论上限的回答。
+
+profile_is_optional: true
+capability_internal_access: forbidden
+direct_provider_access: forbidden
+default_mode: EVIDENCE
+runner_contract: ../../composition/PROFILE_RUNNER_CONTRACT.yaml
+supported_modes:
+  - EXPLORE
+  - EVIDENCE
+  - ENFORCE
+
+capabilities:
+  required:
+    - workspace-snapshot
+    - code-fact
+    - evidence-kernel
+  conditional:
+    - capability: build-dependency-audit
+      when: build_or_include_question
+    - capability: signal-lineage
+      when: cross_module_value_question
+    - capability: contract-reconciliation
+      when: document_or_interface_claim
+    - capability: third-party-supply-chain
+      when: tool_backed_claim
+
+boundaries:
+  direct_provider_access: forbidden
+  source_mutation: forbidden
+  provider_private_state_read: forbidden
+  unknown_to_pass_promotion: forbidden
+  complete_review_claim: forbidden
+
+outputs:
+  - answer
+  - claim_refs
+  - evidence_refs
+  - workspace_snapshot_ref
+  - coverage
+  - freshness
+  - conclusion_ceiling
+  - limitations

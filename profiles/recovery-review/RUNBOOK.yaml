@@ -1,0 +1,270 @@
+status: DESIGNED
+schema_version: "1.0.0"
+profile: recovery-review@1.1.0
+
+pre_alignment:
+  actions:
+    - invoke: workspace-snapshot
+      output: workspace_snapshot_ref
+    - invoke: collaboration-snapshot
+      output: collaboration_snapshot_ref
+    - invoke: authority-governance
+      output: authority_manifest_ref
+    - invoke: third-party-supply-chain
+      input: ../../capabilities/third-party-supply-chain/ENVIRONMENT_ASSET_INVENTORY_TEMPLATE.md
+      output: preliminary_environment_asset_alignment_ref
+    - compose_alignment_preview
+    - obtain_ai_download_user_download_or_skip_choice_for_each_unresolved_tool
+    - bind_choices_paths_authority_and_accepted_impact_into_alignment_preview
+  preview_must_show:
+    - all_repositories_and_revisions
+    - dirty_and_untracked_state
+    - solo_or_collaborative_delivery
+    - participant_boundaries
+    - changes_expected_but_not_arrived
+    - consumer_presence_or_absence
+    - handoff_samples_or_declared_absence
+    - authoritative_sources_and_priority
+    - permissions_and_forbidden_actions
+    - selected_profile_and_capability_contracts
+    - provider_source_artifact_and_index_paths
+    - missing_invalid_or_omitted_required_tools
+    - ai_download_user_download_or_skip_options_and_impact
+  await_exact_confirmation: "确认并锁定本次审查，开始自主执行"
+  then:
+    - create_alignment_lock
+    - verify_alignment_lock_hash
+    - initialize_append_only_ledger
+    - enter_unattended_mode
+
+stages:
+  - id: S0_SCOPE_AND_SNAPSHOT
+    objective: 固定审查对象并识别多人协作造成的合理缺口
+    invokes:
+      - workspace-snapshot
+      - collaboration-snapshot
+      - third-party-supply-chain
+    outputs:
+      - workspace_snapshot
+      - collaboration_map
+      - missing_input_classification
+      - provenance_receipts
+    gate_updates:
+      - F0_ALIGNMENT_LOCK
+    continuation: continue_all_independent_ready_items
+
+  - id: S0A_ENVIRONMENT_ASSET_ALIGNMENT
+    objective: 核对本次可能使用的Provider源码、制品和本地路径，并处理缺失项
+    invokes:
+      - third-party-supply-chain
+    input_template: ../../capabilities/third-party-supply-chain/ENVIRONMENT_ASSET_INVENTORY_TEMPLATE.md
+    requirements:
+      - inspect_user_provided_markdown_inventory
+      - detect_missing_invalid_mismatched_or_omitted_required_tools
+      - present_ai_download_user_download_or_intentional_skip_with_impact
+      - require_outer_runtime_boundary_receipt_before_ai_download
+      - continue_tasks_independent_of_missing_optional_provider
+    outputs:
+      - environment_asset_alignment
+      - deduplicated_download_decisions
+      - provider_availability_and_impact
+    continuation: continue_all_independent_ready_items
+
+  - id: S1_AUTHORITY_AND_CONTRACT
+    objective: 建立权威依据、需求条目和接口契约的可追溯关系
+    invokes:
+      - authority-governance
+      - contract-reconciliation
+      - evidence-kernel
+    outputs:
+      - authority_manifest
+      - requirement_claims
+      - contract_conflicts
+      - unknowns
+    gate_updates:
+      - F0_ALIGNMENT_LOCK
+      - F3_DT_AND_CONTRACT_INTEGRATION
+
+  - id: S2_CODE_FACT_BASELINE
+    objective: 在固定快照上获取定义、引用、调用、目标归属和配置事实
+    invokes:
+      - code-fact
+      - build-dependency-audit
+    requirements:
+      - provider_choice_remains_inside_capability
+      - index_freshness_receipt_if_indexed_provider_used
+      - lexical_or_source_fallback_when_provider_unqualified
+    outputs:
+      - code_fact_claims
+      - target_membership_claims
+      - include_and_generated_dependency_claims
+      - coverage_and_limitations
+    gate_updates:
+      - F2_BUILD_TARGET_AND_DEPENDENCY
+
+  - id: S3_CHANGE_AND_DEPENDENCY_REVIEW
+    objective: 发现大段误删、括号不平衡、尾部截断、传递依赖与漏编目标
+    invokes:
+      - change-safety
+      - build-dependency-audit
+      - code-fact
+    mandatory_checks:
+      - before_after_diff_inventory
+      - declaration_and_function_boundary_balance
+      - end_of_file_integrity
+      - deleted_symbol_and_call_site_reconciliation
+      - direct_and_transitive_include_resolution
+      - source_to_target_membership
+      - generated_header_and_macro_provenance
+      - post_change_provider_refresh_gate_if_source_or_build_context_changed
+      - repository_reader_check_for_all_changed_identifiers_comments_tests_messages_and_committed_text
+    outputs:
+      - structural_safety_result
+      - dependency_result
+      - suspected_accidental_deletion_set
+      - provider_refresh_receipts_after_change
+      - repository_reader_check_result
+    gate_updates:
+      - F1_STRUCTURAL_CHANGE_SAFETY
+      - F2_BUILD_TARGET_AND_DEPENDENCY
+
+  - id: S4_BEHAVIOR_AND_TRACE_RECONSTRUCTION
+    objective: 还原业务值、DT 注册、DataBuff 动态绑定及跨模块信号链
+    invokes:
+      - behavior-recovery
+      - contract-reconciliation
+      - build-dependency-audit
+      - signal-lineage
+    conditional_invokes:
+      - observability-planner
+    outputs:
+      - behavior_matrix
+      - dt_registration_matrix
+      - databuff_binding_evidence
+      - signal_trace_with_first_divergence
+      - later_test_observability_plan
+    gate_updates:
+      - F3_DT_AND_CONTRACT_INTEGRATION
+      - F4_BEHAVIOR_SIGNAL_AND_DESIGN
+
+  - id: S5_INDEPENDENT_AND_DESIGN_REVIEW
+    objective: 防止围绕当前补丁自证，检查责任层、边界与长期设计质量
+    invokes:
+      - independent-review
+      - design-fit-review
+      - code-fact
+    requirements:
+      - reviewer_inputs_reference_same_locked_snapshot
+      - reviewers_must_publish_evidence_not_only_opinion
+      - patch_symptom_fix_and_wrong_layer_patterns_are_explicitly_tested
+    outputs:
+      - independent_findings
+      - design_fit_findings
+      - unresolved_disagreements
+    gate_updates:
+      - F4_BEHAVIOR_SIGNAL_AND_DESIGN
+
+  - id: S6_WINDOWS_PRECHECK_AND_EVIDENCE_RECONCILIATION
+    objective: 在 Windows 可用条件下发现错误，并诚实标注与正式环境的差距
+    invokes:
+      - windows-static-precheck
+      - external-evidence
+      - evidence-kernel
+    requirements:
+      - active_check_canary
+      - compiler_flags_include_macro_target_manifest
+      - environment_equivalence_assessment
+      - user_errors_ingested_as_first_class_evidence
+    conflict_policy:
+      user_red_vs_local_green: FAIL_OR_INCONCLUSIVE_UNTIL_RECONCILED
+      local_check_without_valid_canary: INVALID_CHECK
+      compiler_or_header_path_mismatch: CONCLUSION_CAPPED
+    outputs:
+      - precheck_receipts
+      - environment_equivalence
+      - evidence_conflicts
+      - reconciled_claims
+    gate_updates:
+      - F1_STRUCTURAL_CHANGE_SAFETY
+      - F2_BUILD_TARGET_AND_DEPENDENCY
+      - F3_DT_AND_CONTRACT_INTEGRATION
+      - F5_EXTERNAL_EVIDENCE_RECONCILIATION
+
+  - id: S7_VERDICT_AND_REPORTS
+    objective: 对全部 Gate 求值并从同一事实源生成三种视图
+    invokes:
+      - audit-ledger
+      - report-renderer
+    conditional_invokes:
+      - experience-memory
+    prerequisites:
+      - all_ready_items_completed_or_bounded_by_evidence
+      - waiting_human_items_deduplicated
+      - every_gate_has_result_and_evidence_refs
+    outputs:
+      - gate_results
+      - final_verdict
+      - professional_report
+      - plain_language_report
+      - machine_report
+      - audit_manifest
+      - memory_operation_receipt_when_explicitly_requested
+    gate_updates:
+      - F6_AUDITABILITY_AND_DELIVERY
+
+post_change_provider_refresh_gate:
+  trigger: source_header_build_metadata_generated_input_or_semantic_configuration_changed
+  provider_neutral: true
+  sequence:
+    - invalidate_evidence_bound_to_previous_content_id
+    - compute_changed_files_and_affected_dependency_closure
+    - if_supported_execute_incremental_refresh_through_capability_contract
+    - verify_refreshed_index_binding_to_new_content_id_and_build_context
+    - persist_refresh_receipt
+    - only_then_requery_and_emit_new_evidence
+  incremental_refresh_success_requires:
+    - old_and_new_content_id
+    - changed_file_set
+    - dependency_closure_and_derivation
+    - refreshed_skipped_and_failed_units
+    - old_and_new_index_identity
+    - build_profile_generated_inputs_and_provider_config_binding
+    - successful_post_refresh_health_and_binding_check
+  on_incremental_refresh_unsupported_or_failed:
+    - mark_provider_evidence_stale_for_new_snapshot
+    - forbid_old_index_for_new_claims
+    - select_first_class_native_provider_with_explicit_ceiling_or
+    - request_profile_approved_full_rebuild
+  gate_result_when_old_index_used: FAIL
+  gate_result_when_refresh_binding_unknown: INCONCLUSIVE
+  forbidden:
+    - provider_specific_commands_inside_profile
+    - requery_old_index_and_call_it_refreshed
+    - convert_refresh_failure_to_no_finding
+
+failure_and_wait_policy:
+  on_check_failure:
+    - capture_raw_output_and_context
+    - classify_product_error_tool_error_environment_gap_or_unknown
+    - try_bounded_safe_fallbacks
+    - continue_unrelated_ready_items
+    - emit_evidence_backed_result
+  may_enter_waiting_human_only_if:
+    - permission_or_credential_is_required
+    - authoritative_input_is_missing_and_cannot_be_inferred
+    - collaboration_owner_must_supply_unarrived_code_or_contract
+    - mutually_exclusive_user_decision_changes_product_semantics
+  waiting_human_payload_requires:
+    - blocker_fingerprint
+    - diagnostic_attempts
+    - evidence_refs
+    - exact_missing_input
+    - affected_and_unaffected_scope
+    - smallest_answer_question
+
+completion:
+  checkpoint_before_reports: true
+  assert_same_fact_set_for_all_views: true
+  never_promote_inconclusive_to_pass: true
+  memory_write_only_on_explicit_intent: true
+  recalled_memory_never_counts_as_current_gate_evidence_without_reverification: true

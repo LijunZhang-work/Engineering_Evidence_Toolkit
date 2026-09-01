@@ -1,0 +1,24 @@
+schema_version: 1
+id: windows-static-precheck
+name: Windows Static Precheck
+version: 0.1.0-draft
+status: DESIGNED
+kind: independent_capability
+spec: SPEC.md
+entrypoint:
+  operation: run_windows_precheck
+  callable_without_profile: true
+inputs:
+  required: [workspace_snapshot, target_scope, windows_environment]
+  optional: [compile_database, header_map, code_fact_provider, rule_pack]
+outputs:
+  primary: windows_precheck_report
+  includes: [environment_qualification, negative_canary, coverage, diagnostics, mismatches, evidence_ceiling]
+side_effects:
+  repository_mutation: forbidden
+  external_mutation: forbidden
+  allowed_writes: [run_artifacts, disposable_analysis_index]
+failure_policy: fail_closed
+result_states: [ISSUES_FOUND, NO_ISSUES_WITHIN_QUALIFIED_SCOPE, PARTIAL, NOT_QUALIFIED]
+evidence_ceiling: "Windows 静态预检不等价于 Linux/WSL 产品镜像编译，也不能证明 DT/TT 运行通过"
+

@@ -1,0 +1,92 @@
+schema_version: "1.0"
+register_id: EET-LEGACY-SOURCES-2026-08-29
+purpose: >-
+  固定新工具集所依据的三份历史规范来源。该登记只证明来源身份与迁移范围，
+  不证明新工具已经实现、运行或通过验证。
+
+status_vocabulary:
+  specification_migration:
+    - NOT_STARTED
+    - PARTIAL
+    - MAPPED
+    - SUPERSEDED
+  implementation:
+    - NOT_IMPLEMENTED
+    - PARTIAL
+    - IMPLEMENTED
+  validation:
+    - NOT_VALIDATED
+    - PARTIAL
+    - VALIDATED
+
+sources:
+  - source_id: LEGACY-CFA-MAIN-V3.1
+    title: Code Fact Accelerator v3.1
+    filename: Code_Fact_Accelerator_v3.1_Capability_Oriented_Model_Evolvable_内网_DeepSeek_Harness_2026-08-29.md
+    source_role: BASE_SPECIFICATION
+    library_file_id: libfile_b7b0221bfd848191aeb26046181fe060
+    file_id: file_00000000b8d881f78eab2ee0578a8c8b
+    sha256: 9a414470967ce8bfb2184823838aa3e8bcb5f276a47d1a6b3555ab9cb82617f7
+    frozen_at: "2026-08-29"
+    chapter_coverage:
+      numbered: "0-31"
+      appendices: [A, B, C, D, E, F]
+    normative_character: >-
+      能力导向、证据内核、Provider 可替换、供应链固定、Benchmark、
+      Coverage/Freshness、Fail-Closed 与生命周期设计的历史规范。
+    mapping_status: MAPPED
+    migration_status: SUPERSEDED
+    implementation_status: NOT_IMPLEMENTED
+    validation_status: NOT_VALIDATED
+
+  - source_id: LEGACY-CFA-POST-V1.1
+    title: Code Fact Accelerator — v3.1 完成后的下一阶段执行计划 v1.1
+    filename: Code_Fact_Accelerator_Post_v3.1_公司Python脚本化多仓工作流适配_真实项目验证_clangd补齐_v1.1_2026-08-29.md
+    source_role: FUTURE_CAMPAIGN_PLAN
+    library_file_id: libfile_9fc35b3e5eac8191808c8c81d2677563
+    file_id: file_00000000a6a881f6bf47fe0b6d6c9397
+    sha256: 7b59446163c7cd0aa23c27ae8f3f9406b5e476f07a2cdc2e1a09c1ecd970fe7a
+    frozen_at: "2026-08-29"
+    chapter_coverage:
+      numbered: "0-21"
+      appendices: [A, B, C]
+    normative_character: >-
+      前置完成后的验证 Campaign：公司 Python 多仓工作流适配、真实项目复核、
+      clangd Intake/Benchmark、Provider-Off/Swap/Removal 验证。
+    current_capability_statement: >-
+      本来源是计划和验证活动定义，不是当前能力清单；任何 N0-N7、clangd、
+      Joern、Kythe 或公司脚本适配均不得仅凭本文被标记为已实现或 ACTIVE。
+    mapping_status: MAPPED
+    migration_status: SUPERSEDED
+    implementation_status: NOT_IMPLEMENTED
+    validation_status: NOT_VALIDATED
+
+  - source_id: LEGACY-RECOVERY-REVIEW-V2.5
+    title: 多仓 AI 遗留改动 Behavioral Recovery Review v2.5
+    filename: 多仓_AI遗留改动_Recovery_Review_v2.5_基础结构硬门禁_设计完整性_自主执行_内网_DeepSeek_Harness_2026-08-29.md
+    source_role: COMPOSITE_REVIEW_PROTOCOL
+    library_file_id: libfile_a4d2131850888191b5f738c4501c30e4
+    file_id: file_000000007d9c81f68fde6f56f9f59761
+    sha256: 6a6c82d265dcb9003130813fb859fba83b85b347b65a253652e7c639d5ab8344
+    frozen_at: "2026-08-29"
+    chapter_coverage:
+      named_front_matter: [ENTRYPOINT, ALIGNMENT, HUMAN_LAUNCH_LOCK]
+      numbered: "0-43, including 15A-15G"
+      appendices: [A, B, C]
+    normative_character: >-
+      Recovery Review 的历史组合协议，混合了独立能力、Profile 编排、Provider、
+      运行实例状态、规则、Gate、报告与验收设计。
+    mapping_status: MAPPED
+    migration_status: SUPERSEDED
+    implementation_status: NOT_IMPLEMENTED
+    validation_status: NOT_VALIDATED
+
+integrity_policy:
+  hash_algorithm: SHA-256
+  changed_source_rule: >-
+    任一来源内容发生变化时必须登记为新 source_id 和新哈希；不得覆盖此冻结记录。
+  historical_retention: >-
+    三份旧文档保留为历史来源和审计证据，不删除、不改写；新工具集生效后不再作为运行入口。
+  no_implementation_inference: >-
+    来源已登记、规范已映射或文件已生成，均不等于能力已实现、Provider 已部署、
+    索引已新鲜、检查已生效或结论已经验证。

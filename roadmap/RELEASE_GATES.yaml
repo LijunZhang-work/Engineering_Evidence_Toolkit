@@ -1,0 +1,247 @@
+schema_version: "1.0"
+gate_set_id: EET-RELEASE-GATES-2026-08-29
+default_policy:
+  initial_result: BLOCKED
+  pass_source: MACHINE_EVIDENCE_OR_AUTHORIZED_HUMAN_GATE
+  prose_cannot_set_pass: true
+  partial_pass_forbidden: true
+  capability_activation_is_independent: true
+
+status_axes:
+  specification: [DRAFT, REVIEWED, BASELINED]
+  implementation: [NOT_IMPLEMENTED, PARTIAL, IMPLEMENTED]
+  validation: [NOT_VALIDATED, PARTIAL, VALIDATED]
+  qualification: [UNQUALIFIED, QUALIFIED_WITH_LIMITS, QUALIFIED]
+  activation: [INACTIVE, ACTIVE_ON_DEMAND, ACTIVE]
+
+gates:
+  - gate_id: RG-00
+    name: Source and Migration Integrity
+    unlocks: BASELINE_CONFIRMATION
+    required_evidence:
+      - 三份来源SHA-256复算一致
+      - 全部一级章节分组映射
+      - 全部规则族及编号漂移登记
+      - 新增与退休要求分开登记
+      - 独立Reviewer确认未丢失CRITICAL安全不变量
+    current_result: BLOCKED
+    reason: 独立语义等价审计未完成
+
+  - gate_id: RG-01
+    name: Construction Authorization
+    unlocks: TOOLKIT_IMPLEMENTATION_ONLY
+    human_gate:
+      exact_phrase: 确认并锁定工具集建设基线，开始自主建设
+      bind_to: [manifest_hash, source_hashes, permission_boundary, timestamp]
+    forbidden_effects:
+      - MODIFY_BUSINESS_SOURCE
+      - COMMIT_OR_PUSH_BUSINESS_REPOS
+      - ACTIVATE_UNVALIDATED_CAPABILITY
+    current_result: BLOCKED
+    reason: 需要用户以精确语句确认并生成绑定Receipt
+
+  - gate_id: RG-02
+    name: Contract and Evidence Kernel
+    unlocks: CAPABILITY_IMPLEMENTATION
+    required_evidence:
+      - 所有核心schema可机器校验
+      - 每个schema至少一个正例和两个反例
+      - Claim可追到原始位置与内容哈希
+      - derivation/assertion/authority/verification四轴分离
+      - Unknown、conflict、taint不能被报告隐藏
+    negative_canaries:
+      - 缺少原始证据的PASS claim必须失败
+      - 冲突证据被静默择优必须失败
+      - 示例状态进入真实Registry必须失败
+    current_result: BLOCKED
+    reason: 未实现
+
+  - gate_id: RG-03
+    name: Basic Structural Change Safety
+    unlocks: SAFE_EDIT_CAPABILITY
+    required_evidence:
+      - 改前快照可恢复
+      - 完整文件多探测检查
+      - 顶层符号差异可解释
+      - changed-byte binding一致
+      - 每次写入后重新读取实际diff
+    negative_canaries:
+      - 删除函数右括号及后续函数必须失败
+      - 文件尾截断必须失败
+      - 冲突标记残留必须失败
+      - Parser无错误但符号大量消失仍必须失败
+    current_result: BLOCKED
+    reason: 未实现
+
+  - gate_id: RG-04
+    name: Workspace Authority and Collaboration Facts
+    unlocks: MULTI_REPO_FACT_COLLECTION
+    required_evidence:
+      - 多仓revision与dirty state快照
+      - 权威来源顺序和冲突记录
+      - 个人/多人交付模式
+      - 未上库协作依赖与未知消费者边界
+      - 无.git或脚本manifest场景的只读处理
+    negative_canaries:
+      - 未冻结revision却输出高置信结论必须失败
+      - 消费端缺失被推断为生产端错误必须失败
+    current_result: BLOCKED
+    reason: 未实现
+
+  - gate_id: RG-05
+    name: Code Fact Freshness and Provider Qualification
+    unlocks: CODE_FACT_CAPABILITY
+    required_evidence:
+      - Native baseline有效
+      - Provider无关Capability Contract
+      - Coverage、corpus、build profile与snapshot绑定
+      - 修改后增量刷新Receipt
+      - Source/Build/Execution/Qualification Receipts
+      - artifact/deployment/profile-binding三生命周期
+    negative_canaries:
+      - 修改代码后用旧索引查询必须被拒绝
+      - Provider能启动但Coverage为零不得QUALIFIED
+      - 示例ACTIVE不得激活真实Provider
+    current_result: BLOCKED
+    reason: 未实现，CodeGraph等仅是候选适配器
+
+  - gate_id: RG-06
+    name: Windows Precheck and Dependency Audit
+    unlocks: WINDOWS_STATIC_EVIDENCE
+    required_evidence:
+      - 编译器、版本、命令、目标、include、macro、generated inputs和退出码资格表
+      - 负向Canary证明命令能真实失败
+      - Build/Include/Data三图分离
+      - Target membership与传递include传播链
+      - 条件编译、生成依赖和DT静态矩阵
+      - 与产品镜像编译不等价的结论上限
+    negative_canaries:
+      - 故意缺失头文件必须失败或UNQUALIFIED
+      - 吞掉非零退出码必须失败
+      - 文件存在但未进入目标不得判定已编译
+      - 编译器与产品环境不一致不得声称等价
+    current_result: BLOCKED
+    reason: 未实现
+
+  - gate_id: RG-07
+    name: Evidence Conflict and Design Fit
+    unlocks: REVIEW_AND_FIX_CAPABILITIES
+    required_evidence:
+      - 用户原始错误不可改写
+      - 明确错误单向否决总体PASS
+      - 症状/触发/根因分离
+      - 不变量、责任归属、既有设计和两方案比较
+      - DT测试答案保护与设计债务登记
+    negative_canaries:
+      - 本地未复现覆盖用户错误必须失败
+      - 为变绿修改DT期望值必须失败
+      - 只按最少代码行选择修复必须失败
+    current_result: BLOCKED
+    reason: 未实现
+
+  - gate_id: RG-08
+    name: Autonomous Runner Liveness
+    unlocks: UNATTENDED_MODE
+    required_evidence:
+      - 可恢复状态机和幂等任务
+      - 诊断阶梯与替代证据路径
+      - 同根因合并与阻塞数量异常再诊断
+      - 心跳、Question Deferral和资源控制
+      - WAITING_HUMAN仅限真实人类决策
+    negative_canaries:
+      - 普通工具失败不得直接冻结
+      - 一千个同根因错误不得生成一千个阻塞项
+      - 进程中断后不得从头伪装重跑
+    current_result: BLOCKED
+    reason: 未实现
+
+  - gate_id: RG-09
+    name: Signal Lineage and Observability Planning
+    unlocks: TEST_TRACE_PREPARATION
+    required_evidence:
+      - 跨模块数据轨迹与每站预期值
+      - 类型、单位、增益、默认、上下限与转换
+      - DT侧追踪方案
+      - 业务侧复用既有模块记录机制的低侵入计划
+      - correlation字段与性能/刷屏约束
+    forbidden_effects:
+      - 仅凭规划修改业务源码
+      - 强制所有模块使用统一日志后端
+    current_result: BLOCKED
+    reason: 未实现
+
+  - gate_id: RG-10
+    name: Profile Composition
+    unlocks: PROFILE_CANDIDATE
+    required_evidence:
+      - 能力可被单独调用且结果不依赖Profile名称
+      - Profile只负责绑定、编排、Gate映射和报告视图
+      - 同一事实集生成专业版与小白版相同结论
+      - Fresh只读Reviewer可真实隔离
+      - 恢复运行不会重复或跳过Gate
+    current_result: BLOCKED
+    reason: 未实现
+
+  - gate_id: RG-10A
+    name: Experience Memory Correctability
+    unlocks: EXPERIENCE_MEMORY_CANDIDATE
+    required_evidence:
+      - 明确记忆意图与普通总结可区分
+      - Canonical Markdown可写入并回读
+      - 项目与仓库范围隔离
+      - WRONG、STALE与SUPERSEDED追加式纠错链
+      - 召回结果不能直接支撑当前Gate
+      - Provider不可用保持可见
+    negative_canaries:
+      - 新证据推翻旧记忆后旧结论不得继续普通召回
+      - 项目A记忆不得静默泄漏到项目B
+      - Provider写入失败不得声称已经记住
+    current_result: BLOCKED
+    reason: 仅完成规格和MVP定义，尚未实现或执行
+
+  - gate_id: RG-10B
+    name: Outer Runtime Boundary and Environment Asset Alignment
+    unlocks: ENVIRONMENT_BOUND_PROVIDER_SETUP
+    required_evidence:
+      - 公司环境访问策略只有一个Canonical Owner
+      - 配置的公司模型API可通过运行时引用使用且密钥不落盘
+      - Provider源码、制品和索引路径清单已核对
+      - 缺失工具三种处理策略与影响已锁定
+      - AI下载必须有用户授权和外层边界ALLOWED Receipt
+    negative_canaries:
+      - 内部Capability重复环境策略键必须失败
+      - 未授权git clone必须失败
+      - 可选Provider缺失不得冻结全部工作
+    current_result: BLOCKED
+    reason: 外层边界与清单模板已设计，尚未在真实环境强制执行
+
+  - gate_id: RG-11
+    name: Real Multi-repo Campaign
+    unlocks: REAL_PROJECT_QUALIFICATION
+    predecessor_gates: [RG-04, RG-05, RG-06, RG-10]
+    required_evidence:
+      - 公司批准Python工作流Profile
+      - 真实Workspace revision freeze
+      - 真实Case与Golden Evidence
+      - Native与Provider控制变量Benchmark
+      - Provider-Off/Swap/Removal结果
+      - clangd资格结果；Joern/Kythe按Trigger处理
+    current_result: BLOCKED
+    reason: CFA Post只是计划，前置能力未实现
+
+  - gate_id: RG-12
+    name: Capability or Profile Activation
+    unlocks: ACTIVE_STATUS
+    required_evidence:
+      - 对应前置Gate全部PASS
+      - 独立Reviewer签名
+      - immutable activation receipt
+      - 明确scope、corpus、build profile、model/task profile和有效期
+      - rollback/unbind contract
+      - 用户单独激活决定
+    current_result: BLOCKED
+    reason: 实现与验证均未完成
+
+state_change_rule: >-
+  current_result只能由对应检查器的不可变Receipt或明确的Human Gate更新。
+  修改本YAML中的文本不是合法状态迁移。

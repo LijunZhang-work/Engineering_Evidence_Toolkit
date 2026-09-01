@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/evidence-bundle.schema.json",
+  "title": "Evidence Bundle",
+  "description": "围绕一个 Claim 的可复查证据包。Provider 输出必须经过此契约后才能进入裁决层。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "evidence_id",
+    "claim_id",
+    "workspace_snapshot_id",
+    "content_id",
+    "provenance_id",
+    "direction",
+    "mode",
+    "capability",
+    "derivation_method",
+    "assertion_source",
+    "verification_status",
+    "freshness_status",
+    "coverage_status",
+    "authority_tier",
+    "evidence_ceiling",
+    "artifacts",
+    "receipt_refs",
+    "limitations"
+  ],
+  "properties": {
+    "schema_version": {"type": "string", "minLength": 1},
+    "evidence_id": {"type": "string", "pattern": "^ev_[A-Za-z0-9._-]+$"},
+    "claim_id": {"type": "string", "pattern": "^cl_[A-Za-z0-9._-]+$"},
+    "workspace_snapshot_id": {"type": "string", "pattern": "^wss_[A-Za-z0-9._-]+$"},
+    "content_id": {"$ref": "#/$defs/digest_id"},
+    "provenance_id": {"$ref": "#/$defs/digest_id"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "mode": {"enum": ["EXPLORE", "EVIDENCE", "ENFORCE"]},
+    "direction": {"enum": ["SUPPORTS", "REFUTES", "CONTEXT_ONLY"]},
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capability_id", "version"],
+      "properties": {
+        "capability_id": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1},
+        "contract_version": {"type": "string"},
+        "provider_id": {"type": "string"},
+        "provider_version": {"type": "string"},
+        "provider_qualification_status": {
+          "enum": ["QUALIFIED", "QUALIFIED_WITH_LIMITS", "UNQUALIFIED", "UNKNOWN"]
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "repository_ids": {"type": "array", "items": {"type": "string"}},
+        "targets": {"type": "array", "items": {"type": "string"}},
+        "files": {"type": "array", "items": {"type": "string"}},
+        "symbols": {"type": "array", "items": {"type": "string"}},
+        "build_profile_ids": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "derivation_method": {
+      "enum": [
+        "direct_source",
+        "compiler",
+        "parser",
+        "language_server",
+        "graph",
+        "test",
+        "runtime_log",
+        "database_trace",
+        "authority_reconciliation",
+        "lexical",
+        "model_inference",
+        "user_supplied"
+      ]
+    },
+    "assertion_source": {
+      "enum": [
+        "code",
+        "build_system",
+        "test",
+        "runtime",
+        "authority_document",
+        "user_external",
+        "comment",
+        "model",
+        "derived_index"
+      ]
+    },
+    "verification_status": {
+      "enum": ["verified", "partially_verified", "unverified", "invalidated"]
+    },
+    "freshness_status": {"enum": ["fresh", "stale", "unknown"]},
+    "coverage_status": {"enum": ["complete", "partial", "unknown"]},
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expected_units": {"type": "integer", "minimum": 0},
+        "covered_units": {"type": "integer", "minimum": 0},
+        "failed_units": {"type": "integer", "minimum": 0},
+        "excluded_units": {"type": "integer", "minimum": 0},
+        "exclusion_reasons": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "authority_tier": {"type": "string", "minLength": 1},
+    "evidence_ceiling": {
+      "description": "该证据最多可支持的结论；由能力契约和 Profile 约束，不能由 Provider 自行拔高。",
+      "type": "string",
+      "minLength": 1
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/artifact"}
+    },
+    "receipt_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "pattern": "^rcpt_[A-Za-z0-9._-]+$"}
+    },
+    "observations": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string"}
+    },
+    "conflict_refs": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "next_actions": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "supersedes": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  },
+  "$defs": {
+    "digest_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]+:[A-Fa-f0-9]{16,}$"
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "content_id", "provenance_id", "location", "media_type"],
+      "properties": {
+        "artifact_id": {"type": "string", "pattern": "^art_[A-Za-z0-9._-]+$"},
+        "content_id": {"$ref": "#/$defs/digest_id"},
+        "provenance_id": {"$ref": "#/$defs/digest_id"},
+        "location": {"type": "string", "minLength": 1},
+        "media_type": {"type": "string", "minLength": 1},
+        "size_bytes": {"type": "integer", "minimum": 0},
+        "captured_at": {"type": "string", "format": "date-time"},
+        "description": {"type": "string"}
+      }
+    }
+  }
+}

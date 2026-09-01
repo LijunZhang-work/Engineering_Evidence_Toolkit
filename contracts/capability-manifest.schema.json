@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/capability-manifest.schema.json",
+  "title": "Independent Capability Manifest",
+  "description": "独立能力静态规格。status=DESIGNED 只表示规格已设计，不表示实现、验证或启用。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "name", "version", "status", "kind", "entrypoint", "inputs", "outputs", "side_effects", "failure_policy", "result_states", "evidence_ceiling"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "name": {"type": "string", "minLength": 1},
+    "version": {"$ref": "#/$defs/version"},
+    "status": {"const": "DESIGNED"},
+    "status_dimensions": {"$ref": "#/$defs/status_dimensions"},
+    "kind": {"const": "independent_capability"},
+    "spec": {"type": "string", "minLength": 1},
+    "purpose": {"type": "string", "minLength": 1},
+    "entrypoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "callable_without_profile"],
+      "properties": {
+        "operation": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "callable_without_profile": {"const": true}
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "optional"],
+      "properties": {
+        "required": {"$ref": "#/$defs/nonempty_string_array"},
+        "optional": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary", "includes"],
+      "properties": {
+        "primary": {"type": "string", "minLength": 1},
+        "includes": {"$ref": "#/$defs/nonempty_string_array"}
+      }
+    },
+    "side_effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository_mutation", "external_mutation", "allowed_writes"],
+      "properties": {
+        "repository_mutation": {"type": "string", "minLength": 1},
+        "external_mutation": {"type": "string", "minLength": 1},
+        "allowed_writes": {"$ref": "#/$defs/nonempty_string_array"}
+      }
+    },
+    "failure_policy": {"type": "string", "minLength": 1},
+    "result_states": {"$ref": "#/$defs/nonempty_string_array"},
+    "evidence_ceiling": {"type": "string", "minLength": 1},
+    "modes": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "EXPLORE": {"$ref": "#/$defs/mode"},
+        "EVIDENCE": {"$ref": "#/$defs/mode"},
+        "ENFORCE": {"$ref": "#/$defs/mode"}
+      }
+    },
+    "contracts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inputs", "outputs"],
+      "properties": {
+        "inputs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/contract_ref"}},
+        "outputs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/contract_ref"}}
+      }
+    },
+    "evidence_axes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["derivation_method", "assertion_source", "authority"],
+      "properties": {
+        "derivation_method": {"$ref": "#/$defs/axis"},
+        "assertion_source": {"$ref": "#/$defs/axis"},
+        "authority": {"$ref": "#/$defs/axis"}
+      }
+    },
+    "provider_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["built_in_providers", "optional_local_providers", "external_provider_rule", "no_provider_is_mandatory", "selection_owner"],
+      "properties": {
+        "built_in_providers": {"$ref": "#/$defs/nonempty_string_array"},
+        "optional_local_providers": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "external_provider_rule": {"type": "string", "minLength": 1},
+        "no_provider_is_mandatory": {"const": true},
+        "selection_owner": {"type": "string", "minLength": 1}
+      }
+    },
+    "invariants": {"$ref": "#/$defs/nonempty_string_array"},
+    "boundaries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owns", "does_not_own"],
+      "properties": {
+        "owns": {"$ref": "#/$defs/nonempty_string_array"},
+        "does_not_own": {"$ref": "#/$defs/nonempty_string_array"}
+      }
+    },
+    "failure_semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowed_statuses", "forbidden_substitution"],
+      "properties": {
+        "allowed_statuses": {"$ref": "#/$defs/nonempty_string_array"},
+        "forbidden_substitution": {"type": "string", "minLength": 1}
+      }
+    },
+    "implementation_note": {"type": "string", "minLength": 1}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"id": {"const": "code-fact"}}, "required": ["id"]},
+      "then": {"required": ["status_dimensions", "purpose", "modes", "contracts", "evidence_axes", "provider_policy", "invariants", "boundaries", "failure_semantics", "implementation_note"]}
+    }
+  ],
+  "$defs": {
+    "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$"},
+    "status_dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["specification_status", "implementation_status", "validation_status", "activation_status"],
+      "properties": {
+        "specification_status": {"const": "DESIGNED"},
+        "implementation_status": {"enum": ["NOT_IMPLEMENTED", "PARTIAL", "IMPLEMENTED"]},
+        "validation_status": {"enum": ["NOT_RUN", "PARTIAL", "PASSED", "FAILED", "STALE"]},
+        "activation_status": {"enum": ["INACTIVE", "ACTIVE", "SUSPENDED", "RETIRED"]}
+      }
+    },
+    "mode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description", "minimum_receipts"],
+      "properties": {
+        "description": {"type": "string", "minLength": 1},
+        "minimum_receipts": {"$ref": "#/$defs/nonempty_string_array"}
+      }
+    },
+    "contract_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "required"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1},
+        "required": {"type": "boolean"}
+      }
+    },
+    "axis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["values"],
+      "properties": {"values": {"$ref": "#/$defs/nonempty_string_array"}}
+    },
+    "nonempty_string_array": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    }
+  }
+}

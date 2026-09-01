@@ -1,0 +1,364 @@
+schema_version: "1.0"
+matrix_id: EET-RTM-2026-08-29
+purpose: >-
+  将三份历史来源的全部一级章节和规则族映射到新工具集的独立能力、组合 Profile、
+  适配器、契约、建设路线或历史档案。映射表示“规范去向明确”，不表示实现完成。
+
+target_kinds:
+  ARCHITECTURE: 跨模块边界、目录职责与组合约束
+  CAPABILITY: 可被单独调用、独立产出证据的能力
+  CONTRACT: 跨能力交换的稳定数据契约
+  PROFILE: 对能力进行可选组合并将事实映射为 Gate/Verdict 的配置
+  ADAPTER: 特定工具、Provider、环境或公司工作流的可替换接入层
+  ROADMAP: 尚待建设或验证的 Campaign
+  ARCHIVE: 仅作历史、研究或示例保留
+
+source_coverage:
+  LEGACY-CFA-MAIN-V3.1:
+    expected: {numbered_chapters: "0-31", appendices: [A, B, C, D, E, F]}
+    mappings:
+      - map_id: CFA-M-001
+        source_sections: ["0", "1", "2"]
+        requirements: [内网源码优先, 能力导向, 不把模型或Provider固化进证据语义, V1边界]
+        targets:
+          - {kind: ARCHITECTURE, id: architecture/system-boundaries}
+          - {kind: CONTRACT, id: contracts/capability-contract}
+      - map_id: CFA-M-002
+        source_sections: ["3"]
+        requirements: [Stable Evidence Kernel, Stable Capability Contract, Replaceable Provider, Profile不改变证据语义]
+        targets:
+          - {kind: CAPABILITY, id: evidence-kernel}
+          - {kind: CONTRACT, id: evidence-bundle}
+          - {kind: ADAPTER, id: provider-registry}
+          - {kind: PROFILE, id: profile-contract}
+      - map_id: CFA-M-003
+        source_sections: ["4", "5"]
+        requirements: [受控联网, 内部Mirror, 固定源码构建, 固定制品, DSH接入, 统一目录]
+        targets:
+          - {kind: CAPABILITY, id: third-party-supply-chain}
+          - {kind: ADAPTER, id: provider-supply-chain}
+          - {kind: ADAPTER, id: company-runtime-boundary}
+          - {kind: ROADMAP, id: windows-company-deployment}
+        migration_note: 历史环境用语保留为来源证据；活动网络、模型、密钥、外发、下载和制品来源策略只由company-runtime-boundary拥有。
+      - map_id: CFA-M-004
+        source_sections: ["6", "7", "8", "9", "10"]
+        requirements: [Native Baseline, Lite题库, CodeGraph与Codebase-Memory候选Intake, 固定执行宿主, 禁止latest]
+        targets:
+          - {kind: CAPABILITY, id: code-fact}
+          - {kind: ADAPTER, id: structural-navigation-providers}
+          - {kind: ROADMAP, id: provider-intake-campaign}
+        migration_note: Provider名称保留为候选适配器，不进入能力契约。
+      - map_id: CFA-M-005
+        source_sections: ["11"]
+        requirements: [SOURCE_RECEIPT, BUILD_RECEIPT, DSH_EXECUTION_RECEIPT]
+        targets:
+          - {kind: CAPABILITY, id: third-party-supply-chain}
+          - {kind: CONTRACT, id: receipt}
+      - map_id: CFA-M-006
+        source_sections: ["12", "13"]
+        requirements: [两级Bake-off, 正确性优先, 控制变量, Lite Gate, Full Validation, Provider激活证据]
+        targets:
+          - {kind: ROADMAP, id: provider-benchmark-campaign}
+          - {kind: CONTRACT, id: benchmark-result}
+          - {kind: ADAPTER, id: provider-registry}
+      - map_id: CFA-M-007
+        source_sections: ["14", "15", "16", "17", "18"]
+        requirements: [ReviewEvidence, CrossSourceEvidence, ExactCppEvidence, LexicalEvidence, HumanOnboarding候选]
+        targets:
+          - {kind: CAPABILITY, id: code-fact}
+          - {kind: ADAPTER, id: specialized-provider-catalog}
+          - {kind: ROADMAP, id: specialized-provider-intake}
+        migration_note: Human Onboarding是消费者视图；AUTHORITY_DOCS_EVIDENCE重命名为CROSS_SOURCE_EVIDENCE，权威等级另行判定。
+      - map_id: CFA-M-008
+        source_sections: ["19", "20"]
+        requirements: [证据分类, Normative与Observational分离, Fail-Closed]
+        targets:
+          - {kind: CAPABILITY, id: evidence-kernel}
+          - {kind: CAPABILITY, id: authority-governance}
+          - {kind: CONTRACT, id: claim-evidence}
+        migration_note: 旧单轴Evidence Level拆为derivation_method、assertion_source、authority与verification四个正交字段。
+      - map_id: CFA-M-009
+        source_sections: ["21", "22"]
+        requirements: [窄Tool Policy, 永久/可衰减限制分离, Profile路由, Thin Router后置]
+        targets:
+          - {kind: PROFILE, id: tool-access-policy}
+          - {kind: ROADMAP, id: optional-thin-dispatcher}
+      - map_id: CFA-M-010
+        source_sections: ["23", "24", "25"]
+        requirements: [Recalibration, Removal Evidence, Index Freshness, Coverage, Capability与Provider生命周期]
+        targets:
+          - {kind: CAPABILITY, id: code-fact}
+          - {kind: CONTRACT, id: provider-qualification}
+          - {kind: ADAPTER, id: provider-registry}
+        migration_note: 生命周期拆分为artifact、deployment/index、profile-binding三条状态轴；不再有跨环境全局ACTIVE。
+      - map_id: CFA-M-011
+        source_sections: ["26", "27", "28", "29"]
+        requirements: [实施路线, 公司专属Provider触发条件, 成功标准, 失败标准]
+        targets:
+          - {kind: ROADMAP, id: implementation-sequence}
+          - {kind: ROADMAP, id: release-gates}
+      - map_id: CFA-M-012
+        source_sections: ["30", "31"]
+        requirements: [旧推荐目录, 总结]
+        targets:
+          - {kind: ARCHIVE, id: legacy-architecture-rationale}
+          - {kind: ARCHITECTURE, id: toolkit-folder-architecture}
+      - map_id: CFA-M-013
+        source_sections: ["Appendix A", "Appendix B", "Appendix C", "Appendix D"]
+        requirements: [QuickStart排除理由, 候选研究定位, 官方来源, 历史核验事实]
+        targets:
+          - {kind: ARCHIVE, id: provider-research-2026-08}
+          - {kind: ADAPTER, id: provider-catalog-2026-08}
+        migration_note: 时间敏感事实为RESEARCHED_REVERIFY_REQUIRED，不能直接变成ACTIVE。
+      - map_id: CFA-M-014
+        source_sections: ["Appendix E", "Appendix F"]
+        requirements: [版本变化矩阵, Registry示例, Model Profile示例]
+        targets:
+          - {kind: ARCHIVE, id: historical-version-delta}
+          - {kind: CONTRACT, id: provider-registry-example}
+        migration_note: 示例值必须标EXAMPLE_ONLY，尤其不得把示例ACTIVE当作真实部署状态。
+
+  LEGACY-CFA-POST-V1.1:
+    expected: {numbered_chapters: "0-21", appendices: [A, B, C]}
+    source_semantics: FUTURE_CAMPAIGN_PLAN_NOT_CURRENT_CAPABILITY
+    mappings:
+      - map_id: CFA-P-001
+        source_sections: ["0", "1", "2"]
+        requirements: [前置边界, 业务源码只读边界, 启动Gate, predecessor handoff]
+        targets:
+          - {kind: ROADMAP, id: real-project-validation-campaign}
+          - {kind: CONTRACT, id: predecessor-handoff}
+      - map_id: CFA-P-002
+        source_sections: ["3", "4"]
+        requirements: [公司Python多仓工作流契约, Authority顺序, Repo清单, Revision Freeze, Workspace Identity, Submission边界, 产物目录]
+        targets:
+          - {kind: CAPABILITY, id: workspace-snapshot}
+          - {kind: ADAPTER, id: company-source-control-workflow}
+          - {kind: CONTRACT, id: workspace-snapshot}
+        migration_note: 脚本名称、参数与仓清单只能由现场权威资料实例化，规范不硬编码。
+      - map_id: CFA-P-003
+        source_sections: ["5", "6", "7"]
+        requirements: [N0前置冻结, N1真实Workspace与Revision冻结, N2真实Lite Case与Golden Evidence]
+        targets:
+          - {kind: ROADMAP, id: real-project-validation-campaign/stages-N0-N2}
+      - map_id: CFA-P-004
+        source_sections: ["8"]
+        requirements: [现有Provider真实多仓复核, 多Root/单Repo/不可靠跨仓三模式, 指标与Gate]
+        targets:
+          - {kind: ROADMAP, id: real-project-validation-campaign/stage-N3}
+          - {kind: CONTRACT, id: benchmark-result}
+      - map_id: CFA-P-005
+        source_sections: ["9", "10", "11"]
+        requirements: [clangd Intake, 真实工程前置条件, Lite Benchmark, Provider关系, 最小激活策略]
+        targets:
+          - {kind: ADAPTER, id: clangd-provider-candidate}
+          - {kind: ROADMAP, id: real-project-validation-campaign/stages-N4-N6}
+        migration_note: clangd仍是候选；ACTIVE_ON_DEMAND等只能由现场Gate计算。
+      - map_id: CFA-P-006
+        source_sections: ["12"]
+        requirements: [Joern Trigger, Kythe Watchlist, 不补充的工具]
+        targets:
+          - {kind: ROADMAP, id: deferred-provider-watchlist}
+      - map_id: CFA-P-007
+        source_sections: ["13", "14", "15", "16"]
+        requirements: [Provider-Off, Provider-Swap, Removal Contract, 模型退让, DSH策略, 运行状态机, Stop Rules A-I]
+        targets:
+          - {kind: ROADMAP, id: evolvability-validation-campaign}
+          - {kind: PROFILE, id: campaign-stop-policy}
+      - map_id: CFA-P-008
+        source_sections: ["17", "18", "19", "20", "21"]
+        requirements: [成功/失败标准, 执行顺序, 人类可读报告, 最终边界]
+        targets:
+          - {kind: ROADMAP, id: release-gates}
+          - {kind: CAPABILITY, id: report-renderer}
+      - map_id: CFA-P-009
+        source_sections: ["Appendix A", "Appendix B", "Appendix C"]
+        requirements: [Manifest示例, 边界判定示例, clangd/Joern/Kythe历史依据]
+        targets:
+          - {kind: CONTRACT, id: workspace-manifest-examples}
+          - {kind: ARCHIVE, id: provider-research-2026-08}
+        migration_note: 示例不可直接当现场事实；外部依据使用前必须重新核验。
+
+  LEGACY-RECOVERY-REVIEW-V2.5:
+    expected:
+      named_front_matter: [ENTRYPOINT, ALIGNMENT, HUMAN_LAUNCH_LOCK]
+      numbered_chapters: "0-43, including 15A-15G"
+      appendices: [A, B, C]
+    mappings:
+      - map_id: RR-M-001
+        source_sections: [ENTRYPOINT, ALIGNMENT, HUMAN_LAUNCH_LOCK]
+        rule_families: [RR-E0]
+        requirements: [幂等Bootstrap, 只建治理基础设施, Bootstrap Receipt, 主动发现对齐缺口, Launch Manifest, Hash绑定确认, 确认后自主执行]
+        targets:
+          - {kind: PROFILE, id: recovery-review/bootstrap-alignment-launch}
+          - {kind: CONTRACT, id: launch-manifest}
+          - {kind: CAPABILITY, id: autonomous-runner}
+      - map_id: RR-M-002
+        source_sections: ["0", "1", "2", "3"]
+        rule_families: []
+        requirements: [事故复盘F-I, 外部状态, 不批量假完成, 新问题入计划, 六层执行模型]
+        targets:
+          - {kind: ARCHITECTURE, id: evidence-first-design-rationale}
+          - {kind: PROFILE, id: recovery-review}
+      - map_id: RR-M-003
+        source_sections: ["4", "5", "6", "7"]
+        requirements: [Rule ID, Enforcement Class, 核心状态机, Stage Gate]
+        targets:
+          - {kind: CONTRACT, id: rule-and-gate-model}
+          - {kind: PROFILE, id: recovery-review/gate-rules}
+      - map_id: RR-M-004
+        source_sections: ["8", "9"]
+        rule_families: [RR-S0, RR-S1]
+        requirements: [Scope Lock, Base/Head/Workspace一致性, Authority Registry]
+        targets:
+          - {kind: CAPABILITY, id: workspace-snapshot}
+          - {kind: CAPABILITY, id: authority-governance}
+      - map_id: RR-M-005
+        source_sections: ["10", "11", "12"]
+        rule_families: [RR-S2, RR-S3, RR-S4]
+        requirements: [P0全量事实, Baseline Reconciliation, AS-BUILT四类行为, Intent恢复]
+        targets:
+          - {kind: CAPABILITY, id: contract-reconciliation}
+          - {kind: CAPABILITY, id: behavior-recovery}
+          - {kind: CAPABILITY, id: code-fact}
+      - map_id: RR-M-006
+        source_sections: ["13", "14", "15"]
+        rule_families: [RR-S5, RR-S6_MISSING, RR-S7_MISSING]
+        requirements: [Fresh只读Reviewer, 结构化输出, 不模拟多模型, ConsensusGap Matrix, Final Fix Plan]
+        targets:
+          - {kind: CAPABILITY, id: independent-review}
+          - {kind: PROFILE, id: recovery-review/consensus-and-plan}
+        migration_note: S6/S7旧文无Rule ID；新规则只能用新ID补充，不得伪称旧规则。
+      - map_id: RR-M-007
+        source_sections: ["15A/F0", "15A/F1"]
+        rule_families: [RR-F0, RR-F1]
+        requirements: [可恢复快照, 未知变化禁写, 影响面新鲜证据, Change Budget]
+        targets:
+          - {kind: CAPABILITY, id: change-safety}
+          - {kind: CAPABILITY, id: code-fact}
+      - map_id: RR-M-008
+        source_sections: ["15A/F1D"]
+        rule_families: [RR-DF]
+        requirements: [根因与症状分离, 不变量, 责任归属, 既有设计检索, 方案比较, 禁止贴膏药与过度设计, DT答案保护, 设计债务]
+        targets:
+          - {kind: CAPABILITY, id: design-fit-review}
+      - map_id: RR-M-009
+        source_sections: ["15A/F2", "15A/F2S", "15A/F3"]
+        rule_families: [RR-F2, RR-BS, RR-F3, RR-DF-011]
+        requirements: [约束编辑, 每写必读diff, 禁整文件掩盖, 完整文件多探测结构检查, 符号清单, 文件尾, Canary, Changed-byte binding, 增量事实同步, Anti-plaster]
+        targets:
+          - {kind: CAPABILITY, id: change-safety}
+          - {kind: CAPABILITY, id: code-fact}
+          - {kind: CAPABILITY, id: design-fit-review}
+      - map_id: RR-M-010
+        source_sections: ["15A/F4"]
+        rule_families: [RR-V]
+        requirements: [Windows环境资格, 负向Canary, 头文件与宏缺失不可吞, 受限负向表述]
+        targets:
+          - {kind: CAPABILITY, id: windows-static-precheck}
+      - map_id: RR-M-011
+        source_sections: ["15A/F5", "15A/F6"]
+        rule_families: [RR-U]
+        requirements: [用户提供原始结果不可改写, 明确错误单向否决, 禁止语气覆盖证据, 独立终审, 专业版与小白版]
+        targets:
+          - {kind: CAPABILITY, id: external-evidence}
+          - {kind: CAPABILITY, id: independent-review}
+          - {kind: CAPABILITY, id: report-renderer}
+      - map_id: RR-M-012
+        source_sections: ["15A.1", "15B"]
+        rule_families: [RR-CG_DRIFT, RR-F3-004]
+        requirements: [F0-F6 Gate总表, Code Fact Provider接入, 修改后增量同步, 多仓, Staleness Hard Gate]
+        targets:
+          - {kind: PROFILE, id: recovery-review/safe-fix}
+          - {kind: CAPABILITY, id: code-fact}
+          - {kind: ADAPTER, id: structural-navigation-provider}
+        migration_note: CodeGraph专名降为Provider；能力语义统一为Code Fact freshness receipt。
+      - map_id: RR-M-013
+        source_sections: ["15C"]
+        rule_families: [RR-UR]
+        requirements: [离席持续审查, 诊断阶梯, 严格WAITING_HUMAN条件, 同根因合并, 阻塞再诊断, 心跳, Liveness, Question Deferral]
+        targets:
+          - {kind: CAPABILITY, id: autonomous-runner}
+          - {kind: CAPABILITY, id: audit-ledger}
+      - map_id: RR-M-014
+        source_sections: ["15D", "15E", "15F"]
+        rule_families: [RR-EV_PARTIAL]
+        requirements: [Verdict词汇, 最小机器规则, Claim-Evidence Contract, 可回溯原始位置, Tool非真相, 高成本负向Claim, Unknown Budget, Facts First, 冲突不可气势裁决]
+        targets:
+          - {kind: CAPABILITY, id: evidence-kernel}
+          - {kind: CONTRACT, id: claim-evidence}
+          - {kind: PROFILE, id: recovery-review/verdict-policy}
+      - map_id: RR-M-015
+        source_sections: ["15G"]
+        rule_families: [RR-BD_PARTIAL]
+        requirements: [BuildTargetInclude三图分离, Target Membership, Direct Include Ownership, Include Resolution, 传播, 条件编译, DT静态Review, Business-DT矩阵, Generated Dependencies]
+        targets:
+          - {kind: CAPABILITY, id: build-dependency-audit}
+          - {kind: CAPABILITY, id: signal-lineage}
+          - {kind: PROFILE, id: test-trace-preparation}
+      - map_id: RR-M-016
+        source_sections: ["16", "17", "18", "19", "20", "21"]
+        rule_families: []
+        requirements: [Compliance Ledger, Deviation Ledger, Waiver, Taint, Execution State, Operational TODO]
+        targets:
+          - {kind: CAPABILITY, id: audit-ledger}
+          - {kind: CONTRACT, id: execution-state}
+          - {kind: CONTRACT, id: deviation-waiver-taint}
+      - map_id: RR-M-017
+        source_sections: ["22", "23", "24"]
+        rule_families: []
+        requirements: [Controller, CLI, Fresh Reviewer, Tool Filter, Output Schema, Trajectory]
+        targets:
+          - {kind: PROFILE, id: recovery-review}
+          - {kind: ROADMAP, id: optional-thin-dispatcher}
+          - {kind: ADAPTER, id: execution-host}
+        migration_note: 旧单体Controller退役；仅允许薄编排器调用独立能力，且不得承载事实语义。
+      - map_id: RR-M-018
+        source_sections: ["25", "26", "27", "28", "29", "30"]
+        rule_families: []
+        requirements: [ToolAuthenticity Receipts, 第三方Clone, pstack, Grill, Superpowers, Unlazy]
+        targets:
+          - {kind: CAPABILITY, id: third-party-supply-chain}
+          - {kind: ADAPTER, id: optional-review-providers}
+          - {kind: ARCHIVE, id: third-party-research-2026-08}
+      - map_id: RR-M-019
+        source_sections: ["31", "32", "33", "34", "35"]
+        rule_families: []
+        requirements: [Conformance Summary, 一眼看偏离, HardBlock/VisibleDeviation/Waiver, 防篡改记录, Chain of Custody]
+        targets:
+          - {kind: CAPABILITY, id: audit-ledger}
+          - {kind: CAPABILITY, id: report-renderer}
+          - {kind: CONTRACT, id: evidence-chain-of-custody}
+      - map_id: RR-M-020
+        source_sections: ["36", "37", "38", "39"]
+        rule_families: []
+        requirements: [Runbook示例, Reviewer Schema示例, Tool Filter示例, DeepDive落地总结]
+        targets:
+          - {kind: ARCHIVE, id: legacy-examples}
+          - {kind: CONTRACT, id: reviewer-result}
+          - {kind: PROFILE, id: tool-access-policy}
+      - map_id: RR-M-021
+        source_sections: ["40", "41", "42", "43"]
+        rule_families: []
+        requirements: [旧目录, 建设Stage0-J, 成功标准, 总结]
+        targets:
+          - {kind: ARCHITECTURE, id: toolkit-folder-architecture}
+          - {kind: ROADMAP, id: implementation-sequence}
+          - {kind: ROADMAP, id: release-gates}
+      - map_id: RR-M-022
+        source_sections: ["Appendix A", "Appendix B", "Appendix C"]
+        rule_families: []
+        requirements: [DeepDive来源与采用边界, DSH能力依据, CodeGraph依据与产品差异保护]
+        targets:
+          - {kind: ARCHIVE, id: third-party-research-2026-08}
+          - {kind: ADAPTER, id: execution-host}
+          - {kind: ADAPTER, id: structural-navigation-provider}
+        migration_note: 外部产品事实是时间敏感研究资料，使用前必须重新核验。
+
+coverage_assertion:
+  document_structure_coverage: COMPLETE_BY_CHAPTER_GROUP
+  rule_family_coverage: COMPLETE_WITH_RECORDED_GAPS
+  semantic_equivalence: NOT_YET_INDEPENDENTLY_VALIDATED
+  implementation_coverage: NOT_IMPLEMENTED
+  validation_coverage: NOT_VALIDATED
+  open_conflicts_register: migration/RULE_ALIAS_AND_CONFLICT_REGISTER.yaml

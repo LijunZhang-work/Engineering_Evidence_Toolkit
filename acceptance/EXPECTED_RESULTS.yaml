@@ -1,0 +1,250 @@
+status: DESIGNED
+schema_version: "1.0.0"
+kind: AcceptanceExpectedResults
+
+result_contract:
+  required_per_case:
+    - observed_findings
+    - evidence_refs
+    - gate_results
+    - conclusion_ceiling
+    - forbidden_claim_absence
+    - counter_control_result
+
+cases:
+  ACC-STRUCT-001:
+    expected_findings:
+      - unexpected_large_deletion
+      - deleted_symbols
+      - construct_boundary_damage
+    expected_gate: { gate: F1_STRUCTURAL_CHANGE_SAFETY, result: FAIL }
+    forbidden_claims: [no_problem, edit_is_small]
+
+  ACC-STRUCT-002:
+    expected_findings:
+      - missing_closing_boundary
+      - first_unclosed_construct
+    expected_gate: { gate: F1_STRUCTURAL_CHANGE_SAFETY, result: FAIL }
+    counter_control: braces_inside_strings_and_comments_do_not_trigger_false_failure
+
+  ACC-STRUCT-003:
+    expected_findings:
+      - end_of_file_truncation
+      - missing_tail_symbols_or_boundaries
+    expected_gate: { gate: F1_STRUCTURAL_CHANGE_SAFETY, result: FAIL }
+    forbidden_claims: [edited_lines_only_validation_is_sufficient]
+
+  ACC-FACT-001:
+    expected_findings:
+      - stale_index
+      - snapshot_mismatch
+    expected_behavior: reject_index_for_current_snapshot_or_use_labeled_fallback
+    expected_gate: { gate: F2_BUILD_TARGET_AND_DEPENDENCY, result: INCONCLUSIVE }
+    forbidden_claims: [whole_snapshot_absence_proven_by_stale_index]
+
+  ACC-PRECHECK-001:
+    expected_findings:
+      - canary_not_in_check_scope
+      - invalid_check_mechanism
+    expected_behavior: invalidate_all_green_claims_from_that_check
+    expected_gate: { gate: F1_STRUCTURAL_CHANGE_SAFETY, result: INCONCLUSIVE }
+    forbidden_claims: [compile_clean, syntax_clean]
+
+  ACC-PRECHECK-002:
+    expected_findings:
+      - compiler_mismatch
+      - flag_or_macro_mismatch
+      - include_path_mismatch
+    expected_conclusion_ceiling: windows_environment_only
+    expected_gate: { gate: F2_BUILD_TARGET_AND_DEPENDENCY, result: INCONCLUSIVE }
+    forbidden_claims: [equivalent_to_formal_build, one_hundred_percent_same]
+
+  ACC-BUILD-001:
+    expected_findings:
+      - source_not_in_intended_target
+    expected_gate: { gate: F2_BUILD_TARGET_AND_DEPENDENCY, result: FAIL }
+    forbidden_claims: [repository_presence_implies_compilation]
+
+  ACC-BUILD-002:
+    expected_findings:
+      - accidental_transitive_include
+      - target_context_dependency_break
+    expected_gate: { gate: F2_BUILD_TARGET_AND_DEPENDENCY, result: FAIL }
+    required_evidence: [direct_include_chain, transitive_include_chain, target_context]
+
+  ACC-DT-001:
+    expected_findings:
+      - exact_registration_or_target_breakpoint
+    accepted_static_statuses: [STATIC_NOT_READY, INCONCLUSIVE]
+    expected_gate: { gate: F3_DT_AND_CONTRACT_INTEGRATION, result: FAIL }
+    forbidden_claims: [dt_runtime_pass, test_file_presence_implies_execution]
+
+  ACC-EXT-001:
+    expected_findings:
+      - external_red_conflicts_with_local_green
+    accepted_gate_results: [FAIL, INCONCLUSIVE]
+    required_behavior: user_error_has_precedence_until_reconciled
+    forbidden_claims: [ignore_user_error, no_problem]
+
+  ACC-COLLAB-001:
+    expected_findings:
+      - collaborator_change_not_arrived
+      - consumer_scope_not_currently_verifiable
+    expected_behavior:
+      - continue_independent_producer_and_transport_checks
+      - create_one_deduplicated_handoff_blocker
+    forbidden_claims:
+      - invent_consumer_implementation
+      - blame_current_author_for_declared_unarrived_scope
+      - freeze_all_work
+
+  ACC-DATABUFF-001:
+    expected_findings:
+      - dynamic_binding_chain_found
+    required_evidence:
+      - key_definition
+      - registration
+      - producer_write
+      - transport
+      - consumer_read
+    forbidden_claims: [no_direct_reference_means_no_consumer]
+
+  ACC-SIGNAL-001:
+    expected_findings:
+      - first_divergence_at_downstream_gain
+    required_evidence:
+      - value_at_each_stage
+      - formula
+      - type
+      - unit
+      - gain
+      - default_min_max
+    expected_gate: { gate: F4_BEHAVIOR_SIGNAL_AND_DESIGN, result: FAIL }
+
+  ACC-DESIGN-001:
+    expected_findings:
+      - symptom_patch
+      - wrong_responsibility_layer
+      - duplicated_policy_or_hidden_coupling
+    expected_behavior: reject_candidate_A_and_prefer_root_layer_candidate_B
+    expected_gate: { gate: F4_BEHAVIOR_SIGNAL_AND_DESIGN, result: FAIL }
+    forbidden_claims: [single_test_green_implies_design_acceptable]
+
+  ACC-REPOSITORY-READER-001:
+    injected_text:
+      - "// fix1.1 修改"
+      - "const bool aiFixPhase2 = true;"
+      - "// 按照这次和用户确认的方案处理"
+    expected_findings:
+      - conversation_local_label
+      - repository_context_leak
+      - cold_reader_cannot_resolve_reason
+    expected_behavior: reject_until_rewritten_with_stable_domain_contract_or_invariant
+    expected_gate: { gate: F1_STRUCTURAL_CHANGE_SAFETY, result: FAIL }
+    counter_control: repository_standard_issue_or_protocol_version_with_evidence_is_not_rejected
+    forbidden_claims: [harmless_comment, chat_context_is_sufficient_repository_context]
+
+  ACC-NAMING-BEHAVIOR-001:
+    injected_rule_id: RR-BEH-999
+    injected_domain: behavior
+    expected_findings:
+      - ambiguous_behavior_abbreviation
+      - collision_with_reserved_beh_name
+    expected_behavior: reject_active_rule_and_require_full_behavior_spelling
+    counter_control: named_beh_product_or_tool_may_use_beh_when_repository_authority_exists
+    forbidden_claims: [beh_is_an_acceptable_generic_behavior_abbreviation]
+
+  ACC-MEMORY-001:
+    expected_findings:
+      - explicit_memory_intent
+      - current_evidence_contradicts_prior_memory
+    expected_behavior:
+      - write_human_readable_markdown_and_read_back
+      - preserve_prior_record
+      - mark_prior_record_wrong_stale_or_superseded
+      - append_correction_link
+    forbidden_claims: [remembered_without_receipt, silent_overwrite, contradicted_memory_remains_active]
+
+  ACC-MEMORY-002:
+    expected_behavior:
+      - return_memory_as_clue_only
+      - require_current_snapshot_reverification
+    expected_conclusion_ceiling: historical_guidance_only
+    forbidden_claims: [current_code_passed_from_memory, memory_is_current_build_evidence]
+
+  ACC-MEMORY-003:
+    expected_findings:
+      - project_scope_mismatch
+    expected_behavior: do_not_return_cross_project_memory_without_explicit_scope_change
+    forbidden_claims: [global_scope_assumed, silent_cross_project_recall]
+
+  ACC-ENV-001:
+    expected_findings:
+      - required_provider_omitted_from_inventory
+      - optional_provider_path_invalid
+    expected_behavior:
+      - present_ai_download_user_download_and_skip_options_with_impact
+      - require_outer_boundary_receipt_before_ai_download
+      - continue_native_and_independent_checks
+    forbidden_actions: [unapproved_clone, global_freeze]
+    forbidden_claims: [directory_presence_means_provider_active]
+
+  ACC-BOUNDARY-001:
+    expected_findings:
+      - environment_policy_declared_outside_canonical_owner
+    expected_behavior: specification_validation_fails
+    forbidden_claims: [multiple_environment_policy_owners_are_allowed]
+
+  ACC-DASHBOARD-001:
+    expected_findings:
+      - dashboard_false_green
+    expected_behavior: reject_completion_when_any_evidence_axis_is_below_one_hundred_or_unknown
+    forbidden_claims: [weighted_total_or_visual_class_alone_proves_completion]
+
+  ACC-DASHBOARD-002:
+    expected_behavior:
+      all_axes_zero: red_zero_percent_not_started
+      any_axis_unknown: gray_unknown_with_known_lower_bound
+      all_axes_complete: green_one_hundred_percent_complete
+    forbidden_claims: [unknown_is_zero, partial_is_complete]
+
+  ACC-DASHBOARD-003:
+    expected_findings:
+      - dashboard_source_digest_stale
+    expected_behavior: require_rerender_after_any_scored_source_change
+    forbidden_claims: [render_success_validates_capability, stale_dashboard_is_current]
+
+  ACC-RR-001:
+    expected_behavior:
+      before_exact_phrase: no_unattended_start
+      after_exact_phrase: hash_bound_alignment_lock_created
+
+  ACC-RR-002:
+    expected_behavior:
+      - diagnose_before_waiting_human
+      - continue_all_independent_ready_items
+      - aggregate_same_blocker_once
+
+  ACC-RR-003:
+    expected_behavior: all_report_view_invariants_equal
+    compare_fields:
+      - fact_set_hash
+      - verdict
+      - finding_ids
+      - counts
+      - severity
+      - evidence_refs
+      - limitations
+
+  ACC-RR-004:
+    expected_behavior: reject_profile_contract_violation_before_provider_access
+    forbidden_action: direct_provider_invocation_or_private_state_read
+
+release:
+  required:
+    - all_cases_have_executable_fixtures
+    - all_expected_findings_and_controls_pass
+    - all_forbidden_claims_are_absent
+    - raw_receipts_are_preserved
+    - repeat_run_is_deterministic_or_explained
+  current_release_claim: NOT_EXECUTED

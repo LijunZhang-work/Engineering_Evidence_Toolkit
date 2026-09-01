@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/workspace-snapshot.schema.json",
+  "title": "Workspace Snapshot",
+  "description": "冻结一次多仓工作区、构建画像和协作代码到齐状态。未知字段必须显式记录，不得由 AI 猜测。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "snapshot_id",
+    "captured_at",
+    "content_id",
+    "provenance_id",
+    "delivery_mode",
+    "repositories",
+    "collaboration",
+    "build_context"
+  ],
+  "properties": {
+    "schema_version": {"type": "string", "minLength": 1},
+    "snapshot_id": {"type": "string", "pattern": "^wss_[A-Za-z0-9._-]+$"},
+    "captured_at": {"type": "string", "format": "date-time"},
+    "captured_by": {"type": "string"},
+    "content_id": {"$ref": "#/$defs/digest_id"},
+    "provenance_id": {"$ref": "#/$defs/digest_id"},
+    "delivery_mode": {
+      "description": "本任务由单人完整交付，还是多人分工/部分代码待交付。",
+      "enum": ["SOLO", "COLLABORATIVE", "MIXED", "UNKNOWN"]
+    },
+    "repositories": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/repository"}
+    },
+    "collaboration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["readiness", "components"],
+      "properties": {
+        "readiness": {
+          "enum": ["ALL_EXPECTED_CODE_PRESENT", "PARTIAL_EXPECTED_CODE", "CODE_EXPECTED_LATER", "UNKNOWN"]
+        },
+        "confirmed_at": {"type": "string", "format": "date-time"},
+        "confirmed_by": {"type": "string"},
+        "components": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/collaboration_component"}
+        },
+        "handoff_artifact_refs": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "unknowns": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "build_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target_environment_status", "profiles"],
+      "properties": {
+        "target_environment_status": {"enum": ["KNOWN", "PARTIAL", "UNKNOWN"]},
+        "profiles": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/build_profile"}
+        },
+        "authoritative_profile_id": {"type": "string"},
+        "windows_precheck_equivalence": {
+          "enum": ["EQUIVALENT_FOR_DECLARED_SCOPE", "PARTIAL", "NOT_EQUIVALENT", "UNKNOWN"]
+        },
+        "equivalence_evidence_refs": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "authority_source_refs": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "limitations": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "receipt_refs": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  },
+  "$defs": {
+    "digest_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]+:[A-Fa-f0-9]{16,}$"
+    },
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository_id",
+        "path",
+        "role",
+        "availability",
+        "revision_status",
+        "working_tree_status"
+      ],
+      "properties": {
+        "repository_id": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "minLength": 1},
+        "role": {"type": "string", "minLength": 1},
+        "remote_url": {"type": "string"},
+        "availability": {
+          "enum": ["PRESENT", "PARTIAL", "EXPECTED_MISSING", "UNEXPECTED_MISSING", "UNKNOWN"]
+        },
+        "revision_status": {"enum": ["FROZEN", "MOVING", "UNKNOWN"]},
+        "commit": {"type": "string"},
+        "branch": {"type": "string"},
+        "submodules": {"enum": ["CAPTURED", "PARTIAL", "NONE", "UNKNOWN"]},
+        "lfs": {"enum": ["CAPTURED", "PARTIAL", "NONE", "UNKNOWN"]},
+        "patchset_content_id": {"$ref": "#/$defs/digest_id"},
+        "working_tree_status": {"enum": ["CLEAN", "DIRTY_CAPTURED", "DIRTY_NOT_CAPTURED", "UNKNOWN"]},
+        "untracked_files_status": {"enum": ["CAPTURED", "PRESENT_NOT_CAPTURED", "NONE", "UNKNOWN"]},
+        "owner": {"type": "string"},
+        "notes": {"type": "string"}
+      }
+    },
+    "collaboration_component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component_id", "responsible_party", "code_availability", "expected_in_snapshot"],
+      "properties": {
+        "component_id": {"type": "string", "minLength": 1},
+        "responsible_party": {"type": "string", "minLength": 1},
+        "code_availability": {
+          "enum": ["PRESENT", "PARTIAL", "EXPECTED_MISSING", "NOT_EXPECTED", "UNKNOWN"]
+        },
+        "expected_in_snapshot": {"type": "boolean"},
+        "repository_id": {"type": "string"},
+        "handoff_contract_status": {"enum": ["CONFIRMED", "PARTIAL", "NOT_AVAILABLE", "UNKNOWN"]},
+        "expected_delivery": {"type": "string"},
+        "notes": {"type": "string"}
+      }
+    },
+    "build_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile_id", "purpose", "environment", "completeness"],
+      "properties": {
+        "profile_id": {"type": "string", "minLength": 1},
+        "purpose": {"enum": ["TARGET_BUILD", "WINDOWS_PRECHECK", "LANGUAGE_SERVER", "TEST", "OTHER"]},
+        "environment": {"type": "string", "minLength": 1},
+        "compiler": {"type": "string"},
+        "compiler_version": {"type": "string"},
+        "target": {"type": "string"},
+        "defines_content_id": {"$ref": "#/$defs/digest_id"},
+        "include_paths_content_id": {"$ref": "#/$defs/digest_id"},
+        "generated_inputs_status": {"enum": ["COMPLETE", "PARTIAL", "MISSING", "UNKNOWN"]},
+        "dependency_lock_ref": {"type": "string"},
+        "completeness": {"enum": ["COMPLETE_FOR_SCOPE", "PARTIAL", "UNKNOWN"]},
+        "receipt_refs": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

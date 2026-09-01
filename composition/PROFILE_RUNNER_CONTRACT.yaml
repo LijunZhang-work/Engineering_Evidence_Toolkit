@@ -1,0 +1,143 @@
+status: DESIGNED
+schema_version: "1.0.0"
+kind: ProfileRunnerContract
+id: toolkit.profile-runner
+
+purpose: >-
+  以可审计、可恢复的方式组合独立能力；Profile Runner 只负责调度、
+  公共证据归并、门禁求值与状态持久化，不产生代码事实，也不替代任何能力。
+
+boundaries:
+  may:
+    - validate_profile_schema
+    - resolve_public_capability_contracts
+    - invoke_capabilities_through_public_endpoints
+    - persist_instance_bundle
+    - map_capability_results_to_profile_gates
+    - render_multiple_views_from_one_fact_set
+  must_not:
+    - read_capability_private_state
+    - read_provider_private_state
+    - call_provider_directly
+    - rewrite_capability_evidence
+    - upgrade_unknown_to_pass
+    - equate_process_exit_zero_with_semantic_success
+    - hide_conflicting_or_user_supplied_evidence
+    - mutate_source_code_unless_the_selected_profile_explicitly_authorizes_an_edit_capability
+
+inputs:
+  required:
+    - profile_id
+    - profile_version
+    - instance_id
+    - workspace_snapshot_ref
+    - capability_contract_set
+  optional:
+    - alignment_lock_ref
+    - user_evidence_refs
+    - resume_checkpoint_ref
+    - execution_budget
+
+public_capability_exchange:
+  request_fields:
+    - request_id
+    - capability_id
+    - contract_version
+    - mode
+    - scoped_inputs
+    - workspace_snapshot_ref
+    - authority_context_ref
+    - required_evidence_quality
+  response_fields:
+    - request_id
+    - capability_id
+    - contract_version
+    - result_status
+    - claim_refs
+    - evidence_bundle_refs
+    - receipt_refs
+    - coverage
+    - freshness
+    - environment_equivalence
+    - conclusion_ceiling
+    - limitations
+  forbidden_response_dependencies:
+    - provider_database_path
+    - provider_cache_path
+    - provider_internal_node_id
+    - unversioned_ambient_configuration
+
+runtime_states:
+  - NOT_STARTED
+  - READY
+  - RUNNING
+  - WAITING_HUMAN
+  - BLOCKED
+  - COMPLETED
+  - FAILED
+  - CANCELLED
+
+state_rules:
+  - id: RUNNER-STATE-001
+    rule: READY items MUST continue without asking the user for permission again.
+  - id: RUNNER-STATE-002
+    rule: A failed check MUST enter diagnosis and bounded recovery before WAITING_HUMAN is considered.
+  - id: RUNNER-STATE-003
+    rule: One blocked item MUST NOT freeze unrelated READY items.
+  - id: RUNNER-STATE-004
+    rule: WAITING_HUMAN requires a material missing authority, permission, secret, unavailable input, or decision that changes semantics.
+  - id: RUNNER-STATE-005
+    rule: Every WAITING_HUMAN transition MUST include attempts, evidence, exact missing input, affected scope, and a smallest-answer question.
+  - id: RUNNER-STATE-006
+    rule: Repeated identical blockers are deduplicated by blocker_fingerprint and aggregated in the report.
+  - id: RUNNER-STATE-007
+    rule: Time budget exhaustion creates a checkpoint and honest INCOMPLETE result; it MUST NOT fabricate PASS.
+
+gate_evaluation:
+  input: public_claims_and_evidence_only
+  result_values:
+    - PASS
+    - FAIL
+    - INCONCLUSIVE
+    - NOT_APPLICABLE
+  precedence:
+    - explicit_contradictory_evidence
+    - invalid_or_incomplete_check
+    - supported_pass
+  rules:
+    - A user-supplied reproducible error overrides a conflicting local green result until reconciled.
+    - A stale index cannot satisfy a fresh-source gate.
+    - A canary that did not prove the check was active invalidates that check.
+    - Different compiler, flags, include paths, generated files, target membership, or macros cap equivalence and therefore cap the conclusion.
+    - INCONCLUSIVE is a valid result and MUST NOT be rendered as PASS.
+
+checkpointing:
+  minimum_interval: after_each_capability_or_gate
+  atomic_write_required: true
+  resume_must_verify:
+    - profile_hash
+    - workspace_snapshot_hash
+    - alignment_lock_hash_if_present
+    - completed_evidence_hashes
+
+reporting:
+  single_fact_source_required: true
+  views_may_differ_in_language_and_depth: true
+  views_must_not_differ_in:
+    - verdict
+    - counts
+    - severity
+    - evidence_refs
+    - limitations
+    - unresolved_items
+
+audit:
+  append_only_ledger: required
+  record_each:
+    - invocation
+    - state_transition
+    - evidence_ingestion
+    - gate_evaluation
+    - retry
+    - edit_authorization
+    - report_generation

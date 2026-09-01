@@ -1,0 +1,141 @@
+schema_version: 1
+id: code-fact
+name: Code Fact
+version: 4.0.0-draft
+status: DESIGNED
+status_dimensions:
+  specification_status: DESIGNED
+  implementation_status: NOT_IMPLEMENTED
+  validation_status: NOT_RUN
+  activation_status: INACTIVE
+kind: independent_capability
+spec: README.md
+
+purpose: >-
+  Answer bounded questions about source code, symbols, dependencies, history, build
+  context, and cross-repository relationships by returning reproducible evidence.
+  The capability owns fact discovery; it does not own a review verdict.
+
+entrypoint:
+  operation: query_code_facts
+  callable_without_profile: true
+inputs:
+  required: [fact_query_request, workspace_snapshot]
+  optional: [build_context, provider_selection, mode]
+outputs:
+  primary: evidence_bundle
+  includes: [provider_receipt, coverage_receipt, failure_receipt, claims, provenance, limitations]
+side_effects:
+  repository_mutation: forbidden
+  external_mutation: forbidden
+  allowed_writes: [run_artifacts, disposable_analysis_index]
+failure_policy: fail_closed
+result_states:
+  - ANSWERED
+  - PARTIAL
+  - INCONCLUSIVE
+  - NOT_APPLICABLE
+  - BLOCKED_CONFIGURATION
+  - BLOCKED_COVERAGE
+  - PROVIDER_ERROR
+evidence_ceiling: >-
+  Code Fact 只能在已声明快照、覆盖率、推导方法和 Provider 资格的范围内支持事实主张；
+  空结果、陈旧索引或 Provider 成功都不能单独证明“不存在”或“没有问题”。
+
+modes:
+  EXPLORE:
+    description: Fast discovery; uncertainty and incomplete coverage are permitted when explicit.
+    minimum_receipts: [query, provider, snapshot]
+  EVIDENCE:
+    description: Reproducible claim support with locations, derivation, coverage, and ceilings.
+    minimum_receipts: [query, provider, snapshot, coverage, provenance]
+  ENFORCE:
+    description: >-
+      Same evidence production as EVIDENCE. Pass/fail policy belongs to the calling
+      profile and must not be invented by this capability.
+    minimum_receipts: [query, provider, snapshot, coverage, provenance, policy_binding]
+
+contracts:
+  inputs:
+    - name: FactQueryRequest
+      version: v1
+      required: true
+    - name: WorkspaceSnapshot
+      version: v1
+      required: true
+    - name: BuildContext
+      version: v1
+      required: false
+    - name: ProviderSelection
+      version: v1
+      required: false
+  outputs:
+    - name: EvidenceBundle
+      version: v1
+      required: true
+    - name: ProviderReceipt
+      version: v1
+      required: true
+    - name: CoverageReceipt
+      version: v1
+      required: true
+    - name: FailureReceipt
+      version: v1
+      required: false
+
+evidence_axes:
+  derivation_method:
+    values: [SOURCE_READ, LEXICAL_SEARCH, GIT_QUERY, AST_PARSE, COMPILER_SEMANTIC, GRAPH_QUERY, TEST_OBSERVATION]
+  assertion_source:
+    values: [CODE, BUILD_METADATA, TEST, VERSION_CONTROL, GENERATED_ARTIFACT, COMMENT, DOCUMENT, USER_PROVIDED, MODEL_INFERENCE]
+  authority:
+    values: [AUTHORITATIVE, CORROBORATING, INDICATIVE, UNVERIFIED]
+
+provider_policy:
+  built_in_providers: [native-search, ripgrep, git]
+  optional_local_providers: [clangd]
+  external_provider_rule: replaceable_and_receipted
+  no_provider_is_mandatory: true
+  selection_owner: caller_profile_or_explicit_request
+
+invariants:
+  - A missing external provider never disables native-search, ripgrep, or Git.
+  - A provider result is evidence only after snapshot, location, derivation, and ceiling are recorded.
+  - Content identity and provenance identity are recorded separately.
+  - Provider claims never become authoritative merely because a graph or index returned them.
+  - Freshness and coverage are properties of a particular provider artifact, not of Code Fact globally.
+  - Empty results are not proof of absence unless the query scope and coverage are proven adequate.
+  - A profile may reject evidence; Code Fact may not silently weaken the profile's policy.
+  - Provider examples in this package are designs or research candidates, never implicit ACTIVE deployments.
+
+boundaries:
+  owns:
+    - bounded fact query normalization
+    - provider selection receipts
+    - evidence normalization
+    - freshness and coverage reporting
+    - provider-independent fact bundles
+  does_not_own:
+    - final defect or release verdicts
+    - source-code modification
+    - build success claims without build evidence
+    - design approval
+    - submit or merge authorization
+    - company-specific source-control semantics
+
+failure_semantics:
+  allowed_statuses:
+    - ANSWERED
+    - PARTIAL
+    - INCONCLUSIVE
+    - NOT_APPLICABLE
+    - BLOCKED_CONFIGURATION
+    - BLOCKED_COVERAGE
+    - PROVIDER_ERROR
+  forbidden_substitution: >-
+    Never convert PARTIAL, INCONCLUSIVE, a provider error, or an empty result into
+    "no problem" or "not found" without a separately proven exhaustive scope.
+
+implementation_note: >-
+  This file specifies a capability contract. It does not assert that an executable
+  implementation, provider deployment, index, benchmark, or company integration exists.

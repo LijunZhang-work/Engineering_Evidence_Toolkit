@@ -1,0 +1,111 @@
+schema: engineering-evidence-toolkit/code-fact-provider-catalog/v1
+catalog_version: 2026-08-29-draft
+spec_status: DESIGNED
+verification_status: NOT_RUN
+
+purpose: >-
+  Preserve the researched provider landscape while isolating volatile product,
+  branch, command, and dependency details from the stable Code Fact contract.
+
+disclaimer: >-
+  Every external entry is a candidate that requires source, license, security,
+  compatibility, reproducibility, and real-project verification. Reported
+  capabilities are not adoption recommendations or implementation facts.
+
+categories:
+  native:
+    - id: native-search
+      intended_role: direct source inspection and bounded discovery
+      evidence_methods: [SOURCE_READ, LEXICAL_SEARCH]
+      design_state: DESIGNED
+      validation_state: NOT_RUN
+    - id: ripgrep
+      intended_role: fast reproducible lexical search
+      evidence_methods: [LEXICAL_SEARCH]
+      design_state: DESIGNED
+      validation_state: NOT_RUN
+    - id: git
+      intended_role: revision, diff, blame, and path-history evidence
+      evidence_methods: [GIT_QUERY]
+      design_state: DESIGNED
+      validation_state: NOT_RUN
+
+  local_semantic:
+    - id: clangd
+      intended_role: compiler-aware navigation for an explicitly configured build context
+      evidence_methods: [COMPILER_SEMANTIC]
+      design_state: DESIGNED
+      validation_state: NOT_RUN
+      risk: false confidence when compilation database or target context diverges
+      detail: clangd.md
+
+  graph_and_index_candidates:
+    - id: codegraph
+      reported_role: code graph and relationship queries
+      research_state: REVERIFY_REQUIRED
+      design_state: DESIGNED
+      validation_state: NOT_RUN
+    - id: codebase-memory
+      reported_role: indexed codebase exploration and relationship recall
+      research_state: REVERIFY_REQUIRED
+      design_state: DESIGNED
+      validation_state: NOT_RUN
+    - id: scip-clang
+      reported_role: SCIP symbol indexing for C/C++
+      research_state: REVERIFY_REQUIRED
+      design_state: DESIGNED
+      validation_state: NOT_RUN
+    - id: graphify
+      reported_role: structural extraction and graph generation
+      research_state: REVERIFY_REQUIRED
+      design_state: DESIGNED
+      validation_state: NOT_RUN
+    - id: code-review-graph
+      reported_role: change/review relationship context
+      research_state: REVERIFY_REQUIRED
+      design_state: DESIGNED
+      validation_state: NOT_RUN
+    - id: zoekt
+      reported_role: indexed multi-repository lexical search
+      research_state: REVERIFY_REQUIRED
+      design_state: DESIGNED
+      validation_state: NOT_RUN
+    - id: understand-anything
+      reported_role: codebase exploration and generated explanations
+      research_state: REVERIFY_REQUIRED
+      design_state: DESIGNED
+      validation_state: NOT_RUN
+
+  watchlist:
+    - id: joern
+      intended_trigger: validated need for code-property-graph analysis
+      research_state: REVERIFY_REQUIRED
+      design_state: DESIGNED
+      validation_state: NOT_RUN
+    - id: kythe
+      intended_trigger: validated need for large-scale multi-language semantic indexing
+      research_state: REVERIFY_REQUIRED
+      design_state: DESIGNED
+      validation_state: NOT_RUN
+
+candidate_intake_required_fields:
+  - canonical source and immutable revision
+  - license and security review
+  - supported languages and query families
+  - extraction/derivation method
+  - offline installation/build recipe
+  - transitive dependency lock
+  - provider artifact digest
+  - deployment requirements
+  - corpus/build-profile model
+  - freshness and coverage model
+  - known false-positive/false-negative ceilings
+  - benchmark and adjudication results
+  - removal and evidence-retention plan
+
+policy:
+  native_providers_are_first_class: true
+  external_provider_can_be_replaced: true
+  provider_native_output_is_not_final_evidence: true
+  catalog_entry_does_not_authorize_deployment: true
+  volatile_commands_must_be_reverified: true

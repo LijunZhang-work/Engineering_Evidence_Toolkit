@@ -1,0 +1,24 @@
+schema_version: 1
+id: autonomous-runner
+name: Autonomous Runner
+version: 0.1.0-draft
+status: DESIGNED
+kind: independent_capability
+spec: SPEC.md
+entrypoint:
+  operation: run_until_terminal_condition
+  callable_without_profile: true
+inputs:
+  required: [task_graph, authority_envelope, stop_policy]
+  optional: [resource_budget, checkpoint_policy, escalation_policy]
+outputs:
+  primary: run_state
+  includes: [task_ledger, checkpoints, blocker_diagnostics, stop_receipt, unresolved_items]
+side_effects:
+  repository_mutation: policy_controlled
+  external_mutation: forbidden_by_default
+  allowed_writes: [declared_task_outputs, checkpoints, run_artifacts]
+failure_policy: diagnose_then_continue_or_escalate
+result_states: [RUNNING, COMPLETED, BLOCKED_WITH_DIAGNOSIS, STOPPED_BY_POLICY, FAILED]
+evidence_ceiling: "调度器只能在已授予权限和资源范围内自主；不能绕过授权、凭据或不可逆决策"
+

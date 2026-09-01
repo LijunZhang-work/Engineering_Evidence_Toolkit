@@ -1,0 +1,24 @@
+schema_version: 1
+id: authority-governance
+name: Authority Governance
+version: 0.1.0-draft
+status: DESIGNED
+kind: independent_capability
+spec: SPEC.md
+entrypoint:
+  operation: register_and_resolve_authority
+  callable_without_profile: true
+inputs:
+  required: [sources]
+  optional: [declared_precedence, conflict_policy, scope]
+outputs:
+  primary: authority_registry
+  includes: [source_identity, scope, precedence, conflicts, decisions, unresolved_items]
+side_effects:
+  repository_mutation: forbidden
+  external_mutation: forbidden
+  allowed_writes: [run_artifacts]
+failure_policy: fail_closed
+result_states: [RESOLVED, CONFLICTED, UNKNOWN, NOT_QUALIFIED]
+evidence_ceiling: "只管理已提供来源的权威关系；不能把相关材料自行升级为需求依据"
+

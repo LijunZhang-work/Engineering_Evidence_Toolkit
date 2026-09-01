@@ -1,0 +1,24 @@
+schema_version: 1
+id: third-party-supply-chain
+name: Third-party Supply Chain
+version: 0.1.0-draft
+status: DESIGNED
+kind: independent_capability
+spec: SPEC.md
+entrypoint:
+  operation: qualify_provider_artifact
+  callable_without_profile: true
+inputs:
+  required: [provider_source, policy]
+  optional: [mirror_receipt, build_receipt, artifact_attestation, license_evidence]
+outputs:
+  primary: provider_qualification
+  includes: [source_identity, revision, dependencies, build, artifact, license, vulnerabilities, lifecycle]
+side_effects:
+  repository_mutation: forbidden
+  external_mutation: forbidden
+  allowed_writes: [qualification_artifacts]
+failure_policy: fail_closed
+result_states: [QUALIFIED, REVALIDATION_REQUIRED, DEPRECATED, RETIRED, NOT_QUALIFIED]
+evidence_ceiling: "供应链合格只证明工具产物来源和政策符合性，不证明工具分析结果正确"
+

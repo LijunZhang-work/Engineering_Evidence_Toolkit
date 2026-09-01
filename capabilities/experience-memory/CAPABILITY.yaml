@@ -1,0 +1,81 @@
+schema_version: 1
+id: experience-memory
+name: Engineering Experience Memory
+version: 0.1.0-draft
+status: DESIGNED
+status_dimensions:
+  specification_status: DESIGNED
+  implementation_status: NOT_IMPLEMENTED
+  validation_status: NOT_RUN
+  activation_status: INACTIVE
+kind: independent_capability
+spec: SPEC.md
+
+purpose: >-
+  Curate, recall, correct, supersede, and invalidate durable engineering experience
+  without promoting remembered conclusions into current code or build facts.
+
+entrypoint:
+  operation: handle_memory_request
+  callable_without_profile: true
+inputs:
+  required: [memory_operation, project_scope, user_intent]
+  optional: [source_material, current_workspace_snapshot, existing_memory_ref, correction_reason]
+outputs:
+  primary: memory_result
+  includes: [canonical_memory_page, provenance, lifecycle_status, limitations, operation_receipt]
+side_effects:
+  repository_mutation: forbidden
+  external_mutation: explicit_memory_store_write_only
+  allowed_writes: [memory_runtime_store, run_artifacts]
+failure_policy: preserve_history_and_fail_closed
+result_states:
+  - RECALLED
+  - WRITTEN
+  - CORRECTED
+  - SUPERSEDED
+  - NOT_FOUND
+  - REFUSED_NO_EXPLICIT_WRITE_INTENT
+  - INVALIDATED_BY_CURRENT_EVIDENCE
+  - SCOPE_MISMATCH
+  - PROVIDER_UNAVAILABLE
+evidence_ceiling: >-
+  Memory is historical guidance and a search clue. It never proves the current
+  workspace, build, test, runtime behavior, or absence of a defect; current claims
+  require fresh evidence bound to the present snapshot.
+
+modes:
+  EXPLORE:
+    description: Recall scoped experience to seed hypotheses and search paths.
+    minimum_receipts: [operation, project_scope, provider, query]
+  EVIDENCE:
+    description: Inspect memory provenance and lifecycle without treating content as current truth.
+    minimum_receipts: [operation, project_scope, provider, memory_identity, provenance, lifecycle]
+
+invariants:
+  - Memory retrieval never upgrades evidence authority.
+  - A recalled conclusion must be reverified against the current workspace before supporting a gate.
+  - Writes require explicit memory intent; generic summarization does not silently persist.
+  - Corrections append and supersede; they never silently overwrite contradictory history.
+  - Wrong, stale, or superseded records are excluded from normal recall but remain auditable.
+  - Project and repository scope must be enforced before recall or write.
+  - Provider unavailability must remain visible and cannot become an empty successful recall.
+  - The canonical durable record is human-readable Markdown; provider indexes are rebuildable derivatives.
+
+boundaries:
+  owns:
+    - explicit memory intent classification
+    - engineering experience curation
+    - scoped recall
+    - correction and supersession history
+    - memory operation receipts
+  does_not_own:
+    - current code or build truth
+    - gate or review verdicts
+    - automatic chat transcript ingestion
+    - company network model endpoint or API key policy
+    - business source modification
+
+implementation_note: >-
+  This file specifies a provider-neutral capability. No memory provider is installed,
+  validated, selected, or active merely because this specification exists.

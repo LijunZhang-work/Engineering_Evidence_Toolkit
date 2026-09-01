@@ -1,0 +1,116 @@
+api_version: eet/v1
+kind: Toolkit
+
+metadata:
+  id: engineering-evidence-toolkit
+  name: Engineering Evidence Toolkit
+  chinese_name: 可组合工程事实与验证能力集
+  version: 0.5.1
+  status: DESIGNED
+  released_on: "2026-09-01"
+
+status_dimensions:
+  specification_status: DESIGNED
+  implementation_status: NOT_IMPLEMENTED
+  validation_status: NOT_RUN
+  activation_status: INACTIVE
+
+architecture:
+  style: COMPOSABLE_CAPABILITIES
+  default_profile: null
+  standalone_invocation_enabled: true
+  profile_required_for_capability_use: false
+  provider_direct_access_by_profile: false
+  capability_private_state_sharing: false
+
+entrypoint: 00_START_HERE.md
+state_file: CURRENT_STATE.yaml
+
+shared_contracts:
+  - contracts/toolkit-manifest.schema.json
+  - contracts/capability-manifest.schema.json
+  - contracts/profile-manifest.schema.json
+  - contracts/workspace-snapshot.schema.json
+  - contracts/evidence-bundle.schema.json
+  - contracts/claim.schema.json
+  - contracts/receipt.schema.json
+  - contracts/instance-state.schema.json
+
+capabilities:
+  - id: evidence-kernel
+    path: capabilities/evidence-kernel
+  - id: workspace-snapshot
+    path: capabilities/workspace-snapshot
+  - id: collaboration-snapshot
+    path: capabilities/collaboration-snapshot
+  - id: authority-governance
+    path: capabilities/authority-governance
+  - id: contract-reconciliation
+    path: capabilities/contract-reconciliation
+  - id: code-fact
+    path: capabilities/code-fact
+  - id: behavior-recovery
+    path: capabilities/behavior-recovery
+  - id: independent-review
+    path: capabilities/independent-review
+  - id: change-safety
+    path: capabilities/change-safety
+  - id: design-fit-review
+    path: capabilities/design-fit-review
+  - id: build-dependency-audit
+    path: capabilities/build-dependency-audit
+  - id: windows-static-precheck
+    path: capabilities/windows-static-precheck
+  - id: external-evidence
+    path: capabilities/external-evidence
+  - id: autonomous-runner
+    path: capabilities/autonomous-runner
+  - id: audit-ledger
+    path: capabilities/audit-ledger
+  - id: report-renderer
+    path: capabilities/report-renderer
+  - id: third-party-supply-chain
+    path: capabilities/third-party-supply-chain
+  - id: signal-lineage
+    path: capabilities/signal-lineage
+  - id: observability-planner
+    path: capabilities/observability-planner
+  - id: experience-memory
+    path: capabilities/experience-memory
+
+profiles:
+  - id: recovery-review
+    path: profiles/recovery-review
+    default: false
+  - id: safe-ai-edit
+    path: profiles/safe-ai-edit
+    default: false
+  - id: ad-hoc-code-investigation
+    path: profiles/ad-hoc-code-investigation
+    default: false
+  - id: test-trace-preparation
+    path: profiles/test-trace-preparation
+    default: false
+
+adapters:
+  - id: deepseek-harness
+    path: adapters/deepseek-harness
+  - id: company-source-control
+    path: adapters/company-source-control
+  - id: company-runtime-boundary
+    path: adapters/company-runtime-boundary
+
+runtime_boundaries:
+  outer_execution_boundary: adapters/company-runtime-boundary/ADAPTER.yaml
+  specification_root: this_directory
+  business_workspace_root: external_required
+  approved_tool_source_root: external_required
+  approved_runtime_root: external_required
+  generated_runs_in_specification_root: forbidden
+  generated_runs_in_business_workspace: forbidden
+
+canonical_policy:
+  machine_contracts_first: true
+  fail_closed_on_conflict: true
+  legacy_documents_are_runtime_entrypoints: false
+  examples_are_operational_evidence: false

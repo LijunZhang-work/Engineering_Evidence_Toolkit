@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/claim.schema.json",
+  "title": "Claim",
+  "description": "可检验主张及其独立状态维度。UNKNOWN/NOT_PROVEN 均不得被解释为通过。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "claim_id",
+    "statement",
+    "claim_type",
+    "workspace_snapshot_id",
+    "scope",
+    "acceptance_criteria",
+    "claim_status",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {"type": "string", "minLength": 1},
+    "claim_id": {"type": "string", "pattern": "^cl_[A-Za-z0-9._-]+$"},
+    "statement": {"type": "string", "minLength": 1},
+    "claim_type": {
+      "enum": [
+        "SOURCE_FACT",
+        "DEPENDENCY_FACT",
+        "BUILD_VALIDITY",
+        "STRUCTURAL_SAFETY",
+        "BEHAVIOR_COMPATIBILITY",
+        "CONTRACT_COMPATIBILITY",
+        "DESIGN_FIT",
+        "TEST_OUTCOME",
+        "RUNTIME_OUTCOME",
+        "EXTERNAL_ERROR_APPLICABILITY",
+        "COLLABORATION_READINESS",
+        "OTHER"
+      ]
+    },
+    "workspace_snapshot_id": {"type": "string", "pattern": "^wss_[A-Za-z0-9._-]+$"},
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description"],
+      "properties": {
+        "description": {"type": "string", "minLength": 1},
+        "repository_ids": {"type": "array", "items": {"type": "string"}},
+        "targets": {"type": "array", "items": {"type": "string"}},
+        "files": {"type": "array", "items": {"type": "string"}},
+        "symbols": {"type": "array", "items": {"type": "string"}},
+        "build_profile_ids": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "required_authority_tiers": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "required_coverage": {"enum": ["complete", "partial_allowed", "profile_defined"]},
+    "claim_status": {
+      "enum": ["PROVEN", "DISPROVEN", "NOT_PROVEN", "CONFLICTED", "UNKNOWN", "NOT_APPLICABLE"]
+    },
+    "status_reason": {"type": "string"},
+    "supporting_evidence_refs": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^ev_[A-Za-z0-9._-]+$"}
+    },
+    "refuting_evidence_refs": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^ev_[A-Za-z0-9._-]+$"}
+    },
+    "unresolved_conflicts": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "created_at": {"type": "string", "format": "date-time"},
+    "evaluated_at": {"type": "string", "format": "date-time"},
+    "evaluated_by": {"type": "string"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"claim_status": {"const": "PROVEN"}},
+        "required": ["claim_status"]
+      },
+      "then": {
+        "required": ["supporting_evidence_refs", "status_reason"],
+        "properties": {
+          "supporting_evidence_refs": {"minItems": 1},
+          "unresolved_conflicts": {"maxItems": 0}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"claim_status": {"const": "DISPROVEN"}},
+        "required": ["claim_status"]
+      },
+      "then": {
+        "required": ["refuting_evidence_refs", "status_reason"],
+        "properties": {"refuting_evidence_refs": {"minItems": 1}}
+      }
+    },
+    {
+      "if": {
+        "properties": {"claim_status": {"enum": ["NOT_PROVEN", "CONFLICTED", "UNKNOWN"]}},
+        "required": ["claim_status"]
+      },
+      "then": {"required": ["status_reason"]}
+    }
+  ]
+}

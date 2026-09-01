@@ -1,0 +1,24 @@
+schema_version: 1
+id: collaboration-snapshot
+name: Collaboration Snapshot
+version: 0.1.0-draft
+status: DESIGNED
+kind: independent_capability
+spec: SPEC.md
+entrypoint:
+  operation: capture_collaboration_boundary
+  callable_without_profile: true
+inputs:
+  required: [delivery_mode, workspace_snapshot]
+  optional: [owners, handoff_samples, pending_changes, interface_notes]
+outputs:
+  primary: collaboration_snapshot
+  includes: [ownership, available_components, pending_components, interface_confidence, unknowns]
+side_effects:
+  repository_mutation: forbidden
+  external_mutation: forbidden
+  allowed_writes: [run_artifacts]
+failure_policy: fail_closed
+result_states: [COMPLETE, PARTIAL, UNKNOWN, NOT_APPLICABLE]
+evidence_ceiling: "不能验证尚未交付的协作者实现；只能记录接口假设、样本与待闭环项"
+

@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/instance-state.schema.json",
+  "title": "Run Instance State",
+  "description": "长时间自主任务的可恢复状态。不同状态维度不得折叠为一个 status。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "mode",
+    "execution_status",
+    "workspace_snapshot_id",
+    "started_at",
+    "updated_at",
+    "tasks",
+    "claims",
+    "gates",
+    "wait_state"
+  ],
+  "properties": {
+    "schema_version": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "pattern": "^run_[A-Za-z0-9._-]+$"},
+    "mode": {"enum": ["EXPLORE", "EVIDENCE", "ENFORCE"]},
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile_id", "version"],
+      "properties": {
+        "profile_id": {"type": "string"},
+        "version": {"type": "string"}
+      }
+    },
+    "execution_status": {
+      "enum": ["PENDING", "RUNNING", "COMPLETED", "FAILED", "BLOCKED", "CANCELLED"]
+    },
+    "workspace_snapshot_id": {"type": "string", "pattern": "^wss_[A-Za-z0-9._-]+$"},
+    "started_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "heartbeat_at": {"type": "string", "format": "date-time"},
+    "resume_token": {"type": "string"},
+    "tasks": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/task_state"}
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["claim_id", "claim_status"],
+        "properties": {
+          "claim_id": {"type": "string"},
+          "claim_status": {
+            "enum": ["PROVEN", "DISPROVEN", "NOT_PROVEN", "CONFLICTED", "UNKNOWN", "NOT_APPLICABLE"]
+          },
+          "claim_ref": {"type": "string"}
+        }
+      }
+    },
+    "gates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["gate_id", "gate_status"],
+        "properties": {
+          "gate_id": {"type": "string"},
+          "gate_status": {"enum": ["PASS", "FAIL", "BLOCKED", "NOT_EVALUATED", "WAIVED"]},
+          "reason": {"type": "string"},
+          "evidence_refs": {"type": "array", "items": {"type": "string"}},
+          "waiver_ref": {"type": "string"}
+        }
+      }
+    },
+    "final_verdict": {
+      "enum": ["ACCEPT", "REJECT", "INCOMPLETE", "ACCEPT_WITH_RISK"]
+    },
+    "collaboration_readiness": {
+      "enum": ["ALL_EXPECTED_CODE_PRESENT", "PARTIAL_EXPECTED_CODE", "CODE_EXPECTED_LATER", "UNKNOWN"]
+    },
+    "mutation_validation_status": {
+      "enum": ["NOT_APPLICABLE", "PENDING", "VALIDATED", "FAILED", "UNKNOWN"]
+    },
+    "wait_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["waiting_for_user"],
+      "properties": {
+        "waiting_for_user": {"type": "boolean"},
+        "reason_code": {
+          "enum": ["NONE", "NEW_AUTHORITY", "SECRET_REQUIRED", "IRREVERSIBLE_DECISION", "SCOPE_EXPANSION", "USER_ONLY_CHOICE"]
+        },
+        "question": {"type": "string"},
+        "since": {"type": "string", "format": "date-time"},
+        "continueable_task_ids": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "external_failures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["evidence_ref", "applicability_status"],
+        "properties": {
+          "evidence_ref": {"type": "string"},
+          "applicability_status": {"enum": ["APPLIES", "DOES_NOT_APPLY", "CONFLICTED", "UNKNOWN"]},
+          "reason": {"type": "string"}
+        }
+      }
+    },
+    "checkpoint_refs": {"type": "array", "items": {"type": "string"}},
+    "report_refs": {"type": "array", "items": {"type": "string"}}
+  },
+  "$defs": {
+    "task_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_id", "capability_id", "execution_status", "attempt"],
+      "properties": {
+        "task_id": {"type": "string", "minLength": 1},
+        "capability_id": {"type": "string", "minLength": 1},
+        "execution_status": {"enum": ["PENDING", "READY", "RUNNING", "COMPLETED", "FAILED", "BLOCKED", "CANCELLED"]},
+        "attempt": {"type": "integer", "minimum": 0},
+        "depends_on": {"type": "array", "items": {"type": "string"}},
+        "receipt_refs": {"type": "array", "items": {"type": "string"}},
+        "error": {"type": "string"},
+        "next_retry_at": {"type": "string", "format": "date-time"}
+      }
+    }
+  }
+}

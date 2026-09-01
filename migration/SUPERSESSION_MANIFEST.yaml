@@ -1,0 +1,79 @@
+schema_version: "1.0"
+manifest_id: EET-SUPERSESSION-2026-08-29
+new_canonical_set:
+  root: Engineering_Evidence_Toolkit/
+  entrypoint: 00_START_HERE.md
+  governance: governance/
+  contracts: contracts/
+  capabilities: capabilities/
+  adapters: adapters/
+  profiles: profiles/
+  migration: migration/
+  roadmap: roadmap/
+  dynamic_runs: runs/
+
+legacy_sources:
+  - source_id: LEGACY-CFA-MAIN-V3.1
+    sha256: 9a414470967ce8bfb2184823838aa3e8bcb5f276a47d1a6b3555ab9cb82617f7
+    post_activation_role: HISTORICAL_SOURCE_ONLY
+  - source_id: LEGACY-CFA-POST-V1.1
+    sha256: 7b59446163c7cd0aa23c27ae8f3f9406b5e476f07a2cdc2e1a09c1ecd970fe7a
+    post_activation_role: HISTORICAL_CAMPAIGN_SOURCE_ONLY
+  - source_id: LEGACY-RECOVERY-REVIEW-V2.5
+    sha256: 6a6c82d265dcb9003130813fb859fba83b85b347b65a253652e7c639d5ab8344
+    post_activation_role: HISTORICAL_PROFILE_SOURCE_ONLY
+
+supersession_dimensions:
+  specification:
+    current_status: SPECIFICATION_SUPERSEDED_FOR_NEW_WORK
+    meaning: >-
+      新文件集从现在起是新工作的唯一规范入口；旧文档仅保留为历史来源。
+      该状态不表示工具已实现，也不取消独立迁移审计要求。
+  implementation:
+    current_status: NOT_IMPLEMENTED
+    meaning: >-
+      规范自检脚本已经实现；业务Capability、Profile Runner、Provider Adapter、
+      业务Canary与真实运行CLI仍不得假定存在或可运行。
+  validation:
+    current_status: NOT_VALIDATED
+    meaning: 尚未用真实多仓、负向样例、产品环境或独立审查证明等价性和效力。
+  activation:
+    current_status: INACTIVE
+    meaning: 旧文档当前仍可用于历史阅读；新工具集不能在实现与验证前冒充强制执行系统。
+
+executable_activation_conditions:
+  - 三源哈希与章节/规则族覆盖审计通过
+  - 所有CRITICAL规则在新契约中有唯一owner与机器判定
+  - 基础结构截断、假成功预检、陈旧索引、用户错误冲突四类负向Canary通过
+  - 独立Reviewer确认没有丢失安全不变量
+  - 实现状态与验证状态来自真实Receipt，不由文案设置
+  - 用户单独确认激活新入口
+
+construction_confirmation:
+  exact_phrase: 确认并锁定工具集建设基线，开始自主建设
+  effect:
+    - 冻结当次建设所依据的Manifest哈希
+    - 授权在工具集目录内创建或修改治理工具、契约、测试与文档
+    - 启动roadmap中的自主建设阶段
+  does_not_authorize:
+    - 修改任何业务源码
+    - 提交、推送或删除业务仓内容
+    - 激活尚未通过Release Gate的能力或Profile
+    - 把计划、示例或研究结论标记为已实现
+
+historical_retention:
+  delete_legacy_files: false
+  rewrite_legacy_files: false
+  move_legacy_files: false
+  rationale: 保留原始证据链和未来迁移审计能力。
+
+runtime_entry_policy:
+  effective: IMMEDIATELY_FOR_NEW_WORK
+  allowed_entrypoints:
+    - Engineering_Evidence_Toolkit/00_START_HERE.md
+    - 明确选定的capability manifest
+    - 明确选定且已激活的profile manifest
+  forbidden_as_runtime_entrypoint:
+    - LEGACY-CFA-MAIN-V3.1
+    - LEGACY-CFA-POST-V1.1
+    - LEGACY-RECOVERY-REVIEW-V2.5

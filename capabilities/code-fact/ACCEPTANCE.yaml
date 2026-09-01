@@ -1,0 +1,147 @@
+schema: engineering-evidence-toolkit/code-fact-acceptance/v1
+spec_status: DESIGNED
+suite_status: NOT_RUN
+
+policy:
+  acceptance_owner: independent verifier or calling profile
+  implementation_self_assertion_is_sufficient: false
+  failed_test_can_be_waived_silently: false
+  missing_receipt_result: FAIL_OR_BLOCKED
+  provider_example_may_be_marked_active: false
+
+capability_contract_tests:
+  - id: CF-A001
+    requirement: A standalone FactQueryRequest can be processed without a Recovery Review profile.
+    expected: EvidenceBundle or explicit contract/failure receipt
+    status: NOT_RUN
+  - id: CF-A002
+    requirement: A profile can consume the same provider-independent EvidenceBundle contract.
+    expected: No profile reads provider-native storage or schema
+    status: NOT_RUN
+  - id: CF-A003
+    requirement: Derivation method, assertion source, and authority are separate fields.
+    expected: Schema rejects collapsed or missing material dimensions
+    status: NOT_RUN
+  - id: CF-A004
+    requirement: Content ID and provenance ID are separately recorded.
+    expected: Same-content/different-provenance fixture remains distinguishable
+    status: NOT_RUN
+  - id: CF-A005
+    requirement: Empty provider output does not automatically become proof of absence.
+    expected: Incomplete-scope fixture returns PARTIAL, INCONCLUSIVE, or BLOCKED_COVERAGE
+    status: NOT_RUN
+  - id: CF-A006
+    requirement: User-provided contradictory evidence reopens the claim.
+    expected: Previous conclusion is not repeated without reconciliation
+    status: NOT_RUN
+
+native_provider_tests:
+  - id: CF-N001
+    requirement: Native Search remains selectable with every optional provider unavailable.
+    expected: Capability returns a receipted native result with explicit ceiling
+    status: NOT_RUN
+  - id: CF-N002
+    requirement: ripgrep output includes command/pattern, scope, exclusions, and snapshot.
+    expected: Reproducible lexical-search receipt
+    status: NOT_RUN
+  - id: CF-N003
+    requirement: Git evidence records dirty state and does not equate commit ID with full content identity.
+    expected: Dirty-worktree fixture changes content identity while preserving provenance details
+    status: NOT_RUN
+
+provider_lifecycle_tests:
+  - id: CF-L001
+    requirement: Artifact, deployment/index, and profile binding have independent states.
+    expected: A validated artifact can remain NOT_DEPLOYED and UNBOUND
+    status: NOT_RUN
+  - id: CF-L002
+    requirement: Index drift moves deployment/index status to STALE without rewriting artifact state.
+    expected: Drift receipt and provider ineligibility for stale-sensitive query
+    status: NOT_RUN
+  - id: CF-L003
+    requirement: Retirement/removal preserves historical evidence references.
+    expected: Old bundles retain resolvable artifact and invocation receipts
+    status: NOT_RUN
+  - id: CF-L004
+    requirement: Provider swap does not change public output schema.
+    expected: Contract conformance for two provider implementations
+    status: NOT_RUN
+  - id: CF-L005
+    requirement: A source or build-context change invalidates evidence bound to the old content_id before any re-query.
+    expected: Old bundles are marked stale or superseded and cannot support the new snapshot
+    status: NOT_RUN
+  - id: CF-L006
+    requirement: An incremental-capable provider refreshes the changed-file set and affected dependency closure before reuse.
+    expected: Refresh receipt records closure derivation, refreshed/skipped/failed units, and old/new index identities
+    status: NOT_RUN
+  - id: CF-L007
+    requirement: Incremental refresh is accepted only after the index binding to the new content_id and build context is verified.
+    expected: Re-query is blocked until new content_id, build profile, generated inputs, and provider configuration match
+    status: NOT_RUN
+  - id: CF-L008
+    requirement: Unsupported or failed incremental refresh prevents use of the old index.
+    expected: Provider evidence becomes STALE; execution uses a receipted Native provider or an approved full rebuild
+    status: NOT_RUN
+
+clangd_tests:
+  - id: CF-C001
+    requirement: Missing or unattributed compile_commands is surfaced.
+    expected: BLOCKED_CONFIGURATION or narrowed explicit scope
+    status: NOT_RUN
+  - id: CF-C002
+    requirement: Wrong target/compiler context cannot be reported as product parity.
+    expected: Divergence receipt and authority ceiling
+    status: NOT_RUN
+  - id: CF-C003
+    requirement: query-driver use is restricted to an explicit allowlist and receipted.
+    expected: Broad wildcard is rejected; exact drivers are identified
+    status: NOT_RUN
+  - id: CF-C004
+    requirement: Missing generated headers and external caches fail visibly.
+    expected: No fabricated placeholder evidence
+    status: NOT_RUN
+  - id: CF-C005
+    requirement: Diagnostics and skipped translation units are captured.
+    expected: Coverage receipt contains expected/indexed/failed counts
+    status: NOT_RUN
+  - id: CF-C006
+    requirement: clangd does not claim complete cross-repository or link/runtime semantics.
+    expected: Evidence ceiling remains explicit in every response
+    status: NOT_RUN
+
+adapter_boundary_tests:
+  - id: CF-D001
+    requirement: Company pull/workspace/submit scripts are source-control adapter concerns.
+    expected: No company commands in provider supply-chain or kernel contract
+    status: NOT_RUN
+  - id: CF-D002
+    requirement: Evidence-only execution cannot invoke submit.
+    expected: Adapter policy blocks and receipts the attempted write action
+    status: NOT_RUN
+  - id: CF-D003
+    requirement: DeepSeek Harness consumes the public capability contract.
+    expected: No provider-specific prompt or storage coupling required
+    status: NOT_RUN
+
+benchmark_tests:
+  - id: CF-B001
+    requirement: Cold and warm measurements are separated and repeated.
+    expected: At least 3 cold and 5 warm samples or explicit campaign deviation
+    status: NOT_RUN
+  - id: CF-B002
+    requirement: Expected answers are curated independently and disagreements adjudicated.
+    expected: Truth-set and adjudication receipts
+    status: NOT_RUN
+  - id: CF-B003
+    requirement: Timeout and provider errors are not counted as negative findings.
+    expected: Explicit provider-error/inconclusive samples
+    status: NOT_RUN
+  - id: CF-B004
+    requirement: Performance claims include numerator, denominator, scope, and uncertainty.
+    expected: Report validator rejects unsupported percentage claims
+    status: NOT_RUN
+
+acceptance_result: NOT_RUN
+acceptance_note: >-
+  This suite is an executable acceptance specification only. No test has been
+  executed and no implementation or provider has passed acceptance.

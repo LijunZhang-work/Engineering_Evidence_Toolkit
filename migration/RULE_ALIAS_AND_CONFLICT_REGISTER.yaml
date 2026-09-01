@@ -1,0 +1,131 @@
+schema_version: "1.0"
+register_id: EET-RULE-CONFLICTS-2026-08-29
+policy:
+  preserve_legacy_ids: true
+  reuse_ambiguous_id: false
+  alias_requires_evidence: true
+  new_rule_namespace: "EET-<capability>-<number>"
+  resolution_principle: >-
+    历史ID用于追溯，不直接作为新工具集的可执行主键；新规则必须具有唯一语义、
+    唯一拥有者和机器可判定结果。未决冲突不得被静默合并。
+
+entries:
+  - conflict_id: RC-001
+    legacy_ids: [RR-CG-004, RR-F3-004]
+    issue: 同一“修改后增量同步/索引新鲜度”语义出现两个规则ID或引用漂移。
+    resolution: >-
+      统一映射到新规则 EET-CF-004（变更后事实提供者必须产出绑定当前字节与快照的刷新Receipt）。
+      RR-CG-004与RR-F3-004仅保留为历史别名；CodeGraph是Provider，不写入核心规则语义。
+    status: RESOLVED_AT_SPEC_LEVEL
+    implementation_status: NOT_IMPLEMENTED
+    validation_status: NOT_VALIDATED
+
+  - conflict_id: RC-002
+    legacy_ids: [RR-UR-005, "RR-UR-201..207"]
+    issue: 旧编号RR-UR-005与后续201-207区间并存，且201-207中未见连续完整定义。
+    resolution: >-
+      不推断缺失编号含义。将可确认语义拆为EET-AR-201至EET-AR-207；
+      RR-UR-005作为AMBIGUOUS_LEGACY_ALIAS保留，只有找到原始定义后才可建立精确别名。
+    status: OPEN_LEGACY_AMBIGUITY
+    implementation_status: NOT_IMPLEMENTED
+    validation_status: NOT_VALIDATED
+
+  - conflict_id: RC-003
+    legacy_ids: [RR-A-002]
+    issue: 仅作为示例/引用出现，缺少可审计的唯一规范正文或完整规则族。
+    resolution: >-
+      标为ORPHAN_REFERENCE，不自动补义。对齐缺口发现要求在新规范中使用EET-ALIGN-002重新定义。
+    status: RESOLVED_BY_NEW_RULE_NO_ALIAS
+    implementation_status: NOT_IMPLEMENTED
+    validation_status: NOT_VALIDATED
+
+  - conflict_id: RC-004
+    legacy_ids: [RR-T-004]
+    issue: 仅作为示例/引用出现，缺少完整规范定义。
+    resolution: >-
+      标为ORPHAN_REFERENCE；Taint传播若进入新规范，使用EET-LEDGER-004并给出输入、传播算法与停止条件。
+    status: RESOLVED_BY_NEW_RULE_NO_ALIAS
+    implementation_status: NOT_IMPLEMENTED
+    validation_status: NOT_VALIDATED
+
+  - conflict_id: RC-005
+    legacy_ids: [RR-R4-003]
+    issue: 来自旧版示例的编号残留，v2.5主规则结构中无对应唯一章节。
+    resolution: >-
+      保留为DEPRECATED_EXAMPLE_ID，不进入执行引擎；如示例仍有价值，迁移为不带规范ID的历史示例。
+    status: RETIRED_AS_EXECUTABLE_ID
+    implementation_status: NOT_APPLICABLE
+    validation_status: NOT_APPLICABLE
+
+  - conflict_id: RC-006
+    legacy_ids: [RR-EV-001]
+    issue: Evidence-first章节表达了完整原则，但只有不完整或孤立的规则编号。
+    resolution: >-
+      新建EET-EV规则族，分别覆盖Claim-Evidence绑定、原始位置、工具资格、负向Claim、
+      Unknown Budget、Facts First和冲突单向否决；RR-EV-001只别名到语义完全相同的首条规则。
+    status: PARTIALLY_RESOLVED_PENDING_RULE_CATALOG
+    implementation_status: NOT_IMPLEMENTED
+    validation_status: NOT_VALIDATED
+
+  - conflict_id: RC-007
+    legacy_ids: [RR-BD-001]
+    issue: Windows Build/Target/Include/DT章节包含多个必须项，但编号覆盖不完整。
+    resolution: >-
+      新建EET-DEP规则族，分别定义三图分离、Target membership、Include owner/resolution/propagation、
+      条件编译、DT静态审查、Business-DT矩阵与Generated dependency；旧ID仅保留精确可比部分的别名。
+    status: PARTIALLY_RESOLVED_PENDING_RULE_CATALOG
+    implementation_status: NOT_IMPLEMENTED
+    validation_status: NOT_VALIDATED
+
+  - conflict_id: RC-008
+    legacy_ids: [RR-AL]
+    issue: 文档概念上存在Alignment/Launch要求，但RR-AL规则族声明或引用不完整。
+    resolution: >-
+      使用EET-ALIGN独立规则族；仓、权威资料、范围、权限、限制、交付、协作边界和Hash确认均分项定义。
+    status: RESOLVED_BY_NEW_RULE_FAMILY
+    implementation_status: NOT_IMPLEMENTED
+    validation_status: NOT_VALIDATED
+
+  - conflict_id: RC-009
+    legacy_ids: [RR-D]
+    issue: Deviation相关概念完整，但RR-D规则族未形成完整唯一编号集。
+    resolution: >-
+      使用EET-LEDGER-D规则族定义偏离创建、证据、影响、恢复、Waiver和Taint；不猜测缺失旧ID。
+    status: RESOLVED_BY_NEW_RULE_FAMILY
+    implementation_status: NOT_IMPLEMENTED
+    validation_status: NOT_VALIDATED
+
+  - conflict_id: RC-010
+    legacy_ids: ["S6(no ID)", "S7(no ID)"]
+    issue: Consensus/Gap Matrix与Final Fix Plan有阶段语义但没有规则ID。
+    resolution: >-
+      在Recovery Review Profile中新增EET-RR-S6与EET-RR-S7规则族；标注NEW_AFTER_FREEZE，
+      不把新ID伪称为v2.5原文规则。
+    status: RESOLVED_BY_NEW_RULE_FAMILY
+    implementation_status: NOT_IMPLEMENTED
+    validation_status: NOT_VALIDATED
+
+  - conflict_id: RC-011
+    legacy_ids: [RR-BEH-001, RR-BEH-002, RR-BEH-003]
+    replacement_ids: [RR-BEHAVIOR-001, RR-BEHAVIOR-002, RR-BEHAVIOR-003]
+    issue: >-
+      这些编号原意是通用 behavior，却缩写为 BEH；BEH 同时是项目中真实工具或领域专名，
+      会使规则归属和后续 BEH 接入发生语义碰撞。
+    resolution: >-
+      活跃规则统一使用完整拼写 BEHAVIOR。旧 RR-BEH 编号只保留为一对一历史别名，
+      不得进入新的运行状态、报告主键或规则引用；BEH 保留给仓内有权威依据的 BEH 专名。
+    alias_map:
+      RR-BEH-001: RR-BEHAVIOR-001
+      RR-BEH-002: RR-BEHAVIOR-002
+      RR-BEH-003: RR-BEHAVIOR-003
+    status: RESOLVED_BY_UNAMBIGUOUS_RENAME
+    implementation_status: NOT_IMPLEMENTED
+    validation_status: NOT_VALIDATED
+
+quality_gate:
+  executable_rule_catalog_may_activate_when:
+    - 每个历史别名只能指向一个语义等价的新规则
+    - 每个新规则具有owner、inputs、predicate、outputs、failure_effect
+    - 所有OPEN_LEGACY_AMBIGUITY被显式排除或人工裁定
+    - 负向Canary证明冲突规则不能被重复执行或互相覆盖
+  current_gate_result: BLOCKED_NOT_IMPLEMENTED

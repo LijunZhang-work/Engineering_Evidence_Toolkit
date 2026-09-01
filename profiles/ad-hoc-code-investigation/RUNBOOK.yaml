@@ -1,0 +1,38 @@
+status: DESIGNED
+schema_version: "1.0.0"
+profile: ad-hoc-code-investigation@1.0.0
+
+steps:
+  - id: Q0_SCOPE
+    actions:
+      - normalize_question
+      - choose_smallest_relevant_repository_scope
+      - capture_workspace_snapshot
+  - id: Q1_QUERY
+    invokes:
+      - code-fact
+    rules:
+      - capability_selects_provider
+      - exact_or_structural_evidence_preferred_for_exact_claims
+      - indexed_result_requires_freshness_receipt
+      - lexical_fallback_is_labeled
+  - id: Q2_EXPAND_IF_NEEDED
+    conditional_invokes:
+      - build-dependency-audit
+      - signal-lineage
+      - contract-reconciliation
+    rule: Expand only when current evidence cannot answer the scoped question.
+  - id: Q3_ANSWER
+    invokes:
+      - evidence-kernel
+    output_requirements:
+      - lead_with_answer
+      - distinguish_fact_inference_hypothesis_and_unknown
+      - cite_snapshot_bound_evidence
+      - state_coverage_and_conclusion_ceiling
+      - suggest_full_profile_only_if_risk_requires_it
+
+gate_behavior:
+  EXPLORE: no_gate
+  EVIDENCE: evidence_completeness_only
+  ENFORCE: explicit_query_specific_gate

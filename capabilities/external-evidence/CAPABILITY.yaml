@@ -1,0 +1,24 @@
+schema_version: 1
+id: external-evidence
+name: External Evidence Intake
+version: 0.1.0-draft
+status: DESIGNED
+kind: independent_capability
+spec: SPEC.md
+entrypoint:
+  operation: ingest_external_evidence
+  callable_without_profile: true
+inputs:
+  required: [submitted_material]
+  optional: [claimed_context, workspace_snapshot, redaction_policy]
+outputs:
+  primary: external_evidence_bundle
+  includes: [provenance, observations, context_match, contradictions, followups]
+side_effects:
+  repository_mutation: forbidden
+  external_mutation: forbidden
+  allowed_writes: [run_artifacts]
+failure_policy: preserve_and_qualify
+result_states: [ACCEPTED, ACCEPTED_WITH_LIMITS, CONTEXT_MISMATCH, UNVERIFIABLE]
+evidence_ceiling: "外部材料证明其记录到的现象；上下文不全时不能扩展为所有版本/环境的结论"
+

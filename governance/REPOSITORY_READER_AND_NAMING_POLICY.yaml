@@ -1,0 +1,107 @@
+schema_version: "1.0.0"
+policy_id: engineering-evidence-toolkit-repository-reader-and-naming-policy
+version: "1.0.0"
+status: DESIGNED
+
+purpose: >-
+  约束会进入共享代码仓的永久文本，使其只依赖仓内可获得的业务、设计与工程上下文；
+  同时消除会与真实产品、工具或领域专名发生碰撞的模糊缩写。
+
+scope:
+  applies_to:
+    - source_code
+    - headers
+    - build_files
+    - tests
+    - configuration
+    - committed_documentation
+    - identifiers
+    - comments
+    - runtime_messages_added_by_the_change
+    - commit_messages_when_generated_by_the_toolkit
+  excludes:
+    - external_run_artifacts_not_committed_to_business_repositories
+    - private_chat_transcripts
+
+naming_rules:
+  - id: EET-NAMING-BEHAVIOR-001
+    requirement: >-
+      当标识符、规则族、字段或标题表达通用 behavior 语义时，MUST 拼写完整的
+      BEHAVIOR；MUST NOT 缩写为 BEH。
+    reserved_term: BEH
+    reserved_meaning: >-
+      BEH 仅可表示项目中已有且有仓内权威依据的 BEH 产品、工具、模型或专名，
+      不得作为 behavior 的缩写复用。
+    failure_effect: FAIL_NAMING_GATE
+
+repository_reader_rules:
+  - id: EET-REPOSITORY-READER-001
+    requirement: >-
+      合入候选中的每一段新增或修改文本，MUST 能由只拥有代码仓及其权威文档的读者理解；
+      不得要求读者知道用户与 AI 的对话、内部审批过程或本次会话的临时编号。
+    failure_effect: REJECT_CHANGE_UNTIL_REWRITTEN
+
+  - id: EET-REPOSITORY-READER-002
+    requirement: >-
+      代码注释、名称和运行消息 MUST 描述稳定的业务含义、设计不变量、接口契约、
+      非显然约束或失败原因；MUST NOT 叙述“这次怎么改的”或“谁批准了这次修改”。
+    failure_effect: REJECT_CHANGE_UNTIL_REWRITTEN
+
+  - id: EET-REPOSITORY-READER-003
+    requirement: >-
+      fix1.1、fix_2、按本次讨论、用户已确认、AI 修改、第一版修复、临时阶段二等
+      会话局部标签只能作为候选信号；若无法映射到仓内稳定语义，MUST NOT 写入合入候选。
+    note: >-
+      不能只靠关键词正则判定。符合仓库既有规范且仓内可解析的缺陷单号、协议版本、
+      产品版本或迁移编号可以保留，但必须有可核验的仓内来源和适当放置位置。
+    failure_effect: REJECT_CHANGE_UNTIL_REWRITTEN
+
+  - id: EET-REPOSITORY-READER-004
+    requirement: >-
+      任何必要的历史或兼容说明 MUST 指向仓内长期存在的 Issue、ADR、规范、接口版本或
+      变更记录；若唯一来源是私聊或模型记忆，结论 MUST 为 REPOSITORY_CONTEXT_LEAK。
+    failure_effect: REJECT_CHANGE_UNTIL_REWRITTEN
+
+required_check:
+  id: REPOSITORY_READER_CHECK
+  timing:
+    - after_each_textual_edit
+    - before_final_diff_acceptance
+    - before_commit_or_delivery
+  inputs:
+    - locked_workspace_snapshot
+    - complete_change_set
+    - repository_conventions
+    - authoritative_repository_documents
+  procedure:
+    - enumerate_all_added_or_changed_identifiers_comments_messages_and_committed_text
+    - flag_conversation_local_or_ambiguous_tokens_as_candidates
+    - classify_each_candidate_as_stable_domain_meaning_repository_convention_or_context_leak
+    - require_repository_evidence_for_every_allowed_exception
+    - perform_cold_reader_review_without_chat_context
+    - persist_evidence_locations_and_result
+  result_states:
+    - PASS
+    - FAIL
+    - UNKNOWN
+  pass_requires:
+    - no_unresolved_context_leak
+    - every_exception_has_repository_evidence
+    - cold_reader_can_explain_why_the_text_exists_from_repository_context_alone
+  unknown_effect: >-
+    UNKNOWN 不得被当作通过；继续进行不依赖该文本的验证，但合入候选保持不可接受。
+
+examples:
+  forbidden:
+    - "// fix1.1 修改"
+    - "// 按照这次和用户确认的方案处理"
+    - "const bool aiFixPhase2 = true;"
+  acceptable:
+    - "// Normalize to physical units before publishing; downstream consumers read SI values."
+    - "// Preserve the previous schema field until all registered consumers migrate to schema v3."
+  explanation: >-
+    可接受示例解释稳定的契约或兼容原因；它们不依赖审阅者知道本次 AI 会话。
+
+implementation_status: NOT_IMPLEMENTED
+validation_status: NOT_RUN
+activation_status: INACTIVE

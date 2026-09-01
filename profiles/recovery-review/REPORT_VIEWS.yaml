@@ -1,0 +1,81 @@
+status: DESIGNED
+schema_version: "1.0.0"
+profile: recovery-review@1.1.0
+
+source_of_truth:
+  artifact: final_fact_set
+  content_hash_required: true
+  immutable: true
+
+shared_invariants:
+  identical_fields_across_views:
+    - instance_id
+    - workspace_snapshot_hash
+    - alignment_lock_hash
+    - final_verdict
+    - gate_results
+    - finding_ids
+    - severity
+    - counts
+    - evidence_refs
+    - unresolved_items
+    - limitations
+  forbidden:
+    - dropping_failures_from_plain_language_view
+    - upgrading_inconclusive_wording
+    - changing_counts_during_rendering
+    - claiming_formal_build_or_dt_pass_from_windows_static_precheck
+
+views:
+  professional:
+    format: markdown
+    audience: software_engineer_and_reviewer
+    sections:
+      - executive_verdict
+      - locked_scope_and_revisions
+      - evidence_quality_and_environment_equivalence
+      - findings_by_severity
+      - gate_table
+      - dependency_and_target_matrix
+      - dt_and_signal_trace
+      - design_fit
+      - repository_reader_check
+      - external_evidence_reconciliation
+      - fixes_and_verification
+      - unresolved_items_and_limitations
+      - audit_and_artifact_index
+  plain_language:
+    format: markdown
+    audience: non_specialist_user
+    sections:
+      - one_sentence_result
+      - what_was_checked
+      - confirmed_problems
+      - what_was_fixed
+      - whether_the_change_is_understandable_without_private_chat_context
+      - what_windows_checks_can_and_cannot_prove
+      - what_still_needs_real_environment_testing
+      - concise_next_actions
+    language_rules:
+      - explain_compiler_target_dt_and_index_in_plain_language
+      - show_evidence_links_but_avoid_unnecessary_internal_jargon
+      - never_soften_severity_or_hide_uncertainty
+  machine_readable:
+    format: yaml
+    audience: automation
+    required_fields:
+      - schema_version
+      - fact_set_hash
+      - final_verdict
+      - gates
+      - findings
+      - artifacts
+      - limitations
+      - waiting_human_items
+
+render_validation:
+  - recompute_counts_from_final_fact_set
+  - compare_all_view_verdicts
+  - compare_all_view_finding_ids
+  - compare_all_view_evidence_refs
+  - fail_render_if_any_invariant_differs

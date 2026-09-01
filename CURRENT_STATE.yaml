@@ -1,0 +1,77 @@
+api_version: eet/v1
+kind: ToolkitState
+
+toolkit_id: engineering-evidence-toolkit
+toolkit_version: 0.5.1
+recorded_at: 2026-09-01T00:00:00Z
+
+status_dimensions:
+  specification_status: SPECIFIED
+  implementation_status: NOT_IMPLEMENTED
+  validation_status: NOT_RUN
+  activation_status: INACTIVE
+  migration_status: SPECIFICATION_SUPERSEDED_FOR_NEW_WORK
+
+truthful_summary:
+  architecture_designed: true
+  contracts_written: true
+  capability_specs_written: true
+  profile_specs_written: true
+  specification_validator_implemented: true
+  specification_validator_last_result: PASS_WITH_LIMITATION
+  specification_validator_limitation: jsonschema_engine_unavailable_builtin_checks_passed
+  executable_runtime_present: false
+  acceptance_tests_executed: false
+  company_environment_qualified: false
+  real_project_validation_executed: false
+  provider_bindings_active: false
+  experience_memory_specified: true
+  experience_memory_provider_selected: false
+  experience_memory_mvp_executed: false
+  outer_runtime_boundary_specified: true
+  outer_runtime_boundary_enforced: false
+  capability_progress_dashboard_renderer_implemented: true
+  capability_progress_dashboard_last_render_result: PASS
+  capability_progress_dashboard_last_render_scope: 20_registered_capabilities
+  capability_progress_dashboard_current_summary: 0_complete_20_in_progress_0_not_started_0_unknown
+  capability_progress_dashboard_focused_tests_last_result: 6_PASS
+  capability_progress_dashboard_negative_checks_last_result: stale_and_false_green_detected
+
+allowed_claims:
+  - 新的模块化规范目录已建立
+  - 三份旧文档的长期职责已迁移到独立能力、共享契约、可选Profile和实施计划
+  - 验收场景和实施顺序已定义
+  - 规范目录自检工具已实现，但尚不构成业务检查能力
+  - Experience Memory 的独立能力、MVP判定和Provider候选已设计
+  - 公司网络、模型API、密钥、外发、下载和制品来源策略已收敛到单一外层运行边界规格
+  - 能力拼图进度看板可从Manifest和状态证据重新渲染，当前20项能力均为20%规格阶段
+  - 能力拼图看板的6项聚焦测试通过，过期页面与伪绿色反例可被拒绝；这不等于Capability验收已执行
+
+forbidden_claims:
+  - 工具已经实现
+  - Windows预检已经生效
+  - CodeGraph或clangd已经通过真实项目验证
+  - Recovery Review已经执行
+  - 代码没有编译错误
+  - DT没有问题
+  - 所有业务问题已经排除
+  - Memory已经安装、写入、召回或通过MVP
+  - 公司运行边界已经在真实环境中生效
+  - 看板渲染成功代表Capability已经实现或通过
+
+activation_requirements:
+  - roadmap/RELEASE_GATES.yaml 全部满足
+  - acceptance/EXPECTED_RESULTS.yaml 的强制用例全部通过
+  - 公司运行边界适配器已配置并通过真实环境资格验证
+  - 所有ACTIVE状态具有不可变Receipt
+  - 人工签发激活Receipt
+
+legacy_sources:
+  operational_entrypoint: false
+  historical_evidence_retained: true
+  register: migration/LEGACY_SOURCE_REGISTER.yaml
+  supersession_manifest: migration/SUPERSESSION_MANIFEST.yaml
+
+conservative_resolution_rule: >-
+  如果本文件、Manifest、Capability、Profile、报告或示例之间的状态不一致，
+  使用证明最少、资格最低、风险最保守的状态，并登记冲突。

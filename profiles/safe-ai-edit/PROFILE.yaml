@@ -1,0 +1,75 @@
+status: DESIGNED
+status_dimensions:
+  specification_status: DESIGNED
+  implementation_status: NOT_IMPLEMENTED
+  validation_status: NOT_RUN
+  activation_status: INACTIVE
+schema_version: "1.0.0"
+kind: ToolkitProfile
+id: safe-ai-edit
+version: "1.1.0"
+title: 安全 AI 代码修改
+
+intent: >-
+  对一次受控代码修改建立修改前事实、最小设计方案、结构安全、影响面和修改后验证闭环，
+  重点防止大段误删、文件截断、遗漏括号、错误责任层修补和“看起来没问题”的无证据结论。
+
+profile_is_optional: true
+standalone_capability_use_allowed: true
+capability_internal_access: forbidden
+direct_provider_access: forbidden
+runner_contract: ../../composition/PROFILE_RUNNER_CONTRACT.yaml
+
+capabilities:
+  required:
+    - workspace-snapshot
+    - code-fact
+    - design-fit-review
+    - change-safety
+    - build-dependency-audit
+    - evidence-kernel
+    - audit-ledger
+    - report-renderer
+  conditional:
+    - capability: windows-static-precheck
+      when: cpp_or_build_affected
+    - capability: external-evidence
+      when: user_supplies_error
+    - capability: signal-lineage
+      when: data_flow_affected
+
+edit_authorization:
+  must_be_explicit: true
+  scope_fields:
+    - repositories
+    - allowed_paths
+    - forbidden_paths
+    - maximum_expected_files
+    - maximum_expected_deleted_lines
+  forbidden_without_new_authorization:
+    - broad_generated_file_rewrite
+    - mass_deletion
+    - public_interface_change_outside_scope
+    - destructive_git_operation
+
+hard_invariants:
+  - snapshot_before_edit
+  - root_cause_and_responsibility_layer_before_patch
+  - minimal_coherent_design_not_symptom_suppression
+  - after_each_edit_diff_inventory
+  - whole_construct_and_end_of_file_structural_check
+  - deleted_symbol_reconciliation
+  - target_and_dependency_impact_check
+  - active_canary_before_trusting_windows_precheck
+  - user_error_overrides_conflicting_local_green
+  - repository_reader_check_after_each_textual_edit_and_before_delivery
+  - no_conversation_local_labels_in_merge_candidate
+  - comments_and_names_explain_stable_repository_meaning
+
+repository_reader_policy: ../../governance/REPOSITORY_READER_AND_NAMING_POLICY.yaml
+
+results:
+  - ACCEPTABLE_WITH_EVIDENCE
+  - REJECTED
+  - INCONCLUSIVE
+  - NO_EDIT_NEEDED

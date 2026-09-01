@@ -1,0 +1,165 @@
+status: DESIGNED
+status_dimensions:
+  specification_status: DESIGNED
+  implementation_status: NOT_IMPLEMENTED
+  validation_status: NOT_RUN
+  activation_status: INACTIVE
+schema_version: "1.0.0"
+kind: ToolkitProfile
+id: recovery-review
+version: "1.1.0"
+title: 多仓 AI 遗留改动恢复与证据化审查
+
+intent: >-
+  在不把任何单一工具结果当真相的前提下，恢复需求与代码事实、审查遗留修改、
+  定位并修复高置信问题，并为后续真实环境验证准备可追溯证据。
+
+profile_is_optional: true
+standalone_capability_use_allowed: true
+capability_internal_access: forbidden
+direct_provider_access: forbidden
+
+runner_contract: ../../composition/PROFILE_RUNNER_CONTRACT.yaml
+
+mandatory_confirmation:
+  exact_phrase: "确认并锁定本次审查，开始自主执行"
+  required_once_after_alignment_preview: true
+  does_not_authorize:
+    - bypassing_permissions
+    - destructive_repository_operations
+    - fabricating_missing_requirements
+    - weakening_evidence_rules
+
+alignment_lock:
+  canonical_serialization: RFC8785_JSON
+  digest: SHA-256
+  binds:
+    repositories:
+      - repo_id
+      - canonical_path
+      - revision
+      - branch_if_relevant
+      - dirty_patch_hash
+      - untracked_manifest_hash
+      - submodule_and_lfs_state
+    collaboration:
+      - delivery_mode
+      - participant_responsibilities
+      - expected_but_not_arrived_changes
+      - available_handoff_samples
+      - absent_consumer_declaration
+    authority:
+      - source_id
+      - source_version
+      - source_hash
+      - priority
+      - applicable_scope
+    permissions:
+      - read_scope
+      - edit_scope
+      - command_scope
+      - forbidden_actions
+    execution:
+      - profile_id
+      - profile_version
+      - profile_hash
+      - capability_contract_hashes
+      - reporting_requirements
+    environment_assets:
+      - inventory_hash
+      - required_and_optional_tools
+      - resolved_source_and_artifact_paths
+      - missing_or_invalid_tools
+      - ai_download_user_download_or_skip_decisions
+      - accepted_impact_and_evidence_ceiling
+
+capabilities:
+  required:
+    - workspace-snapshot
+    - collaboration-snapshot
+    - authority-governance
+    - contract-reconciliation
+    - code-fact
+    - evidence-kernel
+    - behavior-recovery
+    - independent-review
+    - design-fit-review
+    - change-safety
+    - build-dependency-audit
+    - windows-static-precheck
+    - external-evidence
+    - autonomous-runner
+    - audit-ledger
+    - report-renderer
+    - third-party-supply-chain
+  conditional:
+    - capability: signal-lineage
+      when: behavior_or_cross_module_data_change
+    - capability: observability-planner
+      when: later_real_environment_test_is_expected
+    - capability: experience-memory
+      when: user_requests_scoped_recall_or_explicit_experience_memory_write
+
+execution_model:
+  unattended_after_confirmation: true
+  continue_ready_items: true
+  diagnose_before_waiting_human: true
+  deduplicate_blockers: true
+  checkpoint_after_each_capability_or_gate: true
+  no_global_freeze_for_independent_failure: true
+
+stages:
+  - S0_SCOPE_AND_SNAPSHOT
+  - S0A_ENVIRONMENT_ASSET_ALIGNMENT
+  - S1_AUTHORITY_AND_CONTRACT
+  - S2_CODE_FACT_BASELINE
+  - S3_CHANGE_AND_DEPENDENCY_REVIEW
+  - S4_BEHAVIOR_AND_TRACE_RECONSTRUCTION
+  - S5_INDEPENDENT_AND_DESIGN_REVIEW
+  - S6_WINDOWS_PRECHECK_AND_EVIDENCE_RECONCILIATION
+  - S7_VERDICT_AND_REPORTS
+
+gates:
+  - F0_ALIGNMENT_LOCK
+  - F1_STRUCTURAL_CHANGE_SAFETY
+  - F2_BUILD_TARGET_AND_DEPENDENCY
+  - F3_DT_AND_CONTRACT_INTEGRATION
+  - F4_BEHAVIOR_SIGNAL_AND_DESIGN
+  - F5_EXTERNAL_EVIDENCE_RECONCILIATION
+  - F6_AUDITABILITY_AND_DELIVERY
+
+gate_result_values:
+  - PASS
+  - FAIL
+  - INCONCLUSIVE
+  - NOT_APPLICABLE
+
+global_precedence_rules:
+  - user_reproducible_error_overrides_conflicting_local_green
+  - invalid_canary_invalidates_the_check
+  - stale_index_cannot_support_fresh_source_claim
+  - environment_mismatch_caps_conclusion
+  - missing_evidence_never_becomes_pass
+  - merge_candidate_text_must_be_understandable_without_user_ai_conversation
+  - recalled_memory_is_non_authoritative_until_reverified_on_locked_snapshot
+
+memory_policy:
+  automatic_chat_transcript_ingestion: forbidden
+  write_requires_explicit_memory_intent: true
+  recall_default_scope: locked_project_and_repository_set
+  use_as_gate_evidence_without_reverification: forbidden
+  correction_mode: append_and_supersede
+
+repository_reader_policy: ../../governance/REPOSITORY_READER_AND_NAMING_POLICY.yaml
+
+final_verdicts:
+  - PASS
+  - PASS_WITH_LIMITATIONS
+  - FAIL
+  - INCOMPLETE
+
+report_views:
+  - professional
+  - plain-language
+  - machine_readable
+single_fact_source_for_all_views: true

@@ -1,0 +1,24 @@
+schema_version: 1
+id: contract-reconciliation
+name: Contract Reconciliation
+version: 0.1.0-draft
+status: DESIGNED
+kind: independent_capability
+spec: SPEC.md
+entrypoint:
+  operation: reconcile_contracts
+  callable_without_profile: true
+inputs:
+  required: [authority_registry, contract_sources]
+  optional: [workspace_snapshot, evidence_bundles]
+outputs:
+  primary: contract_matrix
+  includes: [obligations, implementations, tests, matches, gaps, conflicts, unknowns]
+side_effects:
+  repository_mutation: forbidden
+  external_mutation: forbidden
+  allowed_writes: [run_artifacts]
+failure_policy: fail_closed
+result_states: [MATCHED, MISMATCHED, CONFLICTED, UNKNOWN, NOT_APPLICABLE]
+evidence_ceiling: "静态对齐只证明可见契约关系，不证明运行结果或缺失协作者实现"
+

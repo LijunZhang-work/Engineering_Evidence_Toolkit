@@ -1,0 +1,24 @@
+schema_version: 1
+id: design-fit-review
+name: Design Fit Review
+version: 0.1.0-draft
+status: DESIGNED
+kind: independent_capability
+spec: SPEC.md
+entrypoint:
+  operation: assess_design_fit
+  callable_without_profile: true
+inputs:
+  required: [problem_statement, change_set, as_built_model]
+  optional: [authority_registry, architecture_constraints, alternatives]
+outputs:
+  primary: design_fit_assessment
+  includes: [root_cause_fit, invariant_fit, cohesion, coupling, compatibility, alternatives, debt]
+side_effects:
+  repository_mutation: forbidden
+  external_mutation: forbidden
+  allowed_writes: [run_artifacts]
+failure_policy: fail_closed
+result_states: [FIT, FIT_WITH_DEBT, PATCH_SHAPED, CONFLICTED, UNKNOWN]
+evidence_ceiling: "设计审查是有依据的工程判断，不替代运行验证或架构所有者授权"
+

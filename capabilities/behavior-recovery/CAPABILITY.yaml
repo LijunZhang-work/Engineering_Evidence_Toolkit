@@ -1,0 +1,24 @@
+schema_version: 1
+id: behavior-recovery
+name: Behavior Recovery
+version: 0.1.0-draft
+status: DESIGNED
+kind: independent_capability
+spec: SPEC.md
+entrypoint:
+  operation: recover_as_built_behavior
+  callable_without_profile: true
+inputs:
+  required: [workspace_snapshot, questions]
+  optional: [code_fact_evidence, collaboration_snapshot, runtime_evidence]
+outputs:
+  primary: as_built_model
+  includes: [control_flow, data_flow, state_transitions, side_effects, uncertainties]
+side_effects:
+  repository_mutation: forbidden
+  external_mutation: forbidden
+  allowed_writes: [run_artifacts]
+failure_policy: fail_closed
+result_states: [EVIDENCED, PARTIAL, UNKNOWN, NOT_QUALIFIED]
+evidence_ceiling: "恢复的是可见实现现状，不等同于需求正确性或真实运行证明"
+

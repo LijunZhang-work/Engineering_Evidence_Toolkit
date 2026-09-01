@@ -1,0 +1,79 @@
+schema: engineering-evidence-toolkit/adapter/v1
+id: company-runtime-boundary
+version: 1.0.0-draft
+spec_status: DESIGNED
+verification_status: NOT_RUN
+
+purpose: >-
+  Act as the single outer execution boundary for environment-specific network,
+  model API, credential, data-egress, runtime-download, and artifact-source policy.
+  Capabilities and other adapters may declare needs, but may not duplicate or
+  weaken these decisions.
+
+position: OUTERMOST_EXECUTION_BOUNDARY
+canonical_policy_owner: true
+
+applies_to:
+  - profile_runner
+  - capability_invocations
+  - provider_processes
+  - environment_adapters
+
+policy:
+  configured_company_model_api:
+    access: ALLOW
+    endpoint_source: runtime_configuration
+    api_key_source: runtime_configuration
+    secret_persistence: FORBIDDEN
+    secret_receipt: redacted_reference_only
+  all_other_network_access:
+    access: DENY_BY_DEFAULT
+    exception_authority: explicit_environment_policy
+  source_and_evidence_egress:
+    access: DENY_BY_DEFAULT
+  runtime_dependency_download:
+    access: DENY_BY_DEFAULT
+  provider_artifact_source:
+    requirement: approved_environment_source_with_integrity_receipt
+
+capability_declaration_contract:
+  capabilities_may_declare:
+    - needs_model_inference
+    - needs_embedding
+    - needs_remote_service
+    - needs_provider_artifact
+  capabilities_must_not_declare:
+    - company_endpoint
+    - company_api_key_name
+    - internal_or_external_route
+    - environment_specific_allowlist
+  resolution_rule: >-
+    The outer boundary resolves a declared need against the active environment
+    policy and returns ALLOWED, DENIED, or UNCONFIGURED with a receipt.
+
+receipts:
+  required:
+    - boundary_adapter_id_and_version
+    - policy_digest
+    - requested_capability_and_operation
+    - requested_access_class
+    - decision
+    - redacted_configuration_refs
+    - denial_or_unconfigured_reason
+  forbidden:
+    - raw_api_key
+    - access_token
+    - source_or_evidence_payload
+
+failure_semantics:
+  missing_configured_model_endpoint: UNCONFIGURED
+  missing_api_key: UNCONFIGURED
+  undeclared_access_attempt: DENIED
+  policy_evaluation_error: BOUNDARY_ERROR
+  rule: >-
+    A denied, unconfigured, or failed access decision remains visible and may not
+    be rewritten as an empty result, a provider miss, or a successful check.
+
+implementation_note: >-
+  This file centralizes policy design only. No company endpoint, key, network
+  route, provider artifact, or runtime enforcement is asserted to exist.

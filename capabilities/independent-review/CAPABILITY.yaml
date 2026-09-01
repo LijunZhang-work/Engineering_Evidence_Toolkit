@@ -1,0 +1,24 @@
+schema_version: 1
+id: independent-review
+name: Independent Review
+version: 0.1.0-draft
+status: DESIGNED
+kind: independent_capability
+spec: SPEC.md
+entrypoint:
+  operation: run_independent_review
+  callable_without_profile: true
+inputs:
+  required: [review_scope, workspace_snapshot, evidence_packet]
+  optional: [review_lenses, reviewer_policy]
+outputs:
+  primary: independent_findings
+  includes: [findings, counterexamples, disagreements, coverage, reviewer_receipts]
+side_effects:
+  repository_mutation: forbidden
+  external_mutation: forbidden
+  allowed_writes: [run_artifacts]
+failure_policy: fail_closed
+result_states: [NO_FINDING, FINDING, DISAGREEMENT, UNKNOWN, NOT_QUALIFIED]
+evidence_ceiling: "独立复核只能增加一条审查证据，不能替代编译、运行测试或权威裁决"
+

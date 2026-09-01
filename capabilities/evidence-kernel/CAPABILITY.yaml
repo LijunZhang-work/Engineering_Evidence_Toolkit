@@ -1,0 +1,24 @@
+schema_version: 1
+id: evidence-kernel
+name: Evidence Kernel
+version: 0.1.0-draft
+status: DESIGNED
+kind: independent_capability
+spec: SPEC.md
+entrypoint:
+  operation: normalize_evidence
+  callable_without_profile: true
+inputs:
+  required: [run_context, raw_observations]
+  optional: [claims, receipts, authority_refs, prior_evidence_ids]
+outputs:
+  primary: evidence_bundle
+  includes: [claims, observations, receipts, provenance, coverage, limitations]
+side_effects:
+  repository_mutation: forbidden
+  external_mutation: forbidden
+  allowed_writes: [run_artifacts]
+failure_policy: fail_closed
+result_states: [SUPPORTED, CONTRADICTED, UNKNOWN, NOT_QUALIFIED]
+evidence_ceiling: "只能规范化已获得的证据，不能补造缺失事实或提高来源权威性"
+

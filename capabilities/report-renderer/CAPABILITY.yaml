@@ -1,0 +1,24 @@
+schema_version: 1
+id: report-renderer
+name: Report Renderer
+version: 0.1.0-draft
+status: DESIGNED
+kind: independent_capability
+spec: SPEC.md
+entrypoint:
+  operation: render_report_views
+  callable_without_profile: true
+inputs:
+  required: [evidence_bundle, reporting_scope]
+  optional: [profile_decisions, task_ledger, audience_policy]
+outputs:
+  primary: report_package
+  includes: [professional_view, plain_language_view, evidence_index, machine_summary]
+side_effects:
+  repository_mutation: forbidden
+  external_mutation: forbidden
+  allowed_writes: [report_artifacts]
+failure_policy: fail_closed
+result_states: [RENDERED, PARTIAL, INCONSISTENT, NOT_QUALIFIED]
+evidence_ceiling: "渲染器只能表达输入证据，不得提高确定性、补结论或改变门禁"
+

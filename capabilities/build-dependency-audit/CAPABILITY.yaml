@@ -1,0 +1,24 @@
+schema_version: 1
+id: build-dependency-audit
+name: Build and Dependency Audit
+version: 0.1.0-draft
+status: DESIGNED
+kind: independent_capability
+spec: SPEC.md
+entrypoint:
+  operation: audit_build_wiring
+  callable_without_profile: true
+inputs:
+  required: [workspace_snapshot, target_questions]
+  optional: [compile_database, build_metadata, dependency_graph, test_metadata]
+outputs:
+  primary: build_dependency_report
+  includes: [source_membership, include_resolution, transitive_dependencies, macros, generated_inputs, links, dt_registration]
+side_effects:
+  repository_mutation: forbidden
+  external_mutation: forbidden
+  allowed_writes: [run_artifacts]
+failure_policy: fail_closed
+result_states: [WIRED, MISWIRED, PARTIAL, UNKNOWN, NOT_QUALIFIED]
+evidence_ceiling: "静态接线证据不能替代真实工具链构建；没有目标级元数据时不能证明文件已编译进去"
+

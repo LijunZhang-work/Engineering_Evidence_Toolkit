@@ -1,0 +1,167 @@
+status: DESIGNED
+schema_version: "1.0.0"
+profile: recovery-review@1.1.0
+
+global_requirements:
+  immutable_content_addressed_evidence: true
+  append_only_ledger: true
+  raw_and_normalized_forms_preserved: true
+  every_claim_references_evidence: true
+  every_artifact_records_workspace_snapshot: true
+
+artifacts:
+  - id: alignment_preview
+    required_before_confirmation: true
+    fields:
+      - repositories
+      - collaboration_map
+      - authority_manifest
+      - permissions
+      - profile_and_contract_versions
+      - unknowns
+  - id: alignment_lock
+    required_before_unattended_execution: true
+    fields:
+      - canonical_payload
+      - sha256
+      - exact_confirmation_phrase
+      - confirmed_at
+  - id: workspace_snapshot
+    required: true
+    fields:
+      - repo_revisions
+      - dirty_patch_hashes
+      - untracked_manifests
+      - submodule_and_lfs_state
+  - id: collaboration_map
+    required: true
+    fields:
+      - delivery_mode
+      - owners_and_boundaries
+      - arrived_changes
+      - expected_unarrived_changes
+      - handoff_samples
+      - uncertainty
+  - id: authority_manifest
+    required: true
+    fields:
+      - sources
+      - hashes
+      - priority
+      - scope
+      - conflicts
+  - id: code_fact_bundle
+    required: true
+    fields:
+      - claims
+      - evidence_refs
+      - provider_receipts
+      - source_snapshot
+      - freshness
+      - coverage
+      - conclusion_ceiling
+  - id: change_safety_result
+    required_when: source_modified
+    fields:
+      - diff_inventory
+      - boundary_balance
+      - eof_integrity
+      - deleted_symbols
+      - intended_vs_unintended_deletion
+  - id: repository_reader_check_result
+    required_when: merge_candidate_text_changed
+    fields:
+      - changed_identifiers_comments_tests_messages_and_committed_text
+      - candidate_conversation_local_labels
+      - repository_evidence_for_allowed_references
+      - cold_reader_result
+      - unresolved_context_leaks
+  - id: dependency_matrix
+    required_when: cpp_or_build_change
+    fields:
+      - source_to_target
+      - direct_includes
+      - transitive_includes
+      - generated_inputs
+      - macros_and_conditions
+      - unresolved_dependencies
+  - id: dt_registration_matrix
+    required_when: dt_affected_or_expected
+    fields:
+      - test_sources
+      - discovery_or_registration
+      - fixture_and_parameters
+      - test_target_membership
+      - runtime_not_executed_limitations
+  - id: signal_trace
+    required_when: cross_module_data_flow_affected
+    fields:
+      - canonical_signal_identity
+      - stages
+      - type_unit_gain_default_min_max
+      - transport_or_databuff_binding
+      - consumer
+      - first_divergence
+      - unknowns
+  - id: design_fit_result
+    required_when: code_fix_or_design_change
+    fields:
+      - owning_responsibility_layer
+      - root_cause
+      - chosen_fix
+      - rejected_patch_like_alternatives
+      - coupling_and_maintainability_impacts
+  - id: windows_precheck_receipt
+    required_when: windows_precheck_claimed
+    fields:
+      - command_or_api
+      - tool_version
+      - canary_definition
+      - canary_result
+      - compiler_and_language_mode
+      - flags_macros_includes_generated_inputs
+      - target_context
+      - environment_equivalence
+      - raw_output
+  - id: external_evidence_bundle
+    required_when: user_or_external_evidence_provided
+    fields:
+      - provenance
+      - revision
+      - environment
+      - exact_error
+      - timestamp
+      - attachment_hashes
+      - conflict_with_local_claims
+  - id: gate_result_set
+    required: true
+    fields:
+      - gate_id
+      - result
+      - rule_ids
+      - claim_refs
+      - evidence_refs
+      - limitations
+      - evaluated_at
+  - id: final_fact_set
+    required: true
+    fields:
+      - final_verdict
+      - findings
+      - gate_results
+      - unresolved_items
+      - limitations
+      - evidence_manifest
+  - id: reports
+    required: true
+    variants:
+      - professional
+      - plain_language
+      - machine_readable
+    invariant: all_variants_reference_the_same_final_fact_set_hash
+
+retention:
+  preserve_failed_and_invalid_checks: true
+  preserve_superseded_evidence: true
+  preserve_raw_external_evidence: true
+  secrets_must_be_redacted: true

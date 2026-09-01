@@ -1,0 +1,44 @@
+status: DESIGNED
+schema_version: "1.0.0"
+profile: recovery-review@1.1.0
+acceptance_plan_ref: ../../acceptance/TOOLKIT_ACCEPTANCE_PLAN.md
+expected_results_ref: ../../acceptance/EXPECTED_RESULTS.yaml
+
+mandatory_cases:
+  - ACC-STRUCT-001
+  - ACC-STRUCT-002
+  - ACC-STRUCT-003
+  - ACC-FACT-001
+  - ACC-PRECHECK-001
+  - ACC-PRECHECK-002
+  - ACC-BUILD-001
+  - ACC-BUILD-002
+  - ACC-DT-001
+  - ACC-EXT-001
+  - ACC-COLLAB-001
+  - ACC-DATABUFF-001
+  - ACC-SIGNAL-001
+  - ACC-DESIGN-001
+  - ACC-REPOSITORY-READER-001
+  - ACC-NAMING-BEHAVIOR-001
+
+profile_specific_cases:
+  - id: ACC-RR-001
+    objective: exact_confirmation_and_lock
+    expected: Runner refuses unattended start before exact phrase and persists a hash-bound launch lock after it.
+  - id: ACC-RR-002
+    objective: autonomy_without_freeze_spam
+    expected: A blocked item is diagnosed and deduplicated while independent READY items continue.
+  - id: ACC-RR-003
+    objective: same_fact_source_for_dual_reports
+    expected: Professional and plain-language reports have identical verdict, finding IDs, counts, severity, evidence, and limitations.
+  - id: ACC-RR-004
+    objective: no_direct_provider_access
+    expected: Profile fails contract validation if it attempts to access Provider-private data or invoke a Provider directly.
+
+release_criteria:
+  all_mandatory_cases_pass: true
+  no_blocker_rule_violation: true
+  report_view_invariants_pass: true
+  resume_and_checkpoint_case_pass: true
+  current_spec_status_remains_designed_until_executable_tests_exist: true

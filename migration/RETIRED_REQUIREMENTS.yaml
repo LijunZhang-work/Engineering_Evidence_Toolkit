@@ -1,0 +1,67 @@
+schema_version: "1.0"
+register_id: EET-RETIRED-REQUIREMENTS-2026-08-29
+retirement_policy: >-
+  仅退休导致单体耦合、状态误导或Provider固化的表达；其背后的安全不变量必须迁移到独立能力、契约或Profile，不能借“重构”删除。
+
+retired:
+  - id: RET-001
+    legacy_concept: 单一Markdown文档作为强制运行入口和唯一执行约束
+    reason: 自然语言入口不能保证执行，也阻碍能力单拆复用。
+    safety_invariant_preserved_as: [machine-readable contracts, validators, receipts, gates, acceptance canaries]
+  - id: RET-002
+    legacy_concept: Recovery Review单体Controller拥有事实、规则、执行与报告全部语义
+    reason: 形成大而全工作流并使Code Fact等能力无法独立使用。
+    safety_invariant_preserved_as: [independent capabilities, optional thin dispatcher, profile gate mapping]
+  - id: RET-003
+    legacy_concept: 在核心规则中硬编码CodeGraph或其他Provider名称
+    reason: Provider可替换性与证据语义稳定性冲突。
+    safety_invariant_preserved_as: [code-fact freshness, coverage, content binding, provider receipts]
+  - id: RET-004
+    legacy_concept: Provider跨模型、跨仓、跨环境的全局ACTIVE状态
+    reason: ACTIVE脱离artifact、index、corpus、build profile和binding scope会误导。
+    safety_invariant_preserved_as: [artifact status, deployment/index status, profile-binding status, qualification receipt]
+  - id: RET-005
+    legacy_concept: REMOVED作为抹除Provider历史的终态
+    reason: 删除审计链会破坏可追溯性。
+    safety_invariant_preserved_as: [RETIRED or UNBOUND, removal evidence, immutable history]
+  - id: RET-006
+    legacy_concept: AUTHORITY_DOCS_EVIDENCE能力名称隐含文档天然权威
+    reason: 证据来源与权威等级是正交概念。
+    safety_invariant_preserved_as: [CROSS_SOURCE_EVIDENCE, authority-governance]
+  - id: RET-007
+    legacy_concept: HUMAN_ONBOARDING作为事实证据能力
+    reason: 它是事实能力的消费视图，不应改变证据语义。
+    safety_invariant_preserved_as: [report view/profile using shared evidence bundle]
+  - id: RET-008
+    legacy_concept: 单一Evidence Level混合推导方法、断言来源、权威与验证状态
+    reason: 不同维度混合会造成不可比较和错误降级。
+    safety_invariant_preserved_as: [derivation_method, assertion_source, authority, verification_status]
+  - id: RET-009
+    legacy_concept: 示例Registry中的ACTIVE可被当作现实状态
+    reason: 示例数据不是部署或验证证据。
+    safety_invariant_preserved_as: [EXAMPLE_ONLY marker, runtime registry separation]
+  - id: RET-010
+    legacy_concept: CFA Post N0-N7或clangd路线作为已存在能力
+    reason: 该文档明确是v3.1后的验证Campaign。
+    safety_invariant_preserved_as: [roadmap campaign, predecessor gate, implementation/validation status]
+
+not_retired_safety_invariants:
+  - Evidence-first与Claim-Evidence绑定
+  - Fail-Closed与Unknown显式保留
+  - 用户原始错误证据单向否决
+  - 修改前快照、修改后完整文件结构验证与changed-byte binding
+  - 预检环境资格、负向Canary和不等价边界
+  - Code Fact索引新鲜度、Coverage和内容绑定
+  - Source/Build/Execution Receipt与供应链固定
+  - Authority顺序、Waiver权限和Taint传播
+  - 多仓Workspace与Revision冻结
+  - Fresh只读独立Reviewer
+  - 自主诊断阶梯、Liveness与严格WAITING_HUMAN条件
+  - 根因、不变量、责任归属和Design-Fit
+  - Target/Include/宏/生成依赖与DT静态审查
+  - 双版本报告共享同一事实集
+
+status:
+  specification_status: APPROVED_FOR_NEW_BASELINE
+  implementation_status: NOT_IMPLEMENTED
+  validation_status: NOT_VALIDATED
