@@ -420,6 +420,7 @@ def html_document(snapshot: dict[str, Any]) -> str:
     .search input:focus {{ border-color:var(--focus); box-shadow:0 0 0 3px rgba(47,111,237,.12); }}
     .search svg {{ position:absolute; left:12px; top:11px; width:17px; height:17px; color:var(--muted); }}
     .main {{ display:grid; grid-template-columns:minmax(0,1fr) 390px; gap:18px; align-items:start; }}
+    .main.drawer-closed {{ grid-template-columns:minmax(0,1fr); }}
     .grid {{ display:grid; grid-template-columns:repeat(4,minmax(205px,1fr)); gap:13px; }}
     .card {{ min-height:230px; text-align:left; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); padding:18px; cursor:pointer; transition:border-color .18s ease, transform .18s ease, box-shadow .18s ease; }}
     .card:hover {{ transform:translateY(-2px); border-color:#aeb9c9; box-shadow:0 7px 18px rgba(13,35,69,.07); }}
@@ -449,6 +450,7 @@ def html_document(snapshot: dict[str, Any]) -> str:
     .card-status {{ display:flex; gap:7px; align-items:center; margin-top:18px; color:var(--muted); font-size:12px; }}
     .status-dot {{ width:7px; height:7px; border-radius:50%; background:currentColor; }}
     .drawer {{ position:sticky; top:18px; max-height:calc(100vh - 36px); overflow:auto; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); }}
+    .drawer.closed {{ display:none; }}
     .drawer-head {{ padding:20px 22px 17px; border-bottom:1px solid var(--line); position:relative; }}
     .drawer-head h2 {{ margin:0 36px 5px 0; font-size:20px; line-height:1.25; }}
     .drawer-head .english {{ color:var(--muted); font-size:11px; }}
@@ -507,7 +509,7 @@ def html_document(snapshot: dict[str, Any]) -> str:
       </label>
     </div>
 
-    <section class="main">
+    <section class="main" id="mainLayout">
       <div class="grid" id="capabilityGrid" aria-live="polite">{initial_cards}</div>
       <aside class="drawer {html.escape(snapshot['capabilities'][0]['category']) if snapshot['capabilities'] else ''}" id="detailDrawer" aria-label="能力详情">{initial_drawer}</aside>
     </section>
@@ -578,6 +580,7 @@ def html_document(snapshot: dict[str, Any]) -> str:
     function renderDrawer(forceOpen = false) {{
       const item = snapshot.capabilities.find(cap => cap.id === selectedId);
       if (!item) return;
+      if (forceOpen) $('#mainLayout').classList.remove('drawer-closed');
       const stageRows = item.stages.map(stage => {{
         const score = stage.score === null ? '未知' : stage.score + '%';
         const refs = stage.evidence.length ? `<ul class="evidence-list">${{stage.evidence.map(ref => `<li><a href="${{escapeHtml(evidenceHref(ref))}}">${{escapeHtml(ref)}}</a></li>`).join('')}}</ul>` : '<span class="stage-status">无可定位证据</span>';
@@ -594,7 +597,11 @@ def html_document(snapshot: dict[str, Any]) -> str:
       <div class="drawer-section"><h3>五轴得分与证据</h3>${{stageRows}}</div>
       <div class="drawer-section"><h3>当前局限</h3><ul class="limitation-list">${{limitations}}</ul></div>
       <div class="drawer-section"><h3>下一步</h3><div class="next-action">${{escapeHtml(item.next_action)}}</div></div>`;
-      $('.drawer-close').addEventListener('click', () => $('#detailDrawer').classList.remove('open'));
+      $('.drawer-close').addEventListener('click', () => {{
+        $('#detailDrawer').classList.remove('open');
+        $('#detailDrawer').classList.add('closed');
+        $('#mainLayout').classList.add('drawer-closed');
+      }});
     }}
 
     document.querySelectorAll('.filter').forEach(button => button.addEventListener('click', () => {{

@@ -75,6 +75,12 @@ class GeneratedDashboardTests(unittest.TestCase):
         self.assertIn("项已完成", static_body)
         self.assertNotIn('<span class="summary-value">100%</span><span class="summary-label">已完成</span>', static_body)
 
+    def test_desktop_drawer_has_real_closed_state(self) -> None:
+        self.assertIn(".main.drawer-closed { grid-template-columns:minmax(0,1fr); }", self.html)
+        self.assertIn(".drawer.closed { display:none; }", self.html)
+        self.assertIn("$('#detailDrawer').classList.add('closed');", self.html)
+        self.assertIn("$('#mainLayout').classList.add('drawer-closed');", self.html)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
