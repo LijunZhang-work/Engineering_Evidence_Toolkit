@@ -34,7 +34,7 @@ truthful_summary:
   capability_progress_dashboard_last_render_result: PASS
   capability_progress_dashboard_last_render_scope: 20_registered_capabilities
   capability_progress_dashboard_current_summary: 0_complete_20_in_progress_0_not_started_0_unknown
-  capability_progress_dashboard_focused_tests_last_result: 6_PASS
+  capability_progress_dashboard_focused_tests_last_result: 8_PASS
   capability_progress_dashboard_negative_checks_last_result: stale_and_false_green_detected
 
 allowed_claims:
@@ -45,7 +45,7 @@ allowed_claims:
   - Experience Memory 的独立能力、MVP判定和Provider候选已设计
   - 公司网络、模型API、密钥、外发、下载和制品来源策略已收敛到单一外层运行边界规格
   - 能力拼图进度看板可从Manifest和状态证据重新渲染，当前20项能力均为20%规格阶段
-  - 能力拼图看板的6项聚焦测试通过，过期页面与伪绿色反例可被拒绝；这不等于Capability验收已执行
+  - 能力拼图看板的8项聚焦测试通过，包含卡片进度条几何与汇总语义回归；过期页面与伪绿色反例可被拒绝；这不等于Capability验收已执行
 
 forbidden_claims:
   - 工具已经实现

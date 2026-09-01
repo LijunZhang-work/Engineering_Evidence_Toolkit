@@ -64,6 +64,17 @@ class GeneratedDashboardTests(unittest.TestCase):
     def test_single_file_has_no_remote_runtime_dependency(self) -> None:
         self.assertIsNone(re.search(r'<(?:script|link)[^>]+(?:src|href)=["\']https?://', self.html, re.IGNORECASE))
 
+    def test_card_progress_track_has_block_geometry(self) -> None:
+        self.assertIn(".card-name { display:block;", self.html)
+        self.assertIn(".score { display:block;", self.html)
+        self.assertIn(".progress { display:block; width:100%; height:6px;", self.html)
+
+    def test_summary_headlines_show_counts_not_thresholds(self) -> None:
+        static_body = self.html.split('<script id="capabilityData"', 1)[0]
+        self.assertIn('id="completeCount"', static_body)
+        self.assertIn("项已完成", static_body)
+        self.assertNotIn('<span class="summary-value">100%</span><span class="summary-label">已完成</span>', static_body)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

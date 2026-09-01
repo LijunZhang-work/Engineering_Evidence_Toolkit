@@ -425,15 +425,15 @@ def html_document(snapshot: dict[str, Any]) -> str:
     .card:hover {{ transform:translateY(-2px); border-color:#aeb9c9; box-shadow:0 7px 18px rgba(13,35,69,.07); }}
     .card.selected {{ border-color:var(--focus); box-shadow:0 0 0 2px rgba(47,111,237,.11); }}
     .card:focus-visible,.filter:focus-visible,.drawer-close:focus-visible {{ outline:3px solid rgba(47,111,237,.26); outline-offset:2px; }}
-    .card-name {{ min-height:49px; }}
+    .card-name {{ display:block; min-height:49px; }}
     .card-name strong {{ display:block; font-size:16px; line-height:1.3; }}
     .card-name span {{ display:block; margin-top:4px; color:var(--muted); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }}
-    .score {{ margin:14px 0 8px; font-size:29px; line-height:1; font-weight:770; letter-spacing:-.03em; }}
+    .score {{ display:block; margin:14px 0 8px; font-size:29px; line-height:1; font-weight:770; letter-spacing:-.03em; }}
     .complete .score,.complete .status-dot {{ color:var(--green); }}
     .in-progress .score,.in-progress .status-dot {{ color:var(--amber); }}
     .not-started .score,.not-started .status-dot {{ color:var(--red); }}
     .unknown .score,.unknown .status-dot {{ color:var(--gray); }}
-    .progress {{ height:6px; border-radius:99px; background:#e4e8ee; overflow:hidden; }}
+    .progress {{ display:block; width:100%; height:6px; border-radius:99px; background:#e4e8ee; overflow:hidden; }}
     .progress > span {{ display:block; height:100%; border-radius:inherit; width:var(--progress); background:var(--amber); }}
     .complete .progress > span {{ background:var(--green); }}
     .not-started .progress > span {{ background:var(--red); }}
@@ -459,12 +459,13 @@ def html_document(snapshot: dict[str, Any]) -> str:
     .drawer-section:last-child {{ border-bottom:0; }}
     .drawer-section h3 {{ margin:0 0 12px; font-size:14px; }}
     .drawer-section p {{ margin:0; color:#43516a; font-size:12px; line-height:1.75; }}
-    .detail-stage {{ display:grid; grid-template-columns:54px 54px 1fr; gap:9px; align-items:start; padding:9px 0; border-top:1px solid #edf0f4; font-size:11px; }}
+    .detail-stage {{ display:grid; grid-template-columns:50px 48px minmax(0,1fr); gap:8px; align-items:start; padding:9px 0; border-top:1px solid #edf0f4; font-size:11px; }}
+    .detail-stage > div {{ min-width:0; }}
     .detail-stage:first-of-type {{ border-top:0; }}
     .detail-stage .stage-score {{ font-weight:750; }}
     .detail-stage .stage-status {{ color:var(--muted); word-break:break-word; }}
     .evidence-list,.limitation-list {{ margin:0; padding-left:17px; color:#43516a; font-size:11px; line-height:1.65; }}
-    .evidence-list a {{ color:#245fc7; text-decoration:none; word-break:break-all; }}
+    .evidence-list a {{ color:#245fc7; text-decoration:none; overflow-wrap:anywhere; word-break:normal; }}
     .evidence-list a:hover {{ text-decoration:underline; }}
     .next-action {{ padding:12px 14px; border-left:3px solid var(--focus); background:#f4f7fe; color:#203b6d; font-size:12px; line-height:1.65; }}
     .empty {{ grid-column:1/-1; padding:52px; border:1px dashed var(--line-strong); background:var(--surface); text-align:center; color:var(--muted); border-radius:var(--radius); }}
@@ -485,10 +486,10 @@ def html_document(snapshot: dict[str, Any]) -> str:
     </header>
 
     <section class="summary" aria-label="进度汇总">
-      <div class="summary-item complete"><span class="summary-value">100%</span><span class="summary-label">已完成</span><span class="summary-note"><b id="completeCount">{summary['complete']}</b> 项能力</span></div>
-      <div class="summary-item in-progress"><span class="summary-value">进行中</span><span class="summary-note"><b id="progressCount">{summary['in_progress']}</b> 项能力</span></div>
-      <div class="summary-item not-started"><span class="summary-value">0%</span><span class="summary-label">未开始</span><span class="summary-note"><b id="notStartedCount">{summary['not_started']}</b> 项能力</span></div>
-      <div class="summary-item unknown"><span class="summary-value">未知</span><span class="summary-note"><b id="unknownCount">{summary['unknown']}</b> 项能力</span></div>
+      <div class="summary-item complete"><span class="summary-value"><b id="completeCount">{summary['complete']}</b></span><span class="summary-label">项已完成</span><span class="summary-note">五个证据轴均为 100%</span></div>
+      <div class="summary-item in-progress"><span class="summary-value"><b id="progressCount">{summary['in_progress']}</b></span><span class="summary-label">项进行中</span><span class="summary-note">已开始但尚未全部完成</span></div>
+      <div class="summary-item not-started"><span class="summary-value"><b id="notStartedCount">{summary['not_started']}</b></span><span class="summary-label">项未开始</span><span class="summary-note">五个证据轴均为 0%</span></div>
+      <div class="summary-item unknown"><span class="summary-value"><b id="unknownCount">{summary['unknown']}</b></span><span class="summary-label">项未知</span><span class="summary-note">至少一个证据轴无法判定</span></div>
       <div class="summary-item"><span class="summary-value" id="averageScore">{average}</span><span class="summary-label">已知项均值</span><span class="summary-note">未知项不参与均值</span></div>
     </section>
 
