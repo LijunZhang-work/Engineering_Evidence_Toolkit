@@ -40,6 +40,24 @@ gates:
     current_result: BLOCKED
     reason: 需要用户以精确语句确认并生成绑定Receipt
 
+  - gate_id: RG-01A
+    name: Toolkit Lifecycle and Harness Compatibility
+    unlocks: SAFE_TOOLKIT_PACKAGING
+    required_evidence:
+      - inventory、plan、apply、doctor、repair、uninstall逐操作状态
+      - Install Plan与ownership state通过Schema正反例
+      - repair与uninstall仅处理摘要匹配的工具集归属文件
+      - DeepSeek Harness矩阵覆盖全部Capability
+      - Harness Hook事件、阻断、超时与信任的真实环境证据
+      - Canonical Capability与Harness投影parity检查
+    negative_canaries:
+      - 用户修改文件不得被repair覆盖或uninstall删除
+      - doctor通过不得升级任何Capability或业务Verdict
+      - 其他Harness支持不得被类推成DeepSeek Harness VERIFIED
+      - 未执行Hook不得表现为无发现
+    current_result: BLOCKED
+    reason: 只读doctor已实现；其余生命周期操作和DeepSeek Harness运行兼容性尚未实现或验证
+
   - gate_id: RG-02
     name: Contract and Evidence Kernel
     unlocks: CAPABILITY_IMPLEMENTATION

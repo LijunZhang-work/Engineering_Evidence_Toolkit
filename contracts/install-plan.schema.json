@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/install-plan.schema.json",
+  "title": "Toolkit Install Plan",
+  "description": "安装、升级、修复或卸载前的只读预览。计划不是已执行 Receipt。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "plan_id", "toolkit_version", "operation", "created_at", "target_root", "operations", "approval", "plan_digest"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "plan_id": {"type": "string", "pattern": "^iplan_[A-Za-z0-9._-]+$"},
+    "toolkit_version": {"type": "string", "minLength": 1},
+    "operation": {"enum": ["INSTALL", "UPGRADE", "REPAIR", "UNINSTALL"]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "target_root": {"type": "string", "minLength": 1},
+    "operations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["operation_id", "action", "destination", "ownership", "expected_precondition", "rollback"],
+        "properties": {
+          "operation_id": {"type": "string", "minLength": 1},
+          "action": {"enum": ["CREATE", "REPLACE", "MERGE", "PRESERVE", "REMOVE_MANAGED"]},
+          "source": {"type": "string"},
+          "source_content_id": {"$ref": "#/$defs/digest_id"},
+          "destination": {"type": "string", "minLength": 1},
+          "ownership": {"enum": ["TOOLKIT_MANAGED", "USER_OWNED", "SHARED_CONFIG"]},
+          "expected_precondition": {"type": "string", "minLength": 1},
+          "rollback": {"type": "string", "minLength": 1},
+          "risk": {"enum": ["LOW", "MEDIUM", "HIGH"]}
+        }
+      }
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "scope", "business_source_write_authorized"],
+      "properties": {
+        "required": {"const": true},
+        "scope": {"const": "TOOLKIT_LIFECYCLE_ONLY"},
+        "business_source_write_authorized": {"const": false},
+        "confirmation_receipt_ref": {"type": "string"}
+      }
+    },
+    "limitations": {"type": "array", "items": {"type": "string"}},
+    "plan_digest": {"$ref": "#/$defs/digest_id"}
+  },
+  "$defs": {
+    "digest_id": {"type": "string", "pattern": "^[a-z0-9_-]+:[A-Fa-f0-9]{16,}$"}
+  }
+}

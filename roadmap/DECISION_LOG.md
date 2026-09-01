@@ -145,6 +145,35 @@
 - 原因：双击即可看、关闭JavaScript仍有内容，且AI只需运行一个Python命令便能重渲染。
 - 约束：HTML不是状态写入入口；源事实摘要变化后校验器必须拒绝过期页面。看板自身测试通过不得升级任何Capability状态。
 
+## D-024：吸收ECC的生命周期治理，不整体搬运技能库
+
+- 状态：`ACCEPTED`
+- 决策：借鉴ECC的选择性安装、归属清单、doctor/repair/uninstall思想；不复制其数百个Skill、通用规则或Claude专属Hook。
+- 外部参考：[`affaan-m/ECC@ca185ef`](https://github.com/affaan-m/ECC/tree/ca185ef5f7667078a1e70a763bd3a9c71c48acf0)，仅作为架构研究样本，不进入本工具集证据权威层级。
+- 原因：我们需要把能力拼图产品化，同时保留公司C++多仓、Windows预检、DT和证据资格的专属约束。
+- 当前事实：只读doctor已实现；plan/apply/repair/uninstall仍为`NOT_IMPLEMENTED`。
+
+## D-025：Harness能力必须逐项登记，禁止跨Harness类推
+
+- 状态：`ACCEPTED`
+- 决策：`adapters/HARNESS_CAPABILITY_MATRIX.yaml`必须覆盖根Manifest中的全部Capability，并区分`NOT_ASSESSED / DESIGNED / VERIFIED / UNSUPPORTED`。
+- 原因：某项能力在Claude Code或Codex可用，不证明DeepSeek Harness具有相同插件、Hook、独立上下文或恢复机制。
+- 约束：`VERIFIED`必须具有真实环境PASS和证据引用；清单与Adapter漂移由校验器拒绝。
+
+## D-026：自动Hook默认只读且无权提升结论
+
+- 状态：`ACCEPTED`
+- 决策：自动Hook只能观察、阻断或提出候选；默认禁止修改业务源码。Hook成功只能产生Receipt，不能替代Capability验证或Profile Verdict。
+- 原因：把文档约束变成自动执行很重要，但自动格式化、补括号或静默降级会制造新的误改和假绿。
+- 约束：事件、超时、阻断和信任必须按Harness分别验证；不支持或未受信任保持`NOT_EXECUTED`。
+
+## D-027：Capability正本与Harness投影必须可追溯
+
+- 状态：`ACCEPTED`
+- 决策：Capability规则只在`capabilities/`维护；Harness配置或副本是带版本和摘要的派生投影，不得成为第二份正本。
+- 原因：能力数量和入口说明在大规模多副本系统中容易漂移，必须由机器一致性检查约束。
+- 约束：发布前必须执行Capability、Adapter、矩阵和派生投影的parity检查。
+
 ## 待决事项
 
 以下事项需要在实施或真实环境接入时以证据裁定：

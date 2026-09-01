@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/harness-support-matrix.schema.json",
+  "title": "Harness Capability Support Matrix",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "version", "capability_source", "harnesses"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "kind": {"const": "HarnessCapabilitySupportMatrix"},
+    "version": {"type": "string", "minLength": 1},
+    "capability_source": {"const": "TOOLKIT_MANIFEST.yaml"},
+    "harnesses": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["adapter_id", "matrix_status", "runtime_validation_status", "surfaces", "capabilities"],
+        "properties": {
+          "adapter_id": {"type": "string", "minLength": 1},
+          "matrix_status": {"const": "DESIGNED"},
+          "runtime_validation_status": {"enum": ["NOT_RUN", "PARTIAL", "PASSED", "FAILED", "STALE"]},
+          "surfaces": {"type": "object", "additionalProperties": {"$ref": "#/$defs/support_status"}},
+          "capabilities": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["capability_id", "integration_status", "validation_status", "evidence_refs"],
+              "properties": {
+                "capability_id": {"type": "string", "minLength": 1},
+                "integration_status": {"$ref": "#/$defs/support_status"},
+                "validation_status": {"enum": ["NOT_RUN", "PARTIAL", "PASSED", "FAILED", "STALE"]},
+                "evidence_refs": {"type": "array", "items": {"type": "string", "minLength": 1}},
+                "limitation": {"type": "string"}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "support_status": {"enum": ["NOT_ASSESSED", "DESIGNED", "VERIFIED", "UNSUPPORTED"]}
+  }
+}

@@ -1,0 +1,65 @@
+schema_version: 1
+kind: ToolkitLifecycle
+id: engineering-evidence-toolkit-lifecycle
+version: 0.1.0-draft
+
+status_dimensions:
+  specification_status: DESIGNED
+  implementation_status: PARTIAL
+  validation_status: PARTIAL
+  activation_status: INACTIVE
+
+canonical_source: TOOLKIT_MANIFEST.yaml
+ownership_contract: contracts/install-state.schema.json
+
+operations:
+  - id: inventory
+    implementation_status: NOT_IMPLEMENTED
+    validation_status: NOT_RUN
+    side_effect: READ_ONLY
+    dry_run_required: false
+    description: Inventory an existing installation, Harness surfaces, managed files and drift.
+
+  - id: plan
+    implementation_status: NOT_IMPLEMENTED
+    validation_status: NOT_RUN
+    side_effect: READ_ONLY
+    dry_run_required: false
+    description: Produce a deterministic install, upgrade, repair or uninstall plan before mutation.
+
+  - id: apply
+    implementation_status: NOT_IMPLEMENTED
+    validation_status: NOT_RUN
+    side_effect: TOOLKIT_MANAGED_WRITE
+    dry_run_required: true
+    description: Apply an approved plan and write an ownership state without touching business source.
+
+  - id: doctor
+    implementation_status: IMPLEMENTED
+    validation_status: PASSED
+    side_effect: READ_ONLY
+    dry_run_required: false
+    command: [python3, tools/toolkit_doctor.py, --json]
+    description: Run read-only specification, dashboard and dependency diagnostics for this checkout.
+
+  - id: repair
+    implementation_status: NOT_IMPLEMENTED
+    validation_status: NOT_RUN
+    side_effect: TOOLKIT_MANAGED_WRITE
+    dry_run_required: true
+    description: Restore only provably toolkit-managed bytes after a reviewed dry-run plan.
+
+  - id: uninstall
+    implementation_status: NOT_IMPLEMENTED
+    validation_status: NOT_RUN
+    side_effect: TOOLKIT_MANAGED_REMOVE
+    dry_run_required: true
+    description: Remove unchanged toolkit-managed files while preserving user-owned or drifted content.
+
+safety_invariants:
+  - A plan is not evidence that an operation executed.
+  - Apply, repair and uninstall require a reviewed dry-run plan and a scoped confirmation receipt.
+  - Lifecycle operations never authorize business source writes or external publication.
+  - Modified, shared or unverifiable files are preserved rather than overwritten or removed.
+  - Doctor success never upgrades a Capability, environment, build, test or review verdict.
+  - Every managed write must have source identity, installed content identity and rollback semantics.

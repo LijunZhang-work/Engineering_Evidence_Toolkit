@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/install-state.schema.json",
+  "title": "Toolkit Install State",
+  "description": "记录工具集实际管理的文件和摘要，供 doctor、repair 与 ownership-checked uninstall 使用。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "install_id", "toolkit_version", "installed_at", "target_root", "plan_digest", "managed_entries", "state_digest"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "install_id": {"type": "string", "pattern": "^install_[A-Za-z0-9._-]+$"},
+    "toolkit_version": {"type": "string", "minLength": 1},
+    "installed_at": {"type": "string", "format": "date-time"},
+    "target_root": {"type": "string", "minLength": 1},
+    "plan_digest": {"$ref": "#/$defs/digest_id"},
+    "managed_entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "ownership", "installed_content_id", "current_status", "removal_policy"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "ownership": {"enum": ["TOOLKIT_MANAGED", "USER_OWNED", "SHARED_CONFIG"]},
+          "preexisting_content_id": {"$ref": "#/$defs/digest_id"},
+          "installed_content_id": {"$ref": "#/$defs/digest_id"},
+          "current_content_id": {"$ref": "#/$defs/digest_id"},
+          "current_status": {"enum": ["UNCHANGED", "USER_MODIFIED", "MISSING", "DRIFTED", "UNKNOWN"]},
+          "removal_policy": {"enum": ["REMOVE_IF_UNCHANGED", "PRESERVE", "RESTORE_PREEXISTING"]}
+        }
+      }
+    },
+    "last_doctor_receipt_ref": {"type": "string"},
+    "state_digest": {"$ref": "#/$defs/digest_id"}
+  },
+  "$defs": {
+    "digest_id": {"type": "string", "pattern": "^[a-z0-9_-]+:[A-Fa-f0-9]{16,}$"}
+  }
+}

@@ -12,6 +12,7 @@ Engineering_Evidence_Toolkit/
 ├── contracts/                      # 最小共享对象 Schema
 ├── capabilities/                   # 可单独调用的长期能力
 ├── adapters/                       # 外部环境、Harness、源码控制与唯一运行边界接缝
+├── lifecycle/                      # 工具集自身的计划、体检、修复和卸载生命周期
 ├── profiles/                       # 可选能力组合；不是默认入口
 ├── composition/                    # 薄 Runner 的公开契约与实例结构
 ├── dashboard/                      # 由证据状态自动生成的轻量能力拼图看板
@@ -88,6 +89,12 @@ Profile 是一个可选配方，只能做四件事：
 4. 渲染 Profile 自己的最终状态和报告视图。
 
 `recovery-review`、`safe-ai-edit`、`ad-hoc-code-investigation` 和 `test-trace-preparation` 互不从属。删除任何一个 Profile 都不应破坏 Capability。
+
+## 5A. `lifecycle/`
+
+这里只管理工具集自身，不管理业务仓。安装、升级、修复和卸载必须经过只读 Plan、范围确认、ownership state 和变更后 doctor。当前仅只读 doctor 已实现；其他动作保持 `NOT_IMPLEMENTED`。
+
+Harness 是否支持插件、Hook、独立 Reviewer 或长时恢复，不由生命周期目录猜测，而由 `adapters/HARNESS_CAPABILITY_MATRIX.yaml` 逐项登记。
 
 ## 6. `composition/`
 

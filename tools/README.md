@@ -43,6 +43,25 @@ Draft 2020-12 完整校验。依赖取得方式由最外层运行边界决定；
 
 检查通过只表示“规范包内部一致”，不表示 Windows 预检、Code Fact、Recovery Review、编译或 DT 已经运行。
 
+## 只读 Doctor
+
+需要一次性查看当前规范包健康状态时运行：
+
+```bash
+python3 tools/toolkit_doctor.py
+python3 tools/toolkit_doctor.py --json
+```
+
+Doctor 会检查 PyYAML、可选的 `jsonschema`、能力看板聚焦测试和整体规范校验器。`LIMITED` 表示强制检查通过但存在明确限制，例如缺少可选 Schema 引擎；`UNHEALTHY` 表示至少一项强制检查失败。Doctor 不修改文件，也不运行任何业务 Capability。
+
+它还运行生命周期与Harness矩阵的负向检查，证明能力漏登记、无证据`VERIFIED`、Adapter/矩阵漂移以及虚假标记生命周期实现会被拒绝。
+
+Doctor 自身聚焦测试：
+
+```bash
+python3 tools/test_toolkit_doctor.py
+```
+
 ## 能力拼图看板
 
 在工具集根目录运行：

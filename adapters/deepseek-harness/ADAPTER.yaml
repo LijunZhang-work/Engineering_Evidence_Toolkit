@@ -3,6 +3,8 @@ id: deepseek-harness
 version: 1.0.0-draft
 spec_status: DESIGNED
 verification_status: NOT_RUN
+support_matrix_ref: ../HARNESS_CAPABILITY_MATRIX.yaml
+automation_policy_ref: ../../governance/AUTOMATION_AND_HOOK_POLICY.md
 
 purpose: >-
   Map a DeepSeek Harness task to toolkit capability contracts and return structured
@@ -73,6 +75,16 @@ prompt_boundary:
     - bypass adapter permissions
     - invent missing repositories or build context
     - override profile gates with narrative confidence
+
+hook_boundary:
+  runtime_status: NOT_IMPLEMENTED
+  lifecycle_hook_support: NOT_ASSESSED
+  automatic_business_source_mutation: forbidden
+  unsupported_or_untrusted_effect: NOT_EXECUTED
+  rule: >-
+    Do not project another Harness hook model onto DeepSeek Harness. Event support,
+    blocking semantics, timeout and trust must be verified in the target environment
+    before any automatic check is claimed.
 
 receipts:
   - harness_version

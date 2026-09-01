@@ -65,6 +65,19 @@
 
 要求：每个 schema 都有正例、反例和版本兼容策略。状态轴必须拆分，禁止一个 `PASS` 同时表示任务完成、环境合格、工具有效和结论正确。
 
+### B1A — 工具集生命周期与 Harness 兼容基线
+
+在批量接入 Provider 或自动 Hook 前实现：
+
+- `inventory -> plan -> apply -> doctor -> repair -> uninstall` 生命周期；
+- Install Plan 与 ownership state；
+- dry-run、摘要前置条件、用户修改保留和可恢复回滚；
+- DeepSeek Harness 逐能力支持矩阵；
+- Harness事件、阻断、超时与显式信任的现场验证；
+- Canonical Capability 到 Harness 投影的版本、摘要与漂移检查。
+
+当前只有只读 `doctor` 已实现。不得因契约已形成而声称安装、修复、卸载或Hook运行时可用。
+
 ### B2 — Evidence Kernel 与审计底座
 
 实现：
@@ -218,11 +231,12 @@ Profile只做输入绑定、能力选择、顺序/并发、Gate映射、停止�
 推荐优先顺序：
 
 1. B1–B3：先让最明显的大段误删无法漏过。
-2. B4–B6：建立多仓事实、Code Fact新鲜度、Windows和依赖证据边界。
-3. B7–B8：解决语气覆盖证据、错误冻结和离席持续运行。
-4. B9：为下阶段真实测试准备数据轨迹和观测方案。
-5. B8A：用小型、可纠错的 Memory MVP 防止经验只散落在聊天总结中。
-6. B10–B12：最后组合Profile、真实Campaign与激活。
+2. B1A：在引入更多自动化前补齐工具集归属和DeepSeek Harness真实能力边界。
+3. B4–B6：建立多仓事实、Code Fact新鲜度、Windows和依赖证据边界。
+4. B7–B8：解决语气覆盖证据、错误冻结和离席持续运行。
+5. B9：为下阶段真实测试准备数据轨迹和观测方案。
+6. B8A：用小型、可纠错的 Memory MVP 防止经验只散落在聊天总结中。
+7. B10–B12：最后组合Profile、真实Campaign与激活。
 
 ## 4. 不允许的捷径
 

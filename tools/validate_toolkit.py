@@ -39,6 +39,8 @@ SCHEMA_BINDINGS = {
     "toolkit": ROOT / "contracts/toolkit-manifest.schema.json",
     "capability": ROOT / "contracts/capability-manifest.schema.json",
     "profile": ROOT / "contracts/profile-manifest.schema.json",
+    "lifecycle": ROOT / "contracts/lifecycle-manifest.schema.json",
+    "harness_support_matrix": ROOT / "contracts/harness-support-matrix.schema.json",
 }
 COMMON_CAPABILITY_FIELDS = {
     "schema_version",
@@ -121,9 +123,13 @@ def require_paths(findings: Findings) -> None:
         "DIRECTORY_MAP.md",
         "governance",
         "governance/REPOSITORY_READER_AND_NAMING_POLICY.yaml",
+        "governance/AUTOMATION_AND_HOOK_POLICY.md",
         "contracts",
         "capabilities",
         "adapters",
+        "adapters/HARNESS_CAPABILITY_MATRIX.yaml",
+        "lifecycle/README.md",
+        "lifecycle/TOOLKIT_LIFECYCLE.yaml",
         "profiles",
         "composition",
         "dashboard/README.md",
@@ -134,6 +140,9 @@ def require_paths(findings: Findings) -> None:
         "runs/README.md",
         "tools/render_capability_dashboard.py",
         "tools/test_capability_dashboard.py",
+        "tools/toolkit_doctor.py",
+        "tools/test_toolkit_doctor.py",
+        "tools/test_lifecycle_and_harness_contracts.py",
     ]
     for relative in required:
         if not (ROOT / relative).exists():
@@ -189,6 +198,16 @@ def validate_machine_contracts(findings: Findings) -> None:
         validate_with_jsonschema(path, SCHEMA_BINDINGS["capability"], findings)
     for path in sorted((ROOT / "profiles").glob("*/PROFILE.yaml")):
         validate_with_jsonschema(path, SCHEMA_BINDINGS["profile"], findings)
+    validate_with_jsonschema(
+        ROOT / "lifecycle/TOOLKIT_LIFECYCLE.yaml",
+        SCHEMA_BINDINGS["lifecycle"],
+        findings,
+    )
+    validate_with_jsonschema(
+        ROOT / "adapters/HARNESS_CAPABILITY_MATRIX.yaml",
+        SCHEMA_BINDINGS["harness_support_matrix"],
+        findings,
+    )
 
 
 def manifest_entries(manifest: dict[str, Any], collection: str) -> list[dict[str, Any]]:
@@ -274,7 +293,8 @@ def validate_manifest(findings: Findings) -> None:
     required_root_fields = {
         "api_version", "kind", "metadata", "status_dimensions", "architecture",
         "entrypoint", "state_file", "shared_contracts", "capabilities", "profiles",
-        "adapters", "runtime_boundaries", "canonical_policy",
+        "adapters", "harness_support_matrix", "lifecycle", "runtime_boundaries",
+        "canonical_policy", "canonical_projection_policy",
     }
     missing_root = required_root_fields - set(manifest)
     if missing_root:
@@ -307,6 +327,29 @@ def validate_manifest(findings: Findings) -> None:
             actual = architecture.get(field)
             if actual != expected:
                 findings.error("ARCHITECTURE_POLICY", f"architecture.{field}={actual!r}; expected {expected!r}")
+
+    projection_policy = manifest.get("canonical_projection_policy", {})
+    expected_projection_policy = {
+        "capability_source": "capabilities",
+        "adapter_projection_is_derivative": True,
+        "manual_divergent_copy_forbidden": True,
+        "release_parity_check_required": True,
+    }
+    if not isinstance(projection_policy, dict):
+        findings.error("PROJECTION_POLICY", "canonical_projection_policy must be a mapping")
+    else:
+        for field, expected in expected_projection_policy.items():
+            if projection_policy.get(field) != expected:
+                findings.error(
+                    "PROJECTION_POLICY",
+                    f"canonical_projection_policy.{field}={projection_policy.get(field)!r}; expected {expected!r}",
+                )
+
+    lifecycle = manifest.get("lifecycle", {})
+    if not isinstance(lifecycle, dict) or lifecycle.get("id") != "toolkit-lifecycle" or lifecycle.get("path") != "lifecycle":
+        findings.error("LIFECYCLE_REF", "manifest lifecycle must reference toolkit-lifecycle at lifecycle/")
+    if manifest.get("harness_support_matrix") != "adapters/HARNESS_CAPABILITY_MATRIX.yaml":
+        findings.error("HARNESS_MATRIX_REF", "manifest must reference adapters/HARNESS_CAPABILITY_MATRIX.yaml")
 
     descriptor_markers = {
         "capabilities": "CAPABILITY.yaml",
@@ -474,6 +517,125 @@ def validate_experience_memory(findings: Findings) -> None:
         serialized = repr(registry)
         if "'status': 'ACTIVE'" in serialized or "'verification_status': 'PASSED'" in serialized:
             findings.error("MEMORY_FALSE_ACTIVATION", "Memory provider registry may not claim ACTIVE or PASSED before MVP execution")
+
+
+def validate_lifecycle_manifest(findings: Findings) -> None:
+    path = ROOT / "lifecycle/TOOLKIT_LIFECYCLE.yaml"
+    data = load_yaml(path, findings)
+    if not isinstance(data, dict):
+        findings.error("LIFECYCLE_MANIFEST", f"{rel(path)} must be a mapping")
+        return
+    operations = data.get("operations", [])
+    if not isinstance(operations, list):
+        findings.error("LIFECYCLE_OPERATIONS", "lifecycle operations must be a list")
+        return
+    by_id = {
+        item.get("id"): item
+        for item in operations
+        if isinstance(item, dict) and isinstance(item.get("id"), str)
+    }
+    expected_ids = {"inventory", "plan", "apply", "doctor", "repair", "uninstall"}
+    if set(by_id) != expected_ids or len(operations) != len(expected_ids):
+        findings.error(
+            "LIFECYCLE_OPERATION_PARITY",
+            f"expected={sorted(expected_ids)} actual={sorted(by_id)} count={len(operations)}",
+        )
+        return
+    doctor = by_id["doctor"]
+    expected_doctor_command = ["python3", "tools/toolkit_doctor.py", "--json"]
+    if doctor.get("implementation_status") != "IMPLEMENTED":
+        findings.error("DOCTOR_STATUS", "doctor implementation must remain visible as IMPLEMENTED")
+    if doctor.get("validation_status") != "PASSED":
+        findings.error("DOCTOR_STATUS", "doctor focused tests must remain PASSED or the lifecycle state must be downgraded")
+    if doctor.get("side_effect") != "READ_ONLY" or doctor.get("command") != expected_doctor_command:
+        findings.error("DOCTOR_CONTRACT", f"doctor must be read-only and use {expected_doctor_command!r}")
+    for operation_id in expected_ids - {"doctor"}:
+        operation = by_id[operation_id]
+        if operation.get("implementation_status") != "NOT_IMPLEMENTED":
+            findings.error(
+                "LIFECYCLE_FALSE_IMPLEMENTATION",
+                f"{operation_id} cannot be marked implemented before an executable and focused tests exist",
+            )
+        if operation_id in {"apply", "repair", "uninstall"} and operation.get("dry_run_required") is not True:
+            findings.error("LIFECYCLE_DRY_RUN", f"{operation_id} must require dry-run")
+
+
+def validate_harness_support_matrix(findings: Findings) -> None:
+    manifest = load_yaml(ROOT / "TOOLKIT_MANIFEST.yaml", findings)
+    matrix_path = ROOT / "adapters/HARNESS_CAPABILITY_MATRIX.yaml"
+    matrix = load_yaml(matrix_path, findings)
+    if not isinstance(manifest, dict) or not isinstance(matrix, dict):
+        return
+    capability_ids = {
+        item.get("id")
+        for item in manifest_entries(manifest, "capabilities")
+        if isinstance(item, dict) and isinstance(item.get("id"), str)
+    }
+    adapter_ids = {
+        item.get("id")
+        for item in manifest_entries(manifest, "adapters")
+        if isinstance(item, dict) and isinstance(item.get("id"), str)
+    }
+    harnesses = matrix.get("harnesses", [])
+    if not isinstance(harnesses, list):
+        findings.error("HARNESS_MATRIX", "harnesses must be a list")
+        return
+    seen_adapters: set[str] = set()
+    for harness in harnesses:
+        if not isinstance(harness, dict):
+            findings.error("HARNESS_MATRIX", "harness entry must be a mapping")
+            continue
+        adapter_id = harness.get("adapter_id")
+        if not isinstance(adapter_id, str) or adapter_id not in adapter_ids:
+            findings.error("HARNESS_ADAPTER_REF", f"unknown harness adapter: {adapter_id!r}")
+            continue
+        if adapter_id in seen_adapters:
+            findings.error("HARNESS_ADAPTER_DUPLICATE", adapter_id)
+        seen_adapters.add(adapter_id)
+        entries = harness.get("capabilities", [])
+        if not isinstance(entries, list):
+            findings.error("HARNESS_CAPABILITIES", f"{adapter_id} capabilities must be a list")
+            continue
+        entry_by_id: dict[str, dict[str, Any]] = {}
+        for entry in entries:
+            if not isinstance(entry, dict) or not isinstance(entry.get("capability_id"), str):
+                findings.error("HARNESS_CAPABILITY_ENTRY", f"{adapter_id} contains an invalid capability entry")
+                continue
+            capability_id = entry["capability_id"]
+            if capability_id in entry_by_id:
+                findings.error("HARNESS_CAPABILITY_DUPLICATE", f"{adapter_id}: {capability_id}")
+            entry_by_id[capability_id] = entry
+            if entry.get("integration_status") == "VERIFIED":
+                if entry.get("validation_status") != "PASSED" or not entry.get("evidence_refs"):
+                    findings.error(
+                        "HARNESS_FALSE_VERIFICATION",
+                        f"{adapter_id}:{capability_id} VERIFIED requires PASSED validation and evidence refs",
+                    )
+        if set(entry_by_id) != capability_ids:
+            findings.error(
+                "HARNESS_CAPABILITY_PARITY",
+                f"{adapter_id} missing={sorted(capability_ids - set(entry_by_id))} "
+                f"unknown={sorted(set(entry_by_id) - capability_ids)}",
+            )
+
+        adapter_path = ROOT / f"adapters/{adapter_id}/ADAPTER.yaml"
+        adapter = load_yaml(adapter_path, findings)
+        if isinstance(adapter, dict):
+            designed_refs = {
+                item.get("capability_id")
+                for item in adapter.get("supported_capabilities", [])
+                if isinstance(item, dict) and isinstance(item.get("capability_id"), str)
+            }
+            matrix_designed = {
+                capability_id
+                for capability_id, entry in entry_by_id.items()
+                if entry.get("integration_status") in {"DESIGNED", "VERIFIED"}
+            }
+            if designed_refs != matrix_designed:
+                findings.error(
+                    "HARNESS_ADAPTER_MATRIX_DRIFT",
+                    f"{adapter_id} adapter={sorted(designed_refs)} matrix={sorted(matrix_designed)}",
+                )
 
 
 def validate_capability_progress_dashboard(findings: Findings) -> None:
@@ -698,6 +860,8 @@ def main() -> int:
     validate_code_fact_consistency(findings)
     validate_outer_runtime_boundary(findings)
     validate_experience_memory(findings)
+    validate_lifecycle_manifest(findings)
+    validate_harness_support_matrix(findings)
     validate_capability_progress_dashboard(findings)
     validate_rule_ids(findings)
     validate_repository_reader_policy(findings)

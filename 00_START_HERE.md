@@ -26,6 +26,8 @@
 | 处理用户给出的真实错误或运行日志 | `capabilities/external-evidence/` | 用本地“绿”覆盖外部“红” |
 | 让 AI 记住、召回或纠正工程经验 | `capabilities/experience-memory/` | 把旧记忆当当前代码事实 |
 | 首次核对 CodeGraph、Memory、clangd 等工具源码/制品路径 | `capabilities/third-party-supply-chain/ENVIRONMENT_ASSET_INVENTORY_TEMPLATE.md` | 擅自下载或因一个可选工具缺失冻结全部工作 |
+| 体检本工具集自身结构、看板和Schema依赖 | `python tools/toolkit_doctor.py`、`lifecycle/README.md` | 把doctor成功解释成业务检查通过 |
+| 判断DeepSeek Harness当前到底支持哪些能力 | `adapters/HARNESS_CAPABILITY_MATRIX.yaml` | 根据其他Harness能力推断等价支持 |
 | 一眼查看各能力建设百分比和证据缺口 | `dashboard/capability-progress.html` | 让 AI 主观填写一个好看的进度数字 |
 | 正式审查一批遗留 AI 改动 | `profiles/recovery-review/` | 直接调用 Provider 私有接口 |
 | 只做一次安全 AI 修改 | `profiles/safe-ai-edit/` | Recovery 的 S0–S7 全阶段 |
@@ -84,6 +86,8 @@ Recovery Review 的标志性确认语句是：
 11. 表达通用 behavior 的规则、字段和标识必须写完整的 `BEHAVIOR`；`BEH` 只保留给有仓内权威依据的 BEH 产品、工具、模型或专名。
 12. Memory 只保存历史经验与调查线索。召回内容必须在当前快照重新验证；错误经验用更正/替代链失效，不得静默覆盖，也不得支撑当前 PASS。
 13. 公司网络、模型 API、密钥、数据外发、运行期下载与制品来源只由 `adapters/company-runtime-boundary/ADAPTER.yaml` 决定；Capability 和其他 Adapter 不得复制或放宽。
+14. 自动检查与Hook只能产生Receipt、发现或阻断信号，不能自行提升总体结论；默认不得自动修改业务源码。
+15. Harness兼容性必须逐能力登记和验证；`DESIGNED`、`NOT_ASSESSED`、`VERIFIED`与`UNSUPPORTED`不得互相替代。
 
 ## 5. 文件类型的权威顺序
 
@@ -105,6 +109,9 @@ Recovery Review 的标志性确认语句是：
 - Experience Memory：能力、Provider候选与MVP标准已设计，尚未安装或运行；
 - 公司运行边界：单一外层规格已设计，尚未在真实环境强制执行；
 - 能力拼图看板：自动渲染器已实现；当前20个Capability均为20%，只表示规格完成；9项聚焦回归测试通过；
+- 工具集生命周期：只读doctor已实现并通过聚焦测试；自动安装、修复和卸载尚未实现；
+- DeepSeek Harness：逐能力兼容矩阵已建立，运行环境兼容性尚未验证；
+- 自动检查：安全策略已定义，Harness Hook运行时尚未实现或激活；
 - 自动化验收：用例已定义，尚未运行；
 - 公司真实项目验证：未运行；
 - 旧文档：历史保留，新的执行入口已迁移到本目录。

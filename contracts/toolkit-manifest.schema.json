@@ -5,7 +5,7 @@
   "description": "工具包静态设计清单。metadata.status 只表示规格状态；实现、验证和启用状态必须分别声明。",
   "type": "object",
   "additionalProperties": false,
-  "required": ["api_version", "kind", "metadata", "status_dimensions", "architecture", "entrypoint", "state_file", "shared_contracts", "capabilities", "profiles", "adapters", "runtime_boundaries", "canonical_policy"],
+  "required": ["api_version", "kind", "metadata", "status_dimensions", "architecture", "entrypoint", "state_file", "shared_contracts", "capabilities", "profiles", "adapters", "harness_support_matrix", "lifecycle", "runtime_boundaries", "canonical_policy", "canonical_projection_policy"],
   "properties": {
     "api_version": {"const": "eet/v1"},
     "kind": {"const": "Toolkit"},
@@ -50,6 +50,13 @@
       }
     },
     "adapters": {"type": "array", "items": {"$ref": "#/$defs/module_ref"}},
+    "harness_support_matrix": {"const": "adapters/HARNESS_CAPABILITY_MATRIX.yaml"},
+    "lifecycle": {
+      "allOf": [
+        {"$ref": "#/$defs/module_ref"},
+        {"type": "object", "properties": {"id": {"const": "toolkit-lifecycle"}, "path": {"const": "lifecycle"}}}
+      ]
+    },
     "runtime_boundaries": {
       "type": "object",
       "additionalProperties": false,
@@ -73,6 +80,17 @@
         "fail_closed_on_conflict": {"const": true},
         "legacy_documents_are_runtime_entrypoints": {"const": false},
         "examples_are_operational_evidence": {"const": false}
+      }
+    },
+    "canonical_projection_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capability_source", "adapter_projection_is_derivative", "manual_divergent_copy_forbidden", "release_parity_check_required"],
+      "properties": {
+        "capability_source": {"const": "capabilities"},
+        "adapter_projection_is_derivative": {"const": true},
+        "manual_divergent_copy_forbidden": {"const": true},
+        "release_parity_check_required": {"const": true}
       }
     }
   },

@@ -2,8 +2,8 @@ api_version: eet/v1
 kind: ToolkitState
 
 toolkit_id: engineering-evidence-toolkit
-toolkit_version: 0.5.1
-recorded_at: 2026-09-01T00:00:00Z
+toolkit_version: 0.6.0
+recorded_at: 2026-09-01T11:34:47Z
 
 status_dimensions:
   specification_status: SPECIFIED
@@ -36,6 +36,19 @@ truthful_summary:
   capability_progress_dashboard_current_summary: 0_complete_20_in_progress_0_not_started_0_unknown
   capability_progress_dashboard_focused_tests_last_result: 9_PASS
   capability_progress_dashboard_negative_checks_last_result: stale_and_false_green_detected
+  toolkit_lifecycle_specified: true
+  toolkit_doctor_implemented: true
+  toolkit_doctor_focused_tests_last_result: 9_PASS
+  lifecycle_and_harness_contract_focused_tests_last_result: 5_PASS
+  toolkit_install_plan_generator_implemented: false
+  toolkit_apply_implemented: false
+  toolkit_repair_implemented: false
+  toolkit_uninstall_implemented: false
+  harness_capability_matrix_specified: true
+  deepseek_harness_runtime_compatibility_validated: false
+  safe_automation_hook_policy_specified: true
+  safe_automation_hook_runtime_implemented: false
+  canonical_adapter_projection_policy_specified: true
 
 allowed_claims:
   - 新的模块化规范目录已建立
@@ -46,6 +59,9 @@ allowed_claims:
   - 公司网络、模型API、密钥、外发、下载和制品来源策略已收敛到单一外层运行边界规格
   - 能力拼图进度看板可从Manifest和状态证据重新渲染，当前20项能力均为20%规格阶段
   - 能力拼图看板的9项聚焦测试通过，包含卡片进度条几何、汇总语义与桌面详情关闭状态回归；过期页面与伪绿色反例可被拒绝；这不等于Capability验收已执行
+  - 工具集只读doctor已实现并通过9项聚焦断言（含不修改受保护状态）；它只体检规范包，不检查业务代码
+  - 安装计划、归属状态、Harness兼容矩阵与安全Hook边界已形成机器契约或唯一策略
+  - DeepSeek Harness当前只有code-fact与experience-memory达到接口设计状态；全部运行兼容性仍未验证
 
 forbidden_claims:
   - 工具已经实现
@@ -58,6 +74,10 @@ forbidden_claims:
   - Memory已经安装、写入、召回或通过MVP
   - 公司运行边界已经在真实环境中生效
   - 看板渲染成功代表Capability已经实现或通过
+  - 工具集已经支持自动安装、修复或安全卸载
+  - DeepSeek Harness已经兼容全部Capability或支持自动Hook
+  - doctor通过代表业务代码、编译、DT、Provider或Review通过
+  - 自动检查Hook已经安装或激活
 
 activation_requirements:
   - roadmap/RELEASE_GATES.yaml 全部满足

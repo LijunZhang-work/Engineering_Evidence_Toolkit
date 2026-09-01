@@ -1,0 +1,101 @@
+schema_version: 1
+kind: HarnessCapabilitySupportMatrix
+version: 0.1.0-draft
+capability_source: TOOLKIT_MANIFEST.yaml
+
+harnesses:
+  - adapter_id: deepseek-harness
+    matrix_status: DESIGNED
+    runtime_validation_status: NOT_RUN
+    surfaces:
+      standalone_capability_invocation: DESIGNED
+      structured_receipts: DESIGNED
+      fresh_context_reviewer: NOT_ASSESSED
+      resumable_long_run: NOT_ASSESSED
+      lifecycle_hooks: NOT_ASSESSED
+      synchronous_blocking_hooks: NOT_ASSESSED
+      native_plugin_install: NOT_ASSESSED
+      explicit_hook_trust: NOT_ASSESSED
+    capabilities:
+      - capability_id: evidence-kernel
+        integration_status: NOT_ASSESSED
+        validation_status: NOT_RUN
+        evidence_refs: []
+      - capability_id: workspace-snapshot
+        integration_status: NOT_ASSESSED
+        validation_status: NOT_RUN
+        evidence_refs: []
+      - capability_id: collaboration-snapshot
+        integration_status: NOT_ASSESSED
+        validation_status: NOT_RUN
+        evidence_refs: []
+      - capability_id: authority-governance
+        integration_status: NOT_ASSESSED
+        validation_status: NOT_RUN
+        evidence_refs: []
+      - capability_id: contract-reconciliation
+        integration_status: NOT_ASSESSED
+        validation_status: NOT_RUN
+        evidence_refs: []
+      - capability_id: code-fact
+        integration_status: DESIGNED
+        validation_status: NOT_RUN
+        evidence_refs: []
+        limitation: Adapter contract exists, but no DeepSeek Harness runtime execution is proven.
+      - capability_id: behavior-recovery
+        integration_status: NOT_ASSESSED
+        validation_status: NOT_RUN
+        evidence_refs: []
+      - capability_id: independent-review
+        integration_status: NOT_ASSESSED
+        validation_status: NOT_RUN
+        evidence_refs: []
+      - capability_id: change-safety
+        integration_status: NOT_ASSESSED
+        validation_status: NOT_RUN
+        evidence_refs: []
+      - capability_id: design-fit-review
+        integration_status: NOT_ASSESSED
+        validation_status: NOT_RUN
+        evidence_refs: []
+      - capability_id: build-dependency-audit
+        integration_status: NOT_ASSESSED
+        validation_status: NOT_RUN
+        evidence_refs: []
+      - capability_id: windows-static-precheck
+        integration_status: NOT_ASSESSED
+        validation_status: NOT_RUN
+        evidence_refs: []
+      - capability_id: external-evidence
+        integration_status: NOT_ASSESSED
+        validation_status: NOT_RUN
+        evidence_refs: []
+      - capability_id: autonomous-runner
+        integration_status: NOT_ASSESSED
+        validation_status: NOT_RUN
+        evidence_refs: []
+      - capability_id: audit-ledger
+        integration_status: NOT_ASSESSED
+        validation_status: NOT_RUN
+        evidence_refs: []
+      - capability_id: report-renderer
+        integration_status: NOT_ASSESSED
+        validation_status: NOT_RUN
+        evidence_refs: []
+      - capability_id: third-party-supply-chain
+        integration_status: NOT_ASSESSED
+        validation_status: NOT_RUN
+        evidence_refs: []
+      - capability_id: signal-lineage
+        integration_status: NOT_ASSESSED
+        validation_status: NOT_RUN
+        evidence_refs: []
+      - capability_id: observability-planner
+        integration_status: NOT_ASSESSED
+        validation_status: NOT_RUN
+        evidence_refs: []
+      - capability_id: experience-memory
+        integration_status: DESIGNED
+        validation_status: NOT_RUN
+        evidence_refs: []
+        limitation: Provider-neutral mapping exists, but no Memory provider or Harness integration is active.

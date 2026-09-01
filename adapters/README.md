@@ -33,3 +33,5 @@
 - [`deepseek-harness/ADAPTER.yaml`](deepseek-harness/ADAPTER.yaml)：把 Harness 的任务调用映射到能力契约。
 - [`company-source-control/README.md`](company-source-control/README.md)：隔离公司多仓拉取、工作区、修订冻结和提交语义。
 - [`company-runtime-boundary/README.md`](company-runtime-boundary/README.md)：唯一的公司运行环境访问策略入口。
+
+逐Harness能力状态统一登记在 [`HARNESS_CAPABILITY_MATRIX.yaml`](HARNESS_CAPABILITY_MATRIX.yaml)。矩阵必须覆盖根Manifest中的全部Capability；没有真实运行证据时只能写`NOT_ASSESSED`或`DESIGNED`，不能因为其他Harness支持就写`VERIFIED`。
