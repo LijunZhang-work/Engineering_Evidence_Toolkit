@@ -1,7 +1,7 @@
 schema_version: "1.0.0"
 kind: AssuranceRunPolicy
 id: quick
-version: 1.0.0
+version: 0.1.0-draft
 display_name: 快速探索
 description: 优先快速定位和给出可复查线索；允许只用一个合适 Provider，但绝不生成通过结论。
 preset: QUICK

@@ -64,6 +64,18 @@ def write_yaml(path: Path, data) -> None:
 
 
 class LifecycleAndHarnessContractTests(unittest.TestCase):
+    def test_all_toolkit_owned_versions_remain_pre_release(self) -> None:
+        issues = [
+            validate_toolkit.release_version_issue(label, value, False)
+            for label, value in validate_toolkit.toolkit_owned_release_versions(ROOT)
+        ]
+        self.assertEqual([issue for issue in issues if issue], [])
+
+    def test_formal_one_zero_requires_explicit_authorization(self) -> None:
+        issue = validate_toolkit.release_version_issue("fixture", "1.0.0", False)
+        self.assertIsNotNone(issue)
+        self.assertIsNone(validate_toolkit.release_version_issue("fixture", "1.0.0", True))
+
     def matrix_fixture(self, temporary: str) -> tuple[Path, Path, dict]:
         root = Path(temporary) / "matrix"
         copy_matrix_fixture(root)

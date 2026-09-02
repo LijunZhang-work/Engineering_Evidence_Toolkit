@@ -1,6 +1,6 @@
 status: DESIGNED
 schema_version: "1.0.0"
-profile: recovery-review@1.1.0
+profile: recovery-review@0.2.0-draft
 id_policy:
   format: RR-<DOMAIN>-<NNN>
   immutable_meaning: true

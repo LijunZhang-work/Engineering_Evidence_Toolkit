@@ -19,7 +19,7 @@ except ModuleNotFoundError:  # unittest discover -s tools places tools/ on sys.p
 
 
 FIXTURE_ROOT = ROOT / "acceptance/fixtures/run-bundles"
-ACCEPTANCE_AUTHORITY_REGISTRY_CONTENT_ID = "sha256:fbc6da1e3475a36146c17fbafec30bc9602e4c30c5902b663b69170fe2672431"
+ACCEPTANCE_AUTHORITY_REGISTRY_CONTENT_ID = "sha256:3d9e58fc18eec4e479a573a2a4205f6cbe05c4dc396ce84afe5f1c372c7136eb"
 
 
 def _user_error_evidence(bundle: dict[str, Any]) -> dict[str, Any]:
@@ -80,7 +80,7 @@ def mutate_quick_accept(bundle: dict[str, Any]) -> None:
     bundle["run_policy"] = policy
     bundle["instance"]["assurance_policy"] = {
         "policy_id": "quick",
-        "version": "1.0.0",
+        "version": "0.1.0-draft",
         "preset": "QUICK",
         "outcome_authority": "HINTS_ONLY",
     }

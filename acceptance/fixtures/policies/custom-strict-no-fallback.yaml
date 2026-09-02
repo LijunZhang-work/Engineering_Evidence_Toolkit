@@ -1,12 +1,12 @@
 schema_version: "1.0.0"
 kind: AssuranceRunPolicy
 id: custom-strict-no-fallback
-version: 1.0.0
+version: 0.1.0-draft
 display_name: 自定义严格证据（无备用 Provider）
 description: 保留严格证据要求，但不预先要求备用 Provider；实际证据不足时仍然只能得到 INCOMPLETE。
 preset: CUSTOM
 base_preset: STRICT
-base_policy_content_id: sha256:974e5f69ab899b7dedac57562607b08238554e58fedbb30f6ab1b8f96981e646
+base_policy_content_id: sha256:86ddf32ef11c7fd4be614bfa605606c6ad4a5a719ac15bb6dac18a1162d2da2e
 customization_reason: 主 Provider 成功时不强制额外调用备用 Provider；失败时不得把缺失证据升级为通过。
 mode: ENFORCE
 outcome_authority: FINAL_VERDICT

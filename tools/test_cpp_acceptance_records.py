@@ -2,15 +2,26 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import tempfile
 import unittest
 from pathlib import Path
 
 import yaml
 
 try:
-    from tools.validate_toolkit import _cpp_environment_content_id, cpp_candidate_selection_issues, cpp_real_validation_issues
+    from tools.validate_toolkit import (
+        _cpp_environment_content_id,
+        cpp_candidate_selection_issues,
+        cpp_real_validation_issues,
+        repository_absolute_path_issues,
+    )
 except ModuleNotFoundError:
-    from validate_toolkit import _cpp_environment_content_id, cpp_candidate_selection_issues, cpp_real_validation_issues
+    from validate_toolkit import (
+        _cpp_environment_content_id,
+        cpp_candidate_selection_issues,
+        cpp_real_validation_issues,
+        repository_absolute_path_issues,
+    )
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -167,7 +178,16 @@ class CppAcceptanceRecordTests(unittest.TestCase):
     def test_external_artifact_hash_is_opened_not_trusted(self) -> None:
         mutated = copy.deepcopy(self.record)
         mutated["scenarios"][0]["before"]["artifact_files"]["machine"]["content_id"] = "sha256:" + "f" * 64
-        issues = cpp_real_validation_issues(mutated, self.selection)
+        reference = mutated["scenarios"][0]["before"]["artifact_files"]["machine"]
+        with tempfile.TemporaryDirectory(prefix="eet-external-evidence-") as temporary:
+            artifact_path = Path(temporary) / reference["path"]
+            artifact_path.parent.mkdir(parents=True, exist_ok=True)
+            artifact_path.write_bytes(b"tampered artifact")
+            issues = cpp_real_validation_issues(
+                mutated,
+                self.selection,
+                external_evidence_root=Path(temporary),
+            )
         self.assertTrue(any("stale or forged" in issue for issue in issues), issues)
 
     def test_static_blind_spot_cannot_claim_case_coverage(self) -> None:
@@ -178,11 +198,35 @@ class CppAcceptanceRecordTests(unittest.TestCase):
         issues = cpp_real_validation_issues(mutated, self.selection)
         self.assertTrue(any("overstates" in issue for issue in issues), issues)
 
-    def test_missing_external_evidence_root_is_not_silently_skipped(self) -> None:
-        mutated = copy.deepcopy(self.record)
-        mutated["evidence_storage"]["root"] = str(ROOT / "acceptance/fixtures/does-not-exist")
-        issues = cpp_real_validation_issues(mutated, self.selection)
+    def test_strict_external_reverification_requires_runtime_binding(self) -> None:
+        issues = cpp_real_validation_issues(
+            self.record,
+            self.selection,
+            require_external_evidence=True,
+        )
+        self.assertTrue(any("root is required" in issue for issue in issues), issues)
+
+    def test_unavailable_runtime_evidence_binding_fails(self) -> None:
+        issues = cpp_real_validation_issues(
+            self.record,
+            self.selection,
+            external_evidence_root=ROOT / "acceptance/fixtures/does-not-exist",
+        )
         self.assertTrue(any("root is unavailable" in issue for issue in issues), issues)
+
+    def test_record_cannot_embed_machine_specific_root(self) -> None:
+        mutated = copy.deepcopy(self.record)
+        mutated["evidence_storage"]["root"] = "machine-specific-root"
+        issues = cpp_real_validation_issues(mutated, self.selection)
+        self.assertTrue(any("must not embed" in issue for issue in issues), issues)
+
+    def test_repository_portability_guard_rejects_absolute_machine_paths(self) -> None:
+        self.assertEqual(repository_absolute_path_issues(ROOT), [])
+        with tempfile.TemporaryDirectory(prefix="eet-portability-") as temporary:
+            sample = Path(temporary) / "record.yaml"
+            sample.write_text("root: " + "D:" + "/machine-specific/evidence\n", encoding="utf-8")
+            issues = repository_absolute_path_issues(Path(temporary))
+        self.assertTrue(any("machine-specific absolute path" in issue for issue in issues), issues)
 
 
 if __name__ == "__main__":

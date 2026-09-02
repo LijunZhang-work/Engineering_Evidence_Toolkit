@@ -1,6 +1,6 @@
 schema_version: "1.0.0"
 kind: TrustedAuthorityRegistry
-version: 1.0.0
+version: 0.1.0
 registry_role: AUTHORITY_CATALOG_REQUIRES_EXTERNAL_TRUST_ANCHOR
 external_anchor_required: true
 allowed_provider_source_schemes: [https, git+https, file, acceptance-fixture]

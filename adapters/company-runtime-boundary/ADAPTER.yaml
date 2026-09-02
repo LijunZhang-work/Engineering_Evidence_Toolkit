@@ -1,6 +1,6 @@
 schema: engineering-evidence-toolkit/adapter/v1
 id: company-runtime-boundary
-version: 1.0.0-draft
+version: 0.1.0-draft
 spec_status: DESIGNED
 verification_status: NOT_RUN
 
@@ -40,6 +40,14 @@ policy:
     accepted_forms: [pinned_canonical_content_id, independently_verified_signature]
     repository_registry_role: authority_catalog_not_self_authenticating_trust_root
     missing_or_mismatched_result: DENIED
+  external_cpp_evidence_root:
+    source: explicit_cli_parameter_or_environment_binding
+    cli_option: --cpp-evidence-root
+    environment_variable: EET_CPP_EVIDENCE_ROOT
+    repository_absolute_path: FORBIDDEN
+    path_disclosure_in_receipts: redacted_reference_only
+    missing_for_specification_validation: STRUCTURE_ONLY_WITH_EXPLICIT_NOTICE
+    missing_for_required_artifact_reverification: UNCONFIGURED
 
 capability_declaration_contract:
   capabilities_may_declare:
@@ -47,6 +55,7 @@ capability_declaration_contract:
     - needs_embedding
     - needs_remote_service
     - needs_provider_artifact
+    - needs_external_evidence_root
   capabilities_must_not_declare:
     - company_endpoint
     - company_api_key_name
@@ -65,6 +74,7 @@ receipts:
     - decision
     - redacted_configuration_refs
     - authority_registry_anchor_reference
+    - external_evidence_root_binding_status
     - denial_or_unconfigured_reason
   forbidden:
     - raw_api_key
@@ -76,6 +86,7 @@ failure_semantics:
   missing_api_key: UNCONFIGURED
   undeclared_access_attempt: DENIED
   missing_authority_registry_anchor: DENIED
+  missing_required_external_evidence_root: UNCONFIGURED
   policy_evaluation_error: BOUNDARY_ERROR
   rule: >-
     A denied, unconfigured, or failed access decision remains visible and may not

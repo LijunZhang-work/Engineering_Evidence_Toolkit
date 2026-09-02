@@ -1,6 +1,6 @@
 ---
 document_status: DESIGNED
-document_version: 1.0.0
+document_version: 0.1.0-draft
 ---
 
 # Profiles：可选组合，不是能力本体

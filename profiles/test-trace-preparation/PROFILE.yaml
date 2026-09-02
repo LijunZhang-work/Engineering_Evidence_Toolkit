@@ -8,7 +8,7 @@ status_dimensions:
 schema_version: "1.0.0"
 kind: ToolkitProfile
 id: test-trace-preparation
-version: "1.0.0"
+version: "0.1.0-draft"
 title: DT 静态追踪与业务侧观测准备
 
 intent: >-

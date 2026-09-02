@@ -9,9 +9,11 @@ engine is a validation failure, not a limited pass.
 
 from __future__ import annotations
 
+import argparse
 import json
 import hashlib
 import importlib.util
+import os
 import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -31,7 +33,7 @@ except ImportError:
 
 
 ROOT = Path(__file__).resolve().parents[1]
-ACCEPTANCE_AUTHORITY_REGISTRY_CONTENT_ID = "sha256:fbc6da1e3475a36146c17fbafec30bc9602e4c30c5902b663b69170fe2672431"
+ACCEPTANCE_AUTHORITY_REGISTRY_CONTENT_ID = "sha256:3d9e58fc18eec4e479a573a2a4205f6cbe05c4dc396ce84afe5f1c372c7136eb"
 ALLOWED_MODULE_STATES = {"DESIGNED", "SCAFFOLDED", "IMPLEMENTED", "VALIDATED", "ACTIVE"}
 LEGACY_NAME_MARKERS = (
     "Code_Fact_Accelerator_v3.1",
@@ -86,6 +88,12 @@ DISPERSED_ENVIRONMENT_POLICY_KEYS = {
     "runtime_package_install",
     "no_runtime_download_by_default",
 }
+PORTABILITY_TEXT_SUFFIXES = {
+    ".cpp", ".h", ".html", ".json", ".md", ".ps1", ".py", ".toml", ".txt", ".yaml", ".yml"
+}
+WINDOWS_ABSOLUTE_PATH_LITERAL = re.compile(r"(?<![A-Za-z0-9+.-])[A-Za-z]:[\\/](?![\\/])")
+POSIX_MACHINE_PATH_LITERAL = re.compile(r"(?<![:A-Za-z0-9])/(?:home|Users|tmp)/[A-Za-z0-9._-]+")
+RELEASE_SEMVER_PATTERN = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:[-+][0-9A-Za-z.-]+)?$")
 
 
 class Findings:
@@ -549,7 +557,13 @@ def cpp_candidate_selection_issues(data: Any) -> list[str]:
     return issues
 
 
-def cpp_real_validation_issues(record: Any, selection: Any) -> list[str]:
+def cpp_real_validation_issues(
+    record: Any,
+    selection: Any,
+    *,
+    external_evidence_root: Path | None = None,
+    require_external_evidence: bool = False,
+) -> list[str]:
     issues: list[str] = []
     if not isinstance(record, dict) or not isinstance(selection, dict):
         return ["real validation record and candidate selection must be mappings"]
@@ -569,8 +583,26 @@ def cpp_real_validation_issues(record: Any, selection: Any) -> list[str]:
             if target.get(key) != expected:
                 issues.append(f"real validation target {key}={target.get(key)!r}; expected {expected!r}")
     storage = record.get("evidence_storage", {})
-    if not isinstance(storage, dict) or storage.get("kind") != "LOCAL_EXTERNAL" or storage.get("portable") is not False:
-        issues.append("real validation evidence must honestly remain LOCAL_EXTERNAL and non-portable")
+    locator = storage.get("runtime_locator", {}) if isinstance(storage, dict) else {}
+    if (
+        not isinstance(storage, dict)
+        or storage.get("kind") != "EXTERNAL_CONTENT_ADDRESSED"
+        or storage.get("path_semantics") != "RELATIVE_TO_RUNTIME_ROOT"
+        or storage.get("record_portable") is not True
+        or storage.get("artifacts_portable") is not False
+        or storage.get("source_worktrees_mutated") is not True
+    ):
+        issues.append("real validation evidence storage must be portable metadata with external content-addressed artifacts")
+    if isinstance(storage, dict) and "root" in storage:
+        issues.append("real validation record must not embed a machine-specific evidence root")
+    if (
+        not isinstance(locator, dict)
+        or locator.get("mode") != "RUNTIME_BOUND"
+        or locator.get("cli_option") != "--cpp-evidence-root"
+        or locator.get("environment_variable") != "EET_CPP_EVIDENCE_ROOT"
+        or locator.get("required_for_artifact_reverification") is not True
+    ):
+        issues.append("real validation evidence root must use the canonical runtime binding contract")
     if record.get("qualification_effect") != "NONE":
         issues.append("partial static validation cannot grant qualification")
     environment = record.get("environment", {})
@@ -590,13 +622,20 @@ def cpp_real_validation_issues(record: Any, selection: Any) -> list[str]:
         "04-source-not-in-target": ("ACC-BUILD-001", "F2_BUILD_TARGET_AND_DEPENDENCY", "FAIL", "INCONCLUSIVE", "MANUAL_MANIFEST_GAP_DETECTED_AND_STATICALLY_RECHECKED", "ISOLATED_GIT_WORKTREE", True, "NOT_SATISFIED", "INCONCLUSIVE"),
         "05-external-compiler-error": ("ACC-EXT-001", "F5_EXTERNAL_EVIDENCE_RECONCILIATION", "INCONCLUSIVE", "INCONCLUSIVE", "EXTERNAL_FIXTURE_RETAINED_UNRESOLVED", "ACCEPTANCE_FIXTURE", False, "NOT_SATISFIED", "INCONCLUSIVE"),
     }
-    evidence_root = None
-    if isinstance(storage, dict) and isinstance(storage.get("root"), str):
-        candidate_root = Path(storage["root"])
-        if candidate_root.is_absolute() and candidate_root.is_dir():
-            evidence_root = candidate_root.resolve()
+    evidence_root: Path | None = None
+    if external_evidence_root is not None:
+        candidate_root = external_evidence_root.expanduser()
+        if not candidate_root.is_absolute():
+            issues.append("runtime external evidence root must be an absolute path")
+        elif not candidate_root.is_dir():
+            issues.append("runtime external evidence root is unavailable; hashes and report semantics cannot be reverified")
         else:
-            issues.append("declared LOCAL_EXTERNAL evidence root is unavailable; hashes and report semantics cannot be verified")
+            evidence_root = candidate_root.resolve()
+    elif require_external_evidence:
+        issues.append(
+            "runtime external evidence root is required for artifact reverification; "
+            "provide --cpp-evidence-root or EET_CPP_EVIDENCE_ROOT"
+        )
 
     def verify_external_artifact(reference: Any, label: str) -> Path | None:
         if not isinstance(reference, dict) or evidence_root is None:
@@ -733,12 +772,22 @@ def cpp_real_validation_issues(record: Any, selection: Any) -> list[str]:
     return issues
 
 
-def validate_cpp_acceptance_records(findings: Findings) -> None:
+def validate_cpp_acceptance_records(
+    findings: Findings,
+    *,
+    external_evidence_root: Path | None = None,
+    require_external_evidence: bool = False,
+) -> None:
     selection = load_yaml(ROOT / "acceptance/cpp-target-selection/CANDIDATE_SELECTION.yaml", findings)
     record = load_yaml(ROOT / "acceptance/cpp-target-selection/REAL_VALIDATION.yaml", findings)
     for issue in cpp_candidate_selection_issues(selection):
         findings.error("CPP_CANDIDATE_SELECTION", issue)
-    for issue in cpp_real_validation_issues(record, selection):
+    for issue in cpp_real_validation_issues(
+        record,
+        selection,
+        external_evidence_root=external_evidence_root,
+        require_external_evidence=require_external_evidence,
+    ):
         findings.error("CPP_REAL_VALIDATION", issue)
 
 
@@ -1902,6 +1951,102 @@ def validate_repository_reader_policy(findings: Findings) -> None:
         findings.error("REPOSITORY_READER_POLICY", f"{rel(path)} must fail closed on UNKNOWN")
 
 
+def release_version_issue(label: str, value: Any, formal_release_authorized: bool) -> str | None:
+    if not isinstance(value, str) or RELEASE_SEMVER_PATTERN.fullmatch(value) is None:
+        return f"{label} must use semantic version text"
+    major = int(value.split(".", 1)[0])
+    if not formal_release_authorized and major >= 1:
+        return f"{label}={value} reaches the reserved formal-release range without explicit user authorization"
+    return None
+
+
+def toolkit_owned_release_versions(root: Path) -> list[tuple[str, Any]]:
+    entries: list[tuple[str, Any]] = []
+    seen: set[tuple[Path, tuple[str, ...]]] = set()
+
+    def add_yaml(path: Path, keys: tuple[str, ...]) -> None:
+        identity = (path, keys)
+        if identity in seen or not path.is_file():
+            return
+        seen.add(identity)
+        try:
+            value: Any = yaml.safe_load(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, yaml.YAMLError):
+            value = None
+        for key in keys:
+            value = value.get(key) if isinstance(value, dict) else None
+        entries.append((f"{path.relative_to(root).as_posix()}:{'.'.join(keys)}", value))
+
+    add_yaml(root / "TOOLKIT_MANIFEST.yaml", ("metadata", "version"))
+    add_yaml(root / "CURRENT_STATE.yaml", ("toolkit_version",))
+    add_yaml(root / "lifecycle/TOOLKIT_LIFECYCLE.yaml", ("version",))
+    add_yaml(root / "adapters/HARNESS_CAPABILITY_MATRIX.yaml", ("version",))
+    add_yaml(root / "governance/TRUSTED_AUTHORITY_REGISTRY.yaml", ("version",))
+    add_yaml(root / "governance/REPOSITORY_READER_AND_NAMING_POLICY.yaml", ("version",))
+    add_yaml(root / "capabilities/code-fact/CAPABILITY_PROVIDER_REGISTRY.yaml", ("registry_version",))
+    add_yaml(root / "capabilities/experience-memory/PROVIDER_CANDIDATES.yaml", ("registry_version",))
+    for pattern in (
+        "capabilities/*/CAPABILITY.yaml",
+        "profiles/*/PROFILE.yaml",
+        "adapters/*/ADAPTER.yaml",
+        "policies/*.yaml",
+    ):
+        for path in sorted(root.glob(pattern)):
+            add_yaml(path, ("version",))
+
+    for relative in (
+        "acceptance/TOOLKIT_ACCEPTANCE_PLAN.md",
+        "composition/INSTANCE_BUNDLE.md",
+        "profiles/README.md",
+        "profiles/recovery-review/README.md",
+        "runs/README.md",
+    ):
+        path = root / relative
+        if not path.is_file():
+            continue
+        match = re.search(r"(?m)^document_version:\s*([^\s]+)\s*$", path.read_text(encoding="utf-8"))
+        entries.append((f"{relative}:document_version", match.group(1) if match else None))
+    return entries
+
+
+def validate_release_version_policy(findings: Findings) -> None:
+    manifest = load_yaml(ROOT / "TOOLKIT_MANIFEST.yaml", findings)
+    state = load_yaml(ROOT / "CURRENT_STATE.yaml", findings)
+    policy = manifest.get("release_policy", {}) if isinstance(manifest, dict) else {}
+    authorized = policy.get("formal_release_authorized") is True if isinstance(policy, dict) else False
+    if not isinstance(policy, dict) or policy.get("reserved_formal_release_version") != "1.0.0":
+        findings.error("RELEASE_VERSION_POLICY", "1.0.0 must remain reserved for an explicit user-authorized formal release")
+    if not isinstance(policy, dict) or policy.get("formal_release_authorized") is not False:
+        findings.error("RELEASE_VERSION_POLICY", "formal release must remain unauthorized in the current repository state")
+    for label, value in toolkit_owned_release_versions(ROOT):
+        issue = release_version_issue(label, value, authorized)
+        if issue:
+            findings.error("PREMATURE_RELEASE_VERSION", issue)
+    manifest_version = manifest.get("metadata", {}).get("version") if isinstance(manifest, dict) else None
+    state_version = state.get("toolkit_version") if isinstance(state, dict) else None
+    if manifest_version != state_version:
+        findings.error("RELEASE_VERSION_DRIFT", "Toolkit Manifest and CURRENT_STATE must use the same release version")
+
+
+def repository_absolute_path_issues(root: Path) -> list[str]:
+    issues: list[str] = []
+    excluded_parts = {".git", ".venv", "__pycache__"}
+    for path in root.rglob("*"):
+        if not path.is_file() or path.suffix.lower() not in PORTABILITY_TEXT_SUFFIXES:
+            continue
+        relative = path.relative_to(root)
+        if any(part in excluded_parts for part in relative.parts):
+            continue
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines()
+        except (OSError, UnicodeDecodeError):
+            continue
+        for line_number, line in enumerate(lines, start=1):
+            if WINDOWS_ABSOLUTE_PATH_LITERAL.search(line) or POSIX_MACHINE_PATH_LITERAL.search(line):
+                issues.append(f"{relative.as_posix()}:{line_number} contains a machine-specific absolute path")
+    return issues
+
+
 def validate_static_boundaries(findings: Findings) -> None:
     for path in ROOT.rglob("*"):
         if path.is_file() and any(marker in path.name for marker in LEGACY_NAME_MARKERS):
@@ -1911,6 +2056,8 @@ def validate_static_boundaries(findings: Findings) -> None:
         for path in runs_root.rglob("*"):
             if path.is_file() and path.name != "README.md":
                 findings.error("RUNTIME_IN_SPEC", rel(path))
+    for issue in repository_absolute_path_issues(ROOT):
+        findings.error("MACHINE_SPECIFIC_PATH", issue)
 
 
 def validate_truthful_state(findings: Findings) -> None:
@@ -1928,12 +2075,38 @@ def validate_truthful_state(findings: Findings) -> None:
         findings.error("PROVIDER_ACTIVE_WITHOUT_VALIDATION", "active provider binding lacks real-project validation")
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--cpp-evidence-root",
+        type=Path,
+        help="runtime-only absolute root for reopening external C++ validation artifacts",
+    )
+    parser.add_argument(
+        "--require-cpp-evidence",
+        action="store_true",
+        help="fail closed unless external C++ artifacts are mounted and reverified",
+    )
+    args = parser.parse_args(argv)
     findings = Findings()
+    env_root_text = os.environ.get("EET_CPP_EVIDENCE_ROOT")
+    env_root = Path(env_root_text) if env_root_text else None
+    cli_root = args.cpp_evidence_root
+    if cli_root is not None and env_root is not None:
+        if cli_root.expanduser().resolve() != env_root.expanduser().resolve():
+            findings.error(
+                "CPP_EVIDENCE_ROOT_CONFLICT",
+                "--cpp-evidence-root and EET_CPP_EVIDENCE_ROOT resolve to different locations",
+            )
+    runtime_evidence_root = cli_root if cli_root is not None else env_root
     require_paths(findings)
     parse_all_structured_files(findings)
     validate_machine_contracts(findings)
-    validate_cpp_acceptance_records(findings)
+    validate_cpp_acceptance_records(
+        findings,
+        external_evidence_root=runtime_evidence_root,
+        require_external_evidence=args.require_cpp_evidence,
+    )
     validate_manifest(findings)
     validate_canonical_runtime_vocabulary(findings)
     validate_code_fact_consistency(findings)
@@ -1945,11 +2118,19 @@ def main() -> int:
     validate_capability_progress_dashboard(findings)
     validate_rule_ids(findings)
     validate_repository_reader_policy(findings)
+    validate_release_version_policy(findings)
     validate_static_boundaries(findings)
     validate_truthful_state(findings)
 
     print("Engineering Evidence Toolkit specification validation")
     print(f"root: {ROOT}")
+    if runtime_evidence_root is None:
+        print(
+            "cpp_external_evidence: UNMOUNTED; portable metadata was checked, raw external artifacts were not reopened "
+            "(bind --cpp-evidence-root or EET_CPP_EVIDENCE_ROOT; use --require-cpp-evidence to fail closed)"
+        )
+    else:
+        print("cpp_external_evidence: RUNTIME_BOUND; external artifacts were required to resolve below the supplied root")
     for item in findings.warnings:
         print(item)
     for item in findings.errors:

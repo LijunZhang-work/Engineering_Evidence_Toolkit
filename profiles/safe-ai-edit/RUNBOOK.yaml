@@ -1,6 +1,6 @@
 status: DESIGNED
 schema_version: "1.0.0"
-profile: safe-ai-edit@1.1.0
+profile: safe-ai-edit@0.2.0-draft
 
 steps:
   - id: E0_LOCK_EDIT_SCOPE

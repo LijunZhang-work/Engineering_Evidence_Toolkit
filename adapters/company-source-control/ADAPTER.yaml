@@ -1,6 +1,6 @@
 schema: engineering-evidence-toolkit/adapter/v1
 id: company-source-control
-version: 1.0.0-draft
+version: 0.1.0-draft
 spec_status: DESIGNED
 verification_status: NOT_RUN
 

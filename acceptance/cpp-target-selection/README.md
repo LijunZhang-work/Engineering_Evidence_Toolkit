@@ -22,10 +22,10 @@
 - [Catch2 官方仓库](https://github.com/catchorg/Catch2)：BSL-1.0；仓库提供 CMake target、CTest 集成和 Windows `buildAndTest.cmd`。
 - [Google Benchmark 官方仓库](https://github.com/google/benchmark)：Apache-2.0；CMake 对 MSVC 有显式分支，测试依赖 GoogleTest。
 
-候选仓浅克隆位于工具集之外的 `D:\AI\eet-cpp-candidates`，不会作为 Toolkit 源码提交。真实缺陷注入只能发生在另建的隔离副本或 worktree 中，原始候选基线保持干净。
+候选仓浅克隆必须位于用户选择的工具集外目录，通过 `measure_cpp_candidate.py --repo <candidate-worktree>` 显式传入，不会作为 Toolkit 源码提交。真实缺陷注入只能发生在另建的隔离副本或 worktree 中，原始候选基线保持干净。
 
 ## 已执行的真实源码静态子集
 
-`REAL_VALIDATION.yaml` 记录了固定 Catch2 commit 上五个隔离场景的工作树 Observation、机器/专业/小白报告文件哈希、before/after Workspace 与 Target Manifest ID、Gate 与限制：少右括号、文件尾截断、缺直接 include、实现文件未接入 CMake target、外部编译错误验收夹具。Validator 在声明的外部证据根存在时会实际打开文件、重算哈希并解析机器事实；哈希不再只是自报。外部错误明确为 `ACCEPTANCE_FIXTURE`，不能冒充用户生产证据。
+`REAL_VALIDATION.yaml` 记录了固定 Catch2 commit 上五个隔离场景的工作树 Observation、机器/专业/小白报告文件哈希、before/after Workspace 与 Target Manifest ID、Gate 与限制：少右括号、文件尾截断、缺直接 include、实现文件未接入 CMake target、外部编译错误验收夹具。记录只保存相对于运行时证据根的路径，不保存任何电脑的绝对路径。需要重新打开原始文件时，通过 `--cpp-evidence-root <external-evidence-root>` 或 `EET_CPP_EVIDENCE_ROOT` 挂载；严格复验还需增加 `--require-cpp-evidence`。外部错误明确为 `ACCEPTANCE_FIXTURE`，不能冒充用户生产证据。
 
 该记录是 `PARTIAL_STATIC_SUBSET / qualification_effect: NONE`。只有前两项结构破坏在静态 MVP 范围内满足用例；缺 include、手工 target 清单修复和外部错误仍为 `NOT_SATISFIED / INCONCLUSIVE`。完整报告保存在仓外本地证据根，内容 ID 可识别但不具备跨机器可移植性；生成脚本的运行时 artifact hash 当时未捕获。因此“缺 include 已被编译器复验”“Catch2 构建或测试通过”“Windows 公司环境已资格化”仍是禁止结论。

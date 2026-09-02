@@ -3,14 +3,14 @@ bundle_id: rnb_valid_strict
 created_at: "2026-09-02T00:00:00Z"
 
 trust_context:
-  authority_registry_content_id: sha256:fbc6da1e3475a36146c17fbafec30bc9602e4c30c5902b663b69170fe2672431
+  authority_registry_content_id: sha256:3d9e58fc18eec4e479a573a2a4205f6cbe05c4dc396ce84afe5f1c372c7136eb
   environment_scope: ACCEPTANCE_FIXTURE
 
 run_policy:
   schema_version: "1.0.0"
   kind: AssuranceRunPolicy
   id: strict
-  version: 1.0.0
+  version: 0.1.0-draft
   display_name: 严格门禁
   description: 对声明范围执行阻断式机器门禁；关键 Claim 必须有独立交叉证据、有效 Canary 和完整语义校验。
   preset: STRICT
@@ -110,8 +110,8 @@ instance:
   run_id: run_valid_strict
   assurance_policy:
     policy_id: strict
-    version: 1.0.0
-    policy_content_id: sha256:974e5f69ab899b7dedac57562607b08238554e58fedbb30f6ab1b8f96981e646
+    version: 0.1.0-draft
+    policy_content_id: sha256:86ddf32ef11c7fd4be614bfa605606c6ad4a5a719ac15bb6dac18a1162d2da2e
     preset: STRICT
     outcome_authority: FINAL_VERDICT
   mode: ENFORCE
@@ -158,7 +158,7 @@ instance:
   external_failures: []
   checkpoint_refs: [checkpoint_final]
   report_refs: [rpt_machine, rpt_professional, rpt_novice]
-  run_bundle_digest: sha256:28c670d92c05d7bb2bc2a66dc6b516bc8a63613e89a3a19a374ff37c6aca51a8
+  run_bundle_digest: sha256:a17febf72bb69b0771d77942f480bba52712b95acb8843162f1af927feb40e4f
 
 receipts:
   - schema_version: "1.0.0"

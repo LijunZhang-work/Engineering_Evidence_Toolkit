@@ -1,7 +1,7 @@
 schema_version: "1.0.0"
 kind: AssuranceRunPolicy
 id: balanced
-version: 1.0.0
+version: 0.1.0-draft
 display_name: 平衡取证
 description: 依据风险选择交叉验证和覆盖深度；输出证据与风险报告，但不签发最终通过结论。
 preset: BALANCED

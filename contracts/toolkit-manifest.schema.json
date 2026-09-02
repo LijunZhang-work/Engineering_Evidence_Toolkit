@@ -5,7 +5,7 @@
   "description": "工具包静态设计清单。metadata.status 只表示规格状态；实现、验证和启用状态必须分别声明。",
   "type": "object",
   "additionalProperties": false,
-  "required": ["api_version", "kind", "metadata", "status_dimensions", "status_evidence", "architecture", "entrypoint", "state_file", "shared_contracts", "assurance_policies", "capabilities", "profiles", "adapters", "harness_support_matrix", "lifecycle", "runtime_boundaries", "canonical_policy", "canonical_projection_policy"],
+  "required": ["api_version", "kind", "metadata", "release_policy", "status_dimensions", "status_evidence", "architecture", "entrypoint", "state_file", "shared_contracts", "assurance_policies", "capabilities", "profiles", "adapters", "harness_support_matrix", "lifecycle", "runtime_boundaries", "canonical_policy", "canonical_projection_policy"],
   "properties": {
     "api_version": {"const": "eet/v1"},
     "kind": {"const": "Toolkit"},
@@ -20,6 +20,18 @@
         "version": {"$ref": "#/$defs/version"},
         "status": {"enum": ["DESIGNED", "SCAFFOLDED", "IMPLEMENTED", "VALIDATED", "ACTIVE"]},
         "released_on": {"type": "string", "format": "date"}
+      }
+    },
+    "release_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["phase", "reserved_formal_release_version", "formal_release_authorized", "authorization_source", "unauthorized_version_rule"],
+      "properties": {
+        "phase": {"const": "PRE_RELEASE"},
+        "reserved_formal_release_version": {"const": "1.0.0"},
+        "formal_release_authorized": {"const": false},
+        "authorization_source": {"const": "EXPLICIT_USER_DECISION_REQUIRED"},
+        "unauthorized_version_rule": {"const": "ALL_TOOLKIT_OWNED_RELEASE_VERSIONS_MUST_HAVE_MAJOR_ZERO"}
       }
     },
     "status_dimensions": {"$ref": "#/$defs/status_dimensions"},

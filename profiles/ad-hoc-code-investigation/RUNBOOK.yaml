@@ -1,6 +1,6 @@
 status: DESIGNED
 schema_version: "1.0.0"
-profile: ad-hoc-code-investigation@1.0.0
+profile: ad-hoc-code-investigation@0.1.0-draft
 
 steps:
   - id: Q0_SCOPE

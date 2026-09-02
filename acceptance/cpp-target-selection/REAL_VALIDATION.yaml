@@ -1,4 +1,4 @@
-schema_version: "1.0.0"
+schema_version: "0.2.0"
 kind: CppRealProjectPartialValidation
 recorded_at: "2026-09-02T09:30:00Z"
 status: PARTIAL_STATIC_SUBSET
@@ -16,9 +16,15 @@ generator_tool:
   provenance_status: NOT_CAPTURED
 
 evidence_storage:
-  kind: LOCAL_EXTERNAL
-  root: D:/AI/eet-cpp-validation/runs
-  portable: false
+  kind: EXTERNAL_CONTENT_ADDRESSED
+  runtime_locator:
+    mode: RUNTIME_BOUND
+    cli_option: --cpp-evidence-root
+    environment_variable: EET_CPP_EVIDENCE_ROOT
+    required_for_artifact_reverification: true
+  path_semantics: RELATIVE_TO_RUNTIME_ROOT
+  record_portable: true
+  artifacts_portable: false
   source_worktrees_mutated: true
 
 environment:
@@ -224,7 +230,7 @@ scenarios:
 
 qualification_effect: NONE
 limitations:
-  - The evidence root is local and external to this repository; content IDs preserve identity but do not make the artifacts portable.
+  - The record is portable, but raw artifacts remain external and must be mounted through the declared runtime binding before they can be reopened and rehashed.
   - No authentic MSVC compiler, linker, CMake configure, build, CTest or DT execution was available.
   - "Scenario 03 demonstrates an explicit static blind spot: restoring the include is visible in Git evidence but was not compiler-reverified."
   - Scenario 04 proves the declared target gap disappeared, but manual bounded scope cannot qualify F2 PASS.

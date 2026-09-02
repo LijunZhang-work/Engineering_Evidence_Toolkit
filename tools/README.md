@@ -49,6 +49,26 @@ py -3 -m venv .venv
 
 检查通过只表示“规范包内部一致”，不表示 Windows 预检、Code Fact、Recovery Review、编译或 DT 已经运行。
 
+### 发布版本门禁
+
+当前项目版本为 `0.7.0`，处于 `PRE_RELEASE`。`1.0.0` 只作为用户未来明确授权的正式发布版本保留；在 `formal_release_authorized: false` 时，Toolkit 自有的 Capability、Profile、Adapter、Policy、Registry 和文档版本都必须使用 `0.x`。Validator 会以 `PREMATURE_RELEASE_VERSION` 拒绝任何提前达到 `1.0.0` 或更高版本的改动。第三方工具版本与数据格式的 `schema_version` 不作为 Toolkit 发布状态。
+
+### 可移植的外部 C++ 证据
+
+仓库不会保存任何电脑的 C++ 候选目录或证据根绝对路径。普通规范自检不需要挂载历史原始证据，并会明确输出 `cpp_external_evidence: UNMOUNTED`；这不等于原始文件已经复验。
+
+需要在当前电脑重新打开、重算并核对外部原始证据时，显式传入运行时目录：
+
+```powershell
+.\.venv\Scripts\python.exe tools\validate_toolkit.py `
+  --cpp-evidence-root <external-evidence-root> `
+  --require-cpp-evidence
+```
+
+也可以由受控运行环境设置 `EET_CPP_EVIDENCE_ROOT`。命令行与环境变量同时存在但指向不同位置时，Validator 会失败；严格复验未提供绑定或目录不可用时同样失败，不会偷偷回退到开发者电脑路径。
+
+Validator 还会扫描仓库文本中的 Windows 盘符路径以及常见 POSIX 用户/临时目录路径；发现机器专属绝对路径时返回 `MACHINE_SPECIFIC_PATH`，防止以后重新引入不可移植配置。
+
 ## 只读 Doctor
 
 需要一次性查看当前规范包健康状态时运行：

@@ -9,6 +9,13 @@ metadata:
   status: SCAFFOLDED
   released_on: "2026-09-02"
 
+release_policy:
+  phase: PRE_RELEASE
+  reserved_formal_release_version: 1.0.0
+  formal_release_authorized: false
+  authorization_source: EXPLICIT_USER_DECISION_REQUIRED
+  unauthorized_version_rule: ALL_TOOLKIT_OWNED_RELEASE_VERSIONS_MUST_HAVE_MAJOR_ZERO
+
 status_dimensions:
   specification_status: DESIGNED
   implementation_status: PARTIAL
@@ -37,9 +44,9 @@ status_evidence:
       status_axis: validation
       evidence_kind: TEST_RECEIPT
       path: acceptance/status-receipts/toolkit-validation.json
-      content_id: sha256:e1f6e61a70a23046df1b69fdf26999b9261ae6a0d5b76d79be05b77c4cdfce5d
+      content_id: sha256:0495098124bd3b4595ca54440ec149d585065e24c84877973e20819b5d2ad915
       result: PARTIAL
-      observed_at: "2026-09-02T01:17:01Z"
+      observed_at: "2026-09-02T02:32:08Z"
 
 architecture:
   style: COMPOSABLE_CAPABILITIES

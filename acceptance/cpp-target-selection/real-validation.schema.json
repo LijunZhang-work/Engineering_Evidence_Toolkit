@@ -18,7 +18,7 @@
     "limitations"
   ],
   "properties": {
-    "schema_version": {"const": "1.0.0"},
+    "schema_version": {"const": "0.2.0"},
     "kind": {"const": "CppRealProjectPartialValidation"},
     "recorded_at": {"type": "string", "format": "date-time"},
     "status": {"const": "PARTIAL_STATIC_SUBSET"},
@@ -47,11 +47,30 @@
     "evidence_storage": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "root", "portable", "source_worktrees_mutated"],
+      "required": [
+        "kind",
+        "runtime_locator",
+        "path_semantics",
+        "record_portable",
+        "artifacts_portable",
+        "source_worktrees_mutated"
+      ],
       "properties": {
-        "kind": {"const": "LOCAL_EXTERNAL"},
-        "root": {"type": "string", "minLength": 1},
-        "portable": {"const": false},
+        "kind": {"const": "EXTERNAL_CONTENT_ADDRESSED"},
+        "runtime_locator": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "cli_option", "environment_variable", "required_for_artifact_reverification"],
+          "properties": {
+            "mode": {"const": "RUNTIME_BOUND"},
+            "cli_option": {"const": "--cpp-evidence-root"},
+            "environment_variable": {"const": "EET_CPP_EVIDENCE_ROOT"},
+            "required_for_artifact_reverification": {"const": true}
+          }
+        },
+        "path_semantics": {"const": "RELATIVE_TO_RUNTIME_ROOT"},
+        "record_portable": {"const": true},
+        "artifacts_portable": {"const": false},
         "source_worktrees_mutated": {"const": true}
       }
     },

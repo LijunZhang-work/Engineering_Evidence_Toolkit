@@ -1,6 +1,6 @@
 status: DESIGNED
 schema_version: "1.0.0"
-profile: test-trace-preparation@1.0.0
+profile: test-trace-preparation@0.1.0-draft
 
 steps:
   - id: T0_LOCK_SIGNAL_AND_TEST_SCOPE

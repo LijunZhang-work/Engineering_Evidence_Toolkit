@@ -1,6 +1,6 @@
 status: DESIGNED
 schema_version: "1.0.0"
-profile: recovery-review@1.1.0
+profile: recovery-review@0.2.0-draft
 acceptance_plan_ref: ../../acceptance/TOOLKIT_ACCEPTANCE_PLAN.md
 expected_results_ref: ../../acceptance/EXPECTED_RESULTS.yaml
 

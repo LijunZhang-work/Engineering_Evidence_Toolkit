@@ -1,7 +1,7 @@
 schema_version: "1.0.0"
 kind: AssuranceRunPolicy
 id: strict
-version: 1.0.0
+version: 0.1.0-draft
 display_name: 严格门禁
 description: 对声明范围执行阻断式机器门禁；关键 Claim 必须有独立交叉证据、有效 Canary 和完整语义校验。
 preset: STRICT

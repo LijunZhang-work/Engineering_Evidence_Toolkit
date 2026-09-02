@@ -3,7 +3,7 @@ kind: ToolkitState
 
 toolkit_id: engineering-evidence-toolkit
 toolkit_version: 0.7.0
-recorded_at: 2026-09-02T09:17:01+08:00
+recorded_at: 2026-09-02T10:32:08+08:00
 
 status_dimensions:
   specification_status: SPECIFIED
@@ -29,7 +29,7 @@ truthful_summary:
     - isolated_profile_runner_acceptance_mvp
   acceptance_tests_executed: false
   acceptance_test_subset_executed: true
-  toolkit_full_test_suite_last_result: 95_PASS
+  toolkit_full_test_suite_last_result: 100_PASS
   run_bundle_validator_focused_tests_last_result: 8_PASS_62_NEGATIVE_CASES_REJECTED
   status_promotion_focused_tests_last_result: 10_PASS
   windows_precheck_mvp_focused_tests_last_result: 25_PASS

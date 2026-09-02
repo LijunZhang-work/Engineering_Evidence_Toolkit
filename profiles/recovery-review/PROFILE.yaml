@@ -8,7 +8,7 @@ status_dimensions:
 schema_version: "1.0.0"
 kind: ToolkitProfile
 id: recovery-review
-version: "1.1.0"
+version: "0.2.0-draft"
 title: 多仓 AI 遗留改动恢复与证据化审查
 
 intent: >-
