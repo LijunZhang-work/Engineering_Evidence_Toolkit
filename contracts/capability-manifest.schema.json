@@ -11,8 +11,9 @@
     "id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
     "name": {"type": "string", "minLength": 1},
     "version": {"$ref": "#/$defs/version"},
-    "status": {"const": "DESIGNED"},
+    "status": {"enum": ["DESIGNED", "SCAFFOLDED", "IMPLEMENTED", "VALIDATED", "ACTIVE"]},
     "status_dimensions": {"$ref": "#/$defs/status_dimensions"},
+    "status_evidence": {"$ref": "#/$defs/status_evidence"},
     "kind": {"const": "independent_capability"},
     "spec": {"type": "string", "minLength": 1},
     "purpose": {"type": "string", "minLength": 1},
@@ -24,6 +25,11 @@
         "operation": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
         "callable_without_profile": {"const": true}
       }
+    },
+    "operations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/operation"}
     },
     "inputs": {
       "type": "object",
@@ -97,6 +103,7 @@
         "selection_owner": {"type": "string", "minLength": 1}
       }
     },
+    "provider_strategy_ref": {"type": "string", "minLength": 1},
     "invariants": {"$ref": "#/$defs/nonempty_string_array"},
     "boundaries": {
       "type": "object",
@@ -129,12 +136,37 @@
     "status_dimensions": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["specification_status", "implementation_status", "validation_status", "activation_status"],
+      "required": ["specification_status", "implementation_status", "validation_status", "qualification_status", "activation_status"],
       "properties": {
-        "specification_status": {"const": "DESIGNED"},
+        "specification_status": {"enum": ["DRAFT", "DESIGNED", "REVIEWED", "BASELINED"]},
         "implementation_status": {"enum": ["NOT_IMPLEMENTED", "PARTIAL", "IMPLEMENTED"]},
         "validation_status": {"enum": ["NOT_RUN", "PARTIAL", "PASSED", "FAILED", "STALE"]},
+        "qualification_status": {"enum": ["NOT_ASSESSED", "UNQUALIFIED", "QUALIFIED_WITH_LIMITS", "QUALIFIED"]},
         "activation_status": {"enum": ["INACTIVE", "ACTIVE", "SUSPENDED", "RETIRED"]}
+      }
+    },
+    "status_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "implementation": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/status_evidence_item"}},
+        "validation": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/status_evidence_item"}},
+        "qualification": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/status_evidence_item"}},
+        "activation": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/status_evidence_item"}}
+      }
+    },
+    "status_evidence_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subject_id", "status_axis", "evidence_kind", "path", "content_id", "result", "observed_at"],
+      "properties": {
+        "subject_id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+        "status_axis": {"enum": ["implementation", "validation", "qualification", "activation"]},
+        "evidence_kind": {"enum": ["IMPLEMENTATION_ARTIFACT", "IMPLEMENTATION_RECEIPT", "TEST_RECEIPT", "QUALIFICATION_RECEIPT", "ACTIVATION_RECEIPT"]},
+        "path": {"type": "string", "pattern": "^(?![A-Za-z]:|/|.*(?:^|[\\\\/])\\.\\.(?:[\\\\/]|$)).+$"},
+        "content_id": {"type": "string", "pattern": "^sha256:[A-Fa-f0-9]{64}$"},
+        "result": {"enum": ["PARTIAL", "IMPLEMENTED", "PASSED", "FAILED", "STALE", "UNQUALIFIED", "QUALIFIED_WITH_LIMITS", "QUALIFIED", "ACTIVE", "SUSPENDED", "RETIRED"]},
+        "observed_at": {"type": "string", "format": "date-time"}
       }
     },
     "mode": {
@@ -154,6 +186,18 @@
         "name": {"type": "string", "minLength": 1},
         "version": {"type": "string", "minLength": 1},
         "required": {"type": "boolean"}
+      }
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "purpose", "repository_mutation", "required_inputs", "outputs"],
+      "properties": {
+        "operation": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "purpose": {"type": "string", "minLength": 1},
+        "repository_mutation": {"enum": ["forbidden", "explicit_authorization_only"]},
+        "required_inputs": {"$ref": "#/$defs/nonempty_string_array"},
+        "outputs": {"$ref": "#/$defs/nonempty_string_array"}
       }
     },
     "axis": {

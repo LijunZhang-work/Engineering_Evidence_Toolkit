@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/cpp-real-validation.schema.json",
+  "title": "C++ Real Project Partial Validation Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "recorded_at",
+    "status",
+    "target",
+    "generator_tool",
+    "evidence_storage",
+    "environment",
+    "scenarios",
+    "qualification_effect",
+    "limitations"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "kind": {"const": "CppRealProjectPartialValidation"},
+    "recorded_at": {"type": "string", "format": "date-time"},
+    "status": {"const": "PARTIAL_STATIC_SUBSET"},
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidate_id", "origin", "branch", "commit", "license_id"],
+      "properties": {
+        "candidate_id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+        "origin": {"type": "string", "format": "uri"},
+        "branch": {"type": "string", "minLength": 1},
+        "commit": {"type": "string", "pattern": "^[A-Fa-f0-9]{40}$"},
+        "license_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "generator_tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tool_id", "artifact_content_id", "provenance_status"],
+      "properties": {
+        "tool_id": {"const": "windows-precheck-vertical-mvp"},
+        "artifact_content_id": {"type": "null"},
+        "provenance_status": {"const": "NOT_CAPTURED"}
+      }
+    },
+    "evidence_storage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "root", "portable", "source_worktrees_mutated"],
+      "properties": {
+        "kind": {"const": "LOCAL_EXTERNAL"},
+        "root": {"type": "string", "minLength": 1},
+        "portable": {"const": false},
+        "source_worktrees_mutated": {"const": true}
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["os", "msvc", "cmake", "ninja", "formal_build_status"],
+      "properties": {
+        "os": {"const": "Windows"},
+        "msvc": {"const": "NOT_AVAILABLE"},
+        "cmake": {"const": "NOT_AVAILABLE"},
+        "ninja": {"const": "NOT_AVAILABLE"},
+        "formal_build_status": {"const": "BLOCKED_BY_ENVIRONMENT"}
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 5,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/scenario"}
+    },
+    "qualification_effect": {"const": "NONE"},
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "$defs": {
+    "contentId": {"type": "string", "pattern": "^sha256:[A-Fa-f0-9]{64}$"},
+    "fileArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "content_id"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^(?![A-Za-z]:|/|.*(?:^|[\\\\/])\\.\\.(?:[\\\\/]|$)).+$"},
+        "content_id": {"$ref": "#/$defs/contentId"}
+      }
+    },
+    "gateMap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["F0_CHECK_EFFECTIVENESS", "F1_STRUCTURAL_CHANGE_SAFETY", "F2_BUILD_TARGET_AND_DEPENDENCY", "F5_EXTERNAL_EVIDENCE_RECONCILIATION"],
+      "properties": {
+        "F0_CHECK_EFFECTIVENESS": {"enum": ["PASS", "FAIL", "INCONCLUSIVE", "NOT_APPLICABLE"]},
+        "F1_STRUCTURAL_CHANGE_SAFETY": {"enum": ["PASS", "FAIL", "INCONCLUSIVE", "NOT_APPLICABLE"]},
+        "F2_BUILD_TARGET_AND_DEPENDENCY": {"enum": ["PASS", "FAIL", "INCONCLUSIVE", "NOT_APPLICABLE"]},
+        "F5_EXTERNAL_EVIDENCE_RECONCILIATION": {"enum": ["PASS", "FAIL", "INCONCLUSIVE", "NOT_APPLICABLE"]}
+      }
+    },
+    "report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fact_set_hash",
+        "machine_report_content_id",
+        "target_manifest_content_id",
+        "workspace_content_id",
+        "gates",
+        "finding_codes",
+        "artifact_files"
+      ],
+      "properties": {
+        "fact_set_hash": {"$ref": "#/$defs/contentId"},
+        "machine_report_content_id": {"$ref": "#/$defs/contentId"},
+        "target_manifest_content_id": {"$ref": "#/$defs/contentId"},
+        "workspace_content_id": {"$ref": "#/$defs/contentId"},
+        "gates": {"$ref": "#/$defs/gateMap"},
+        "finding_codes": {
+          "type": "array",
+          "items": {"type": "string", "pattern": "^[A-Z0-9_-]+$"}
+        },
+        "artifact_files": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["machine", "professional", "plain_language"],
+          "properties": {
+            "machine": {"$ref": "#/$defs/fileArtifact"},
+            "professional": {"$ref": "#/$defs/fileArtifact"},
+            "plain_language": {"$ref": "#/$defs/fileArtifact"}
+          }
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenario_id",
+        "acceptance_case",
+        "case_coverage",
+        "case_result",
+        "defect_kind",
+        "evidence_source",
+        "defect_observation_content_id",
+        "defect_observation_file",
+        "fixed_observation_content_id",
+        "fixed_observation_file",
+        "before",
+        "after",
+        "outcome",
+        "formal_build_status"
+      ],
+      "properties": {
+        "scenario_id": {"type": "string", "pattern": "^[0-9]{2}-[a-z0-9-]+$"},
+        "acceptance_case": {"type": "string", "pattern": "^ACC-[A-Z]+-[0-9]{3}$"},
+        "case_coverage": {"enum": ["SATISFIED_WITHIN_STATIC_MVP", "NOT_SATISFIED"]},
+        "case_result": {"enum": ["PASS_STATIC_ONLY", "INCONCLUSIVE"]},
+        "defect_kind": {"type": "string", "minLength": 1},
+        "evidence_source": {"enum": ["ISOLATED_GIT_WORKTREE", "ACCEPTANCE_FIXTURE"]},
+        "defect_observation_content_id": {"$ref": "#/$defs/contentId"},
+        "defect_observation_file": {"$ref": "#/$defs/fileArtifact"},
+        "fixed_observation_content_id": {"oneOf": [{"$ref": "#/$defs/contentId"}, {"type": "null"}]},
+        "fixed_observation_file": {"oneOf": [{"$ref": "#/$defs/fileArtifact"}, {"type": "null"}]},
+        "before": {"$ref": "#/$defs/report"},
+        "after": {"$ref": "#/$defs/report"},
+        "outcome": {
+          "enum": [
+            "DETECTED_AND_STATICALLY_RECHECKED",
+            "STATIC_BLIND_SPOT_RESTORED_BY_DIFF_ONLY",
+            "MANUAL_MANIFEST_GAP_DETECTED_AND_STATICALLY_RECHECKED",
+            "EXTERNAL_FIXTURE_RETAINED_UNRESOLVED"
+          ]
+        },
+        "formal_build_status": {"const": "BLOCKED_BY_ENVIRONMENT"}
+      }
+    }
+  }
+}

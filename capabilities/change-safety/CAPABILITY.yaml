@@ -3,22 +3,39 @@ id: change-safety
 name: Change Safety
 version: 0.1.0-draft
 status: DESIGNED
+status_dimensions:
+  specification_status: DESIGNED
+  implementation_status: NOT_IMPLEMENTED
+  validation_status: NOT_RUN
+  qualification_status: NOT_ASSESSED
+  activation_status: INACTIVE
 kind: independent_capability
 spec: SPEC.md
 entrypoint:
   operation: inspect_change_integrity
   callable_without_profile: true
+operations:
+  - operation: inspect_change_integrity
+    purpose: 对既有 change set 做只读的多探测器结构完整性检查
+    repository_mutation: forbidden
+    required_inputs: [workspace_snapshot, change_set]
+    outputs: [change_safety_report, evidence_bundle_refs, receipt_refs]
+  - operation: apply_bounded_change
+    purpose: 在显式授权范围内应用可审计的最小修改并生成 Mutation Receipt
+    repository_mutation: explicit_authorization_only
+    required_inputs: [workspace_snapshot, authorization_receipt, proposed_change, allowed_paths]
+    outputs: [mutation_receipt, change_set, updated_workspace_content_id]
 inputs:
-  required: [workspace_snapshot, change_set]
-  optional: [baseline_snapshot, language_profiles, generated_file_policy]
+  required: [workspace_snapshot, operation]
+  optional: [change_set, baseline_snapshot, language_profiles, generated_file_policy, authorization_receipt, proposed_change, allowed_paths]
 outputs:
   primary: change_safety_report
-  includes: [diff_inventory, structural_checks, symbol_delta, truncation_checks, suspicious_deletions]
+  includes: [mutation_receipt, diff_inventory, structural_checks, symbol_delta, truncation_checks, suspicious_deletions]
 side_effects:
-  repository_mutation: forbidden
+  repository_mutation: explicit_authorization_only
   external_mutation: forbidden
-  allowed_writes: [run_artifacts]
+  allowed_writes: [explicitly_authorized_source_paths, run_artifacts]
 failure_policy: fail_closed
-result_states: [SAFE_WITHIN_SCOPE, UNSAFE, SUSPICIOUS, UNKNOWN, NOT_QUALIFIED]
+result_states: [CHANGE_APPLIED, CHANGE_REJECTED, SAFE_WITHIN_SCOPE, UNSAFE, SUSPICIOUS, UNKNOWN, NOT_QUALIFIED]
 evidence_ceiling: "结构安全通过不等于语义正确或可构建；只能证明已执行探测器覆盖内未发现破坏"
 

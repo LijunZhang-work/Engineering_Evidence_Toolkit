@@ -1,0 +1,32 @@
+schema_version: "1.0.0"
+kind: AssuranceRunPolicy
+id: balanced
+version: 1.0.0
+display_name: 平衡取证
+description: 依据风险选择交叉验证和覆盖深度；输出证据与风险报告，但不签发最终通过结论。
+preset: BALANCED
+mode: EVIDENCE
+outcome_authority: EVIDENCE_REPORT
+enforcement: RISK_BASED
+allowed_final_verdicts: [NO_VERDICT, INCOMPLETE]
+evidence_requirements:
+  coverage_requirement: DECLARED_SCOPE
+  corroboration: RISK_TRIGGERED
+  minimum_independent_sources: 1
+  high_risk_minimum_independent_sources: 2
+  fresh_workspace_binding: true
+  active_negative_canary: true
+  user_error_reconciliation: true
+provider_strategy:
+  selection: RISK_ADAPTIVE
+  fallback_required: true
+  provider_chain_is_hint: true
+  max_provider_invocations_per_claim: 3
+  timeout_budget_seconds: 900
+  preferred_provider_classes: [qualified_index, structural_search, lexical_search, compiler_or_parser]
+invariants:
+  no_fabrication: true
+  no_hidden_conflicts: true
+  user_errors_are_first_class: true
+  no_unauthorized_mutation: true
+  no_overclaiming: true

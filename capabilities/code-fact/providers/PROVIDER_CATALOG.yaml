@@ -1,5 +1,5 @@
 schema: engineering-evidence-toolkit/code-fact-provider-catalog/v1
-catalog_version: 2026-08-29-draft
+catalog_version: 2026-09-02-draft
 spec_status: DESIGNED
 verification_status: NOT_RUN
 
@@ -39,10 +39,43 @@ categories:
       risk: false confidence when compilation database or target context diverges
       detail: clangd.md
 
+  local_acceleration_candidates:
+    - id: zg
+      canonical_source: https://github.com/zvec-ai/zvec-grep
+      reported_role: local-first hybrid semantic, BM25, vector, and lexical workspace search
+      license: Apache-2.0
+      maturity: EXPERIMENTAL
+      research_state: SOURCE_IDENTIFIED_REVERIFY_REVISION
+      design_state: DESIGNED
+      validation_state: NOT_RUN
+      requires_index: true
+      risk: newly released provider may change rapidly and must not become a hard dependency or proof authority
+    - id: ast-grep
+      canonical_source: https://github.com/ast-grep/ast-grep
+      reported_role: tree-sitter-based structural search, lint, and rewrite
+      license: MIT
+      maturity: MATURE_CANDIDATE
+      research_state: SOURCE_IDENTIFIED_REVERIFY_REVISION
+      design_state: DESIGNED
+      validation_state: NOT_RUN
+      requires_index: false
+      risk: AST matches do not prove build-target membership, compiler parity, runtime reachability, or absence outside parsed scope
+
   graph_and_index_candidates:
     - id: codegraph
       reported_role: code graph and relationship queries
+      canonical_source: UNRESOLVED_AMBIGUOUS_NAME
+      identity_rule: select one source and immutable revision before build, benchmark, or receipt qualification
       research_state: REVERIFY_REQUIRED
+      design_state: DESIGNED
+      validation_state: NOT_RUN
+
+  named_external_contracts:
+    - id: beh
+      reported_role: project-named BEH provider; capabilities must not be inferred from the name
+      identity_status: UNRESOLVED_PRIVATE_OR_PROJECT_SPECIFIC
+      contract: BEH_PROVIDER_CONTRACT.yaml
+      research_state: AUTHORITY_INPUT_REQUIRED
       design_state: DESIGNED
       validation_state: NOT_RUN
     - id: codebase-memory
@@ -109,3 +142,7 @@ policy:
   provider_native_output_is_not_final_evidence: true
   catalog_entry_does_not_authorize_deployment: true
   volatile_commands_must_be_reverified: true
+  provider_sequence_is_query_specific_not_universal: true
+  quick_policy_may_use_one_provider_without_forced_fallback: true
+  strict_policy_requires_policy_defined_corroboration_not_a_fixed_tool_chain: true
+  adopt_adapt_build_decision_required: true

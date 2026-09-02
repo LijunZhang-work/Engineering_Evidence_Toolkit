@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "ProviderSourceReceipt",
+  "receipt_id": "psr_fixture_ast",
+  "authority_ref": "authority_fixture_qualification_lab",
+  "issued_by": "fixture-qualification-lab",
+  "environment_scope": "ACCEPTANCE_FIXTURE",
+  "capability_id": "change-safety",
+  "provider_id": "fixture-ast",
+  "source_identity": "acceptance-fixture://fixture-ast",
+  "resolved_revision": "fixture-ast@1.0+sha256:5555555555555555555555555555555555555555555555555555555555555555",
+  "provider_artifact_content_id": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+  "license": {
+    "spdx_id": "LicenseRef-Acceptance-Fixture",
+    "artifact": {
+      "location": "acceptance/fixtures/run-bundles/artifacts/provider-source-license.txt",
+      "content_id": "sha256:6addea55941a527bca2d4d206e06502badab40dc32681c96ece512a45248e43a"
+    }
+  },
+  "observed_at": "2026-09-02T00:00:00Z"
+}

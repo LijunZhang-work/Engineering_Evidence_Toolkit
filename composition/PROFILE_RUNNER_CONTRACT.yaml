@@ -1,4 +1,4 @@
-status: DESIGNED
+status: SCAFFOLDED
 schema_version: "1.0.0"
 kind: ProfileRunnerContract
 id: toolkit.profile-runner
@@ -6,6 +6,25 @@ id: toolkit.profile-runner
 purpose: >-
   以可审计、可恢复的方式组合独立能力；Profile Runner 只负责调度、
   公共证据归并、门禁求值与状态持久化，不产生代码事实，也不替代任何能力。
+  它是任务状态、重试、Checkpoint 与 Verdict 的唯一控制面。
+
+implementation_scope:
+  runtime: tools/profile_runner_mvp.py
+  status: PARTIAL_ACCEPTANCE_FIXTURE_ONLY
+  executable_chain:
+    - bootstrap_request_to_workspace_snapshot
+    - solo_collaboration_snapshot
+    - windows_static_precheck_before
+    - repository_pinned_exact_fixture_edit_in_os_temp_copy
+    - content_addressed_diff
+    - windows_static_precheck_after
+    - three_report_views
+  forbidden_claims:
+    - production_profile_runner_complete
+    - real_project_mutation_authorized
+    - profile_active
+    - accept_verdict_available
+    - product_build_or_dt_verified
 
 boundaries:
   may:
@@ -15,6 +34,7 @@ boundaries:
     - persist_instance_bundle
     - map_capability_results_to_profile_gates
     - render_multiple_views_from_one_fact_set
+    - own_the_single_instance_state_machine
   must_not:
     - read_capability_private_state
     - read_provider_private_state
@@ -24,19 +44,33 @@ boundaries:
     - equate_process_exit_zero_with_semantic_success
     - hide_conflicting_or_user_supplied_evidence
     - mutate_source_code_unless_the_selected_profile_explicitly_authorizes_an_edit_capability
+    - delegate_state_ownership_to_autonomous_runner_capability
 
 inputs:
   required:
-    - profile_id
-    - profile_version
     - instance_id
-    - workspace_snapshot_ref
-    - capability_contract_set
+    - bootstrap_request
   optional:
     - alignment_lock_ref
     - user_evidence_refs
     - resume_checkpoint_ref
     - execution_budget
+
+bootstrap_request:
+  kind: BootstrapRequest
+  required:
+    - workspace_roots
+    - profile_ref
+    - run_policy_ref
+    - capability_contract_set
+  must_not_require:
+    - workspace_snapshot_ref
+    - collaboration_snapshot_ref
+  rules:
+    - The Runner owns bootstrap and captures the first Workspace Snapshot while in BOOTSTRAPPING.
+    - Capability execution cannot begin until that Snapshot has been persisted and content-addressed.
+    - Collaboration Snapshot is downstream only and may consume the persisted Workspace Snapshot; it cannot be a bootstrap prerequisite.
+    - A resume_checkpoint_ref may supply an existing Snapshot only after its content binding is revalidated.
 
 public_capability_exchange:
   request_fields:
@@ -44,6 +78,7 @@ public_capability_exchange:
     - capability_id
     - contract_version
     - mode
+    - assurance_policy_ref
     - scoped_inputs
     - workspace_snapshot_ref
     - authority_context_ref
@@ -69,6 +104,7 @@ public_capability_exchange:
 
 runtime_states:
   - NOT_STARTED
+  - BOOTSTRAPPING
   - READY
   - RUNNING
   - WAITING_HUMAN
@@ -78,6 +114,8 @@ runtime_states:
   - CANCELLED
 
 state_rules:
+  - id: RUNNER-STATE-000
+    rule: NOT_STARTED enters BOOTSTRAPPING from a BootstrapRequest; BOOTSTRAPPING creates the first Workspace Snapshot and only then may enter READY.
   - id: RUNNER-STATE-001
     rule: READY items MUST continue without asking the user for permission again.
   - id: RUNNER-STATE-002
@@ -100,6 +138,8 @@ gate_evaluation:
     - FAIL
     - INCONCLUSIVE
     - NOT_APPLICABLE
+    - WAIVED
+    - NOT_EVALUATED
   precedence:
     - explicit_contradictory_evidence
     - invalid_or_incomplete_check
@@ -110,6 +150,26 @@ gate_evaluation:
     - A canary that did not prove the check was active invalidates that check.
     - Different compiler, flags, include paths, generated files, target membership, or macros cap equivalence and therefore cap the conclusion.
     - INCONCLUSIVE is a valid result and MUST NOT be rendered as PASS.
+    - WAIVED records accepted risk and MUST reference an active Waiver; it is never supporting evidence.
+    - NOT_EVALUATED is not PASS and blocks a strict final ACCEPT.
+
+verdict_evaluation:
+  result_values:
+    - ACCEPT
+    - ACCEPT_WITH_RISK
+    - REJECT
+    - INCOMPLETE
+    - NO_VERDICT
+  policy_ceiling:
+    EXPLORE: [NO_VERDICT]
+    EVIDENCE: [NO_VERDICT, INCOMPLETE]
+    ENFORCE: [ACCEPT, ACCEPT_WITH_RISK, REJECT, INCOMPLETE]
+  rules:
+    - ACCEPT requires ENFORCE mode, COMPLETED execution, no WAIVED gate, and every required gate PASS or evidenced NOT_APPLICABLE.
+    - ACCEPT_WITH_RISK additionally permits active evidenced Waivers, but never FAIL, INCONCLUSIVE, NOT_EVALUATED, unresolved user errors, or conflicted Claims.
+    - Any FAIL gate yields REJECT when execution is complete.
+    - Any missing, INCONCLUSIVE, NOT_EVALUATED, stale, or unresolved required evidence yields INCOMPLETE.
+    - EXPLORE and EVIDENCE never acquire final-verdict authority by running more tools accidentally.
 
 checkpointing:
   minimum_interval: after_each_capability_or_gate

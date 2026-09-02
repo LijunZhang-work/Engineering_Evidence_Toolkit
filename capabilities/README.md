@@ -31,7 +31,7 @@
 | `build-dependency-audit` | 审计编译、包含、链接和测试接线 | 依赖/目标证明 |
 | `windows-static-precheck` | 在 Windows 做合格的静态预检 | 资格收据与受限诊断 |
 | `external-evidence` | 接收用户提供的真实错误证据 | 外部证据登记 |
-| `autonomous-runner` | 长时间持续推进可执行任务 | 调度账本与停机证明 |
+| `autonomous-runner` | 无状态判断哪些任务可继续、何时应停机 | 继续/等待/停机建议与原因；调度账本由唯一 Profile Runner 持有 |
 | `audit-ledger` | 记录不可抵赖的执行轨迹 | 追加式账本 |
 | `report-renderer` | 从同一事实生成专业版/小白版 | 双视图报告 |
 | `third-party-supply-chain` | 管理第三方分析工具来源 | 供应链收据 |

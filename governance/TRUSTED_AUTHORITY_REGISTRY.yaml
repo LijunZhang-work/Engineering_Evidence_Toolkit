@@ -1,0 +1,40 @@
+schema_version: "1.0.0"
+kind: TrustedAuthorityRegistry
+version: 1.0.0
+registry_role: AUTHORITY_CATALOG_REQUIRES_EXTERNAL_TRUST_ANCHOR
+external_anchor_required: true
+allowed_provider_source_schemes: [https, git+https, file, acceptance-fixture]
+
+authorities:
+  - authority_ref: authority_fixture_qualification_lab
+    issuer_id: fixture-qualification-lab
+    status: ACTIVE
+    environment_scope: ACCEPTANCE_FIXTURE
+    permissions:
+      - PROVIDER_QUALIFICATION
+      - PROVIDER_SOURCE_ATTESTATION
+      - STATUS_QUALIFICATION
+      - STATUS_ACTIVATION
+    authority_tiers:
+      - qualified_parser_for_declared_scope
+      - qualified_ast_for_declared_scope
+    capability_ids: [windows-static-precheck, change-safety]
+    status_subject_ids: [fixture]
+    status_receipt_content_ids:
+      - sha256:e20858855d83fc2ad2b647e249da523a0b6fbbb9c4c4d044bda32bc63c9235fb
+      - sha256:c40a8bf160fa701ecea45dba1b5c581073fd13fa034f76149e1601da16b11fb0
+    authorization_receipt_content_ids: []
+    waiver_receipt_content_ids: []
+    provider_source_receipt_content_ids:
+      - sha256:e2f0512a551e7984fa440220d6eeca3c8b80dcf7f77d35f1e46292840bb2ef22
+      - sha256:c4c7140474a254d6be7baa012dc44a833906c47bb89b95e8084f64f933ad59bc
+    cpp_acceptance_receipt_content_ids: []
+    trust_domains:
+      - trust_domain_id: fixture-parser-implementation
+        provider_ids: [fixture-parser]
+        provider_artifact_content_ids:
+          - sha256:1111111111111111111111111111111111111111111111111111111111111111
+      - trust_domain_id: fixture-ast-implementation
+        provider_ids: [fixture-ast]
+        provider_artifact_content_ids:
+          - sha256:5555555555555555555555555555555555555555555555555555555555555555

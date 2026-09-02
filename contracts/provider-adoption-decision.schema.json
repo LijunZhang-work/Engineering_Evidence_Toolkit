@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/provider-adoption-decision.schema.json",
+  "title": "Provider Adopt Adapt Build Decision",
+  "description": "把 Adopt → Adapt → Build 变成可检查的供应链决策 Gate；只有前一层候选被证据否决，才能进入后一层。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "decision_id",
+    "capability_id",
+    "need",
+    "selected_action",
+    "candidates",
+    "decision_reason",
+    "evidence_refs",
+    "gate_result"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "decision_id": {"type": "string", "pattern": "^pad_[A-Za-z0-9._-]+$"},
+    "capability_id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "need": {"type": "string", "minLength": 1},
+    "selected_action": {"enum": ["ADOPT", "ADAPT", "BUILD", "NO_SELECTION"]},
+    "selected_candidate_id": {"type": "string", "minLength": 1},
+    "candidates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["candidate_id", "source_identity", "source_receipt", "provider_artifact_content_id", "maturity", "license_status", "fit", "decision_layer", "disposition", "evidence_refs"],
+        "properties": {
+          "candidate_id": {"type": "string", "minLength": 1},
+          "source_identity": {"type": "string", "minLength": 1},
+          "source_receipt": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["location", "content_id"],
+            "properties": {
+              "location": {"type": "string", "minLength": 1},
+              "content_id": {"type": "string", "pattern": "^[a-z0-9_-]+:[A-Fa-f0-9]{16,}$"}
+            }
+          },
+          "provider_artifact_content_id": {"type": "string", "pattern": "^[a-z0-9_-]+:[A-Fa-f0-9]{16,}$"},
+          "immutable_revision": {"type": "string", "minLength": 1},
+          "maturity": {"enum": ["MATURE", "EMERGING", "EXPERIMENTAL", "UNKNOWN"]},
+          "license_status": {"enum": ["ACCEPTABLE", "RESTRICTED", "UNACCEPTABLE", "UNKNOWN"]},
+          "fit": {"enum": ["DIRECT", "ADAPTER_REQUIRED", "INSUFFICIENT", "UNKNOWN"]},
+          "decision_layer": {"enum": ["ADOPT", "ADAPT", "BUILD"]},
+          "disposition": {"enum": ["SELECTED", "REJECTED", "DEFERRED"]},
+          "reason": {"type": "string", "minLength": 1},
+          "rejection_reason": {"type": "string", "minLength": 1},
+          "evidence_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+        },
+        "allOf": [
+          {
+            "if": {"properties": {"disposition": {"const": "REJECTED"}}, "required": ["disposition"]},
+            "then": {"required": ["rejection_reason"]}
+          }
+        ]
+      }
+    },
+    "decision_reason": {"type": "string", "minLength": 1},
+    "evidence_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "gate_result": {"enum": ["PASS", "FAIL", "INCONCLUSIVE", "NOT_APPLICABLE", "WAIVED", "NOT_EVALUATED"]}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"selected_action": {"enum": ["ADOPT", "ADAPT", "BUILD"]}}, "required": ["selected_action"]},
+      "then": {"required": ["selected_candidate_id"]}
+    },
+    {
+      "if": {"properties": {"selected_action": {"const": "NO_SELECTION"}}, "required": ["selected_action"]},
+      "then": {"properties": {"gate_result": {"enum": ["FAIL", "INCONCLUSIVE", "NOT_EVALUATED"]}}}
+    }
+  ]
+}

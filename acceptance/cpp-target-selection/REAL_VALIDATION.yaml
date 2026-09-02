@@ -1,0 +1,232 @@
+schema_version: "1.0.0"
+kind: CppRealProjectPartialValidation
+recorded_at: "2026-09-02T09:30:00Z"
+status: PARTIAL_STATIC_SUBSET
+
+target:
+  candidate_id: catch2
+  origin: https://github.com/catchorg/Catch2.git
+  branch: devel
+  commit: 317ac1ed4c0bb6e6b91eafc817e05c488feffcb3
+  license_id: BSL-1.0
+
+generator_tool:
+  tool_id: windows-precheck-vertical-mvp
+  artifact_content_id: null
+  provenance_status: NOT_CAPTURED
+
+evidence_storage:
+  kind: LOCAL_EXTERNAL
+  root: D:/AI/eet-cpp-validation/runs
+  portable: false
+  source_worktrees_mutated: true
+
+environment:
+  os: Windows
+  msvc: NOT_AVAILABLE
+  cmake: NOT_AVAILABLE
+  ninja: NOT_AVAILABLE
+  formal_build_status: BLOCKED_BY_ENVIRONMENT
+
+scenarios:
+  - scenario_id: 01-missing-paren
+    acceptance_case: ACC-STRUCT-002
+    case_coverage: SATISFIED_WITHIN_STATIC_MVP
+    case_result: PASS_STATIC_ONLY
+    defect_kind: missing_right_parenthesis
+    evidence_source: ISOLATED_GIT_WORKTREE
+    defect_observation_content_id: sha256:e1e7ead7c69760f602ea146b5f5413e4cc9095c794c992340383ccd84258cd51
+    defect_observation_file:
+      path: 01-missing-paren/defect-observation/observation.json
+      content_id: sha256:11baac8348e44fc8929a766200100ed7fb60206e6986cd2d022f47ea2a1fc0c3
+    fixed_observation_content_id: sha256:732b790a1514854385f27e16150b04c4ccfbcdcc7568b07748897a06bc26f5bd
+    fixed_observation_file:
+      path: 01-missing-paren/fixed-observation/observation.json
+      content_id: sha256:8861c094ceb4b793c7ede3deaf687302bf3df9ea80a1f86dba94f2b681dffce6
+    before:
+      fact_set_hash: sha256:cdd485b484716eca89316b65f99bc896ccbb11e7555bd0ed0af55e2edd7ca040
+      machine_report_content_id: sha256:a5b129e4c4402f26d5587672f269be748ffe6b6e140e76d0bf686a3cf98ad144
+      target_manifest_content_id: sha256:1677536255b5598c763807a1a5fcf470946bad46b5dea96827f0325f64e56aa4
+      workspace_content_id: sha256:9d00cdbc2d7f36ee5a803e08a01d443fdd12377ee3a8a33bdc6005251b117045
+      gates: {F0_CHECK_EFFECTIVENESS: INCONCLUSIVE, F1_STRUCTURAL_CHANGE_SAFETY: FAIL, F2_BUILD_TARGET_AND_DEPENDENCY: INCONCLUSIVE, F5_EXTERNAL_EVIDENCE_RECONCILIATION: NOT_APPLICABLE}
+      finding_codes: [TARGET_SCOPE_UNQUALIFIED, MISMATCHED_CLOSING_DELIMITER, MISMATCHED_CLOSING_DELIMITER, UNCLOSED_DELIMITER, UNCLOSED_DELIMITER, UNCLOSED_DELIMITER]
+      artifact_files:
+        machine: {path: 01-missing-paren/defect/machine.json, content_id: sha256:a5b129e4c4402f26d5587672f269be748ffe6b6e140e76d0bf686a3cf98ad144}
+        professional: {path: 01-missing-paren/defect/professional.md, content_id: sha256:646e3cab4dcf5fae16339d3aaac6e0714eb0e0f46d4f6793758766e9f6ea0c9d}
+        plain_language: {path: 01-missing-paren/defect/plain-language.md, content_id: sha256:ff45d2f3695ce814894ac46334ae2099cf560a02ae6c1a6779595966c77cb98f}
+    after:
+      fact_set_hash: sha256:1e6818fa2568f8aa88872c04dd5c4f4c550b422bd278f2753c345069f047e7fd
+      machine_report_content_id: sha256:300d07884fe185466e3374b1f0ba5b08ff33ff521065c6ee2ca5f2f2a29f5c22
+      target_manifest_content_id: sha256:1677536255b5598c763807a1a5fcf470946bad46b5dea96827f0325f64e56aa4
+      workspace_content_id: sha256:60a4f91f56847c2a624da3995b6394c135c1951b1dbe838f70d3fdb9d11d42ef
+      gates: {F0_CHECK_EFFECTIVENESS: INCONCLUSIVE, F1_STRUCTURAL_CHANGE_SAFETY: PASS, F2_BUILD_TARGET_AND_DEPENDENCY: INCONCLUSIVE, F5_EXTERNAL_EVIDENCE_RECONCILIATION: NOT_APPLICABLE}
+      finding_codes: [TARGET_SCOPE_UNQUALIFIED]
+      artifact_files:
+        machine: {path: 01-missing-paren/fixed-current/machine.json, content_id: sha256:300d07884fe185466e3374b1f0ba5b08ff33ff521065c6ee2ca5f2f2a29f5c22}
+        professional: {path: 01-missing-paren/fixed-current/professional.md, content_id: sha256:d180fca7c811fbf72dbb7c29efa959ea5e6852027c13b2c1b78488157a6c2b72}
+        plain_language: {path: 01-missing-paren/fixed-current/plain-language.md, content_id: sha256:08e93d43c91dd574a1db066efd325cf3f32973310b5b6afefbac2b2541c83b07}
+    outcome: DETECTED_AND_STATICALLY_RECHECKED
+    formal_build_status: BLOCKED_BY_ENVIRONMENT
+
+  - scenario_id: 02-truncated-tail
+    acceptance_case: ACC-STRUCT-003
+    case_coverage: SATISFIED_WITHIN_STATIC_MVP
+    case_result: PASS_STATIC_ONLY
+    defect_kind: deleted_file_tail
+    evidence_source: ISOLATED_GIT_WORKTREE
+    defect_observation_content_id: sha256:af2ddf6dc0eb792f965fe7da9631cc863e93328f1e9679ed463a8aa3c1a04bb9
+    defect_observation_file:
+      path: 02-truncated-tail/defect-observation/observation.json
+      content_id: sha256:6450cf3e98b0035bb41c57adc429302614ff422e23d104cb3db98f5c297a12a5
+    fixed_observation_content_id: sha256:e23520c7cd0e8b74ed6ce76991a82d043057c49fb3c3f9f0da719c0906544362
+    fixed_observation_file:
+      path: 02-truncated-tail/fixed-observation/observation.json
+      content_id: sha256:d7649eeed0898cf29f0398cf04c9bd7b5c2b6253dc30e4bece52e14ee71b865b
+    before:
+      fact_set_hash: sha256:a8979c786d17d9292cb1a5beba9703d20dfce1b77b7d3c926162d02a4a8471ea
+      machine_report_content_id: sha256:3aaab29a999afb98468f25f2a16eb27ed43c137c8e86861ebc4ad190eb601923
+      target_manifest_content_id: sha256:d4204a775a28ddd59c797706165d6268c263e50b239b8344382f5123ca197276
+      workspace_content_id: sha256:6a30bba87637f7b7f4e5caf1e71d118bda7f057e85683ba134c31e9df4b26df0
+      gates: {F0_CHECK_EFFECTIVENESS: INCONCLUSIVE, F1_STRUCTURAL_CHANGE_SAFETY: FAIL, F2_BUILD_TARGET_AND_DEPENDENCY: INCONCLUSIVE, F5_EXTERNAL_EVIDENCE_RECONCILIATION: NOT_APPLICABLE}
+      finding_codes: [TARGET_SCOPE_UNQUALIFIED, UNCLOSED_DELIMITER]
+      artifact_files:
+        machine: {path: 02-truncated-tail/defect/machine.json, content_id: sha256:3aaab29a999afb98468f25f2a16eb27ed43c137c8e86861ebc4ad190eb601923}
+        professional: {path: 02-truncated-tail/defect/professional.md, content_id: sha256:5c2e708bdd656ccae81846e2034809151277818071f1e9beeea0707f059c112e}
+        plain_language: {path: 02-truncated-tail/defect/plain-language.md, content_id: sha256:d148bc3db51c783df85e6aab352d5a47c1199b7c747a07ad8080141268bc756e}
+    after:
+      fact_set_hash: sha256:1559cc9f4611fbd71d1a5c70521599da3a0d3f09a6756c7587cdec554f423f38
+      machine_report_content_id: sha256:cd69eb3987d195893b7616b51ca718a7858cde5e098ef0a89ffd728d849cace9
+      target_manifest_content_id: sha256:d4204a775a28ddd59c797706165d6268c263e50b239b8344382f5123ca197276
+      workspace_content_id: sha256:1a98e40d37370a2f61d7cc730984f0f4ab388f8b5f257f584e508c2b73290091
+      gates: {F0_CHECK_EFFECTIVENESS: INCONCLUSIVE, F1_STRUCTURAL_CHANGE_SAFETY: PASS, F2_BUILD_TARGET_AND_DEPENDENCY: INCONCLUSIVE, F5_EXTERNAL_EVIDENCE_RECONCILIATION: NOT_APPLICABLE}
+      finding_codes: [TARGET_SCOPE_UNQUALIFIED]
+      artifact_files:
+        machine: {path: 02-truncated-tail/fixed-current/machine.json, content_id: sha256:cd69eb3987d195893b7616b51ca718a7858cde5e098ef0a89ffd728d849cace9}
+        professional: {path: 02-truncated-tail/fixed-current/professional.md, content_id: sha256:19ec87d7597994d870e5216c21b0d80bdd18ca08cd2fb1d0497122c97e909cb3}
+        plain_language: {path: 02-truncated-tail/fixed-current/plain-language.md, content_id: sha256:e4a4d073321fa0c3c1d15955e45d4975001b8615ea80c096ff09818d89914e49}
+    outcome: DETECTED_AND_STATICALLY_RECHECKED
+    formal_build_status: BLOCKED_BY_ENVIRONMENT
+
+  - scenario_id: 03-missing-include
+    acceptance_case: ACC-BUILD-002
+    case_coverage: NOT_SATISFIED
+    case_result: INCONCLUSIVE
+    defect_kind: removed_direct_standard_include
+    evidence_source: ISOLATED_GIT_WORKTREE
+    defect_observation_content_id: sha256:b0fd540971a625482fdfaa67b50983e50373a36862b173b38795f65158c4406e
+    defect_observation_file:
+      path: 03-missing-include/defect-observation/observation.json
+      content_id: sha256:27ae328ea8dcf3e0fba9f011d2c3863fd3e2bb5b21abe2606bfed351daff545e
+    fixed_observation_content_id: sha256:a724db86e77e6c0af100601a27e7ad972e866985ae81446515a1674a541fbf08
+    fixed_observation_file:
+      path: 03-missing-include/fixed-observation/observation.json
+      content_id: sha256:47ca838da96c0fad6d89e77ca8c8cfef76116495248fed43a8790fb22e91df3a
+    before:
+      fact_set_hash: sha256:1a6f618acd4cb867db4c9f838a52bb0a0ffeac5e45771b376e49643418fddc50
+      machine_report_content_id: sha256:4e64f62a0d0086cd0258a1e238f636617664e0ff7047e6831b8f697384fdfc3c
+      target_manifest_content_id: sha256:17e112c290cd793c74899aefc602788e7ce3e9962f0756be9bbf0c508bf2c30b
+      workspace_content_id: sha256:8f6fd74eaaf995c14666a438fa250947bfce35c8d66dd6906753169f20b979bc
+      gates: {F0_CHECK_EFFECTIVENESS: INCONCLUSIVE, F1_STRUCTURAL_CHANGE_SAFETY: PASS, F2_BUILD_TARGET_AND_DEPENDENCY: INCONCLUSIVE, F5_EXTERNAL_EVIDENCE_RECONCILIATION: NOT_APPLICABLE}
+      finding_codes: [TARGET_SCOPE_UNQUALIFIED]
+      artifact_files:
+        machine: {path: 03-missing-include/defect/machine.json, content_id: sha256:4e64f62a0d0086cd0258a1e238f636617664e0ff7047e6831b8f697384fdfc3c}
+        professional: {path: 03-missing-include/defect/professional.md, content_id: sha256:7048dc9b44c9a78ebfaeb48bd275e9077bd270466a9d7d9b8540b881f280b4ab}
+        plain_language: {path: 03-missing-include/defect/plain-language.md, content_id: sha256:36dc6827c222d4a5a6e89044489aa116bfe450619ced96e66d27305cc77adaf7}
+    after:
+      fact_set_hash: sha256:8ad2872d3a4f29d10738735096209263142838130b4877375d57a6e9c73f6e59
+      machine_report_content_id: sha256:ecaf192e7a49de50f3df384b3335bdab290185c8239572796ed80b3dbf08e3b2
+      target_manifest_content_id: sha256:17e112c290cd793c74899aefc602788e7ce3e9962f0756be9bbf0c508bf2c30b
+      workspace_content_id: sha256:4d54399ac0ee7f9434b90f856cfbdeb9ed5b082c2963e6396e2daddba672ef13
+      gates: {F0_CHECK_EFFECTIVENESS: INCONCLUSIVE, F1_STRUCTURAL_CHANGE_SAFETY: PASS, F2_BUILD_TARGET_AND_DEPENDENCY: INCONCLUSIVE, F5_EXTERNAL_EVIDENCE_RECONCILIATION: NOT_APPLICABLE}
+      finding_codes: [TARGET_SCOPE_UNQUALIFIED]
+      artifact_files:
+        machine: {path: 03-missing-include/fixed-current/machine.json, content_id: sha256:ecaf192e7a49de50f3df384b3335bdab290185c8239572796ed80b3dbf08e3b2}
+        professional: {path: 03-missing-include/fixed-current/professional.md, content_id: sha256:d6312694bd1bf0f1811f1a7536c06ce7038768dc793f6bcf06cd1fe5fa7d0e8d}
+        plain_language: {path: 03-missing-include/fixed-current/plain-language.md, content_id: sha256:fb75cc3239e3f601bcdd64cb8bcf62ef15be63be4b208b2724411670213314a4}
+    outcome: STATIC_BLIND_SPOT_RESTORED_BY_DIFF_ONLY
+    formal_build_status: BLOCKED_BY_ENVIRONMENT
+
+  - scenario_id: 04-source-not-in-target
+    acceptance_case: ACC-BUILD-001
+    case_coverage: NOT_SATISFIED
+    case_result: INCONCLUSIVE
+    defect_kind: implementation_source_absent_from_cmake_target
+    evidence_source: ISOLATED_GIT_WORKTREE
+    defect_observation_content_id: sha256:e8211f56de198aa1f2ddeafbf5143411041e99292138affa49fff08e876decf7
+    defect_observation_file:
+      path: 04-source-not-in-target/defect-observation/observation.json
+      content_id: sha256:9f33ef775343e47336d46cfff6f41fca7f1a9fdb0a33b21566180ec8bff02308
+    fixed_observation_content_id: sha256:785f22cd02a8e90da57c90296039d3ca89c2f7a269ce3e1ece63efec8cb4e047
+    fixed_observation_file:
+      path: 04-source-not-in-target/fixed-observation/observation.json
+      content_id: sha256:5db9e2e25afb067296b22f23ddf4de12a2d4ce4d235ff508a40cad14e10eb8f1
+    before:
+      fact_set_hash: sha256:51f6e5e415dff5a271e322cc8021485150f95dd08adea1687325c49291230eb9
+      machine_report_content_id: sha256:61dfb998c3fb3d75199796cdf7e951072c1c4a2a2198d2eb7fb02d85d55bbfe3
+      target_manifest_content_id: sha256:87fed66b2e8b1e614557a7395acc70843ad628f94657955159f06cff4a8e2a4a
+      workspace_content_id: sha256:82c22398607d0379538133d0a0fc669e0ae4bdee2f498fa7369e21fb59d58f8d
+      gates: {F0_CHECK_EFFECTIVENESS: INCONCLUSIVE, F1_STRUCTURAL_CHANGE_SAFETY: PASS, F2_BUILD_TARGET_AND_DEPENDENCY: FAIL, F5_EXTERNAL_EVIDENCE_RECONCILIATION: NOT_APPLICABLE}
+      finding_codes: [TARGET_SCOPE_UNQUALIFIED, SOURCE_NOT_IN_TARGET]
+      artifact_files:
+        machine: {path: 04-source-not-in-target/defect-current/machine.json, content_id: sha256:61dfb998c3fb3d75199796cdf7e951072c1c4a2a2198d2eb7fb02d85d55bbfe3}
+        professional: {path: 04-source-not-in-target/defect-current/professional.md, content_id: sha256:aca6adfa712af4fcb939bf77a77224d16f5ba566f84998e0914e3fa76128dcdf}
+        plain_language: {path: 04-source-not-in-target/defect-current/plain-language.md, content_id: sha256:d05f9162fa67509d4f836330a22fa90b8700976a6d23de87e35bc9d5bfa5df8a}
+    after:
+      fact_set_hash: sha256:1a5ddffc36d8c0955cf2fd0b940d79f37187c30fd7cca031a48e4fd7abf64dc8
+      machine_report_content_id: sha256:5caf3a1bbce6c1f204d446ce072a7168eb9278c2c33cb2dbc6c7e72e35c26a90
+      target_manifest_content_id: sha256:d348735603e0a3422df0293aa1c25d0a39f7da0aeca659e13399b550a98a126d
+      workspace_content_id: sha256:e86a0c84d348adadc9008fd73342dca43a4c66ee8ba5a1a78b91dc1321ca4239
+      gates: {F0_CHECK_EFFECTIVENESS: INCONCLUSIVE, F1_STRUCTURAL_CHANGE_SAFETY: PASS, F2_BUILD_TARGET_AND_DEPENDENCY: INCONCLUSIVE, F5_EXTERNAL_EVIDENCE_RECONCILIATION: NOT_APPLICABLE}
+      finding_codes: [TARGET_SCOPE_UNQUALIFIED]
+      artifact_files:
+        machine: {path: 04-source-not-in-target/fixed-current/machine.json, content_id: sha256:5caf3a1bbce6c1f204d446ce072a7168eb9278c2c33cb2dbc6c7e72e35c26a90}
+        professional: {path: 04-source-not-in-target/fixed-current/professional.md, content_id: sha256:055deaf34535af9b07ace674dace38ddfaed7357aae77b51e24741967b8a756a}
+        plain_language: {path: 04-source-not-in-target/fixed-current/plain-language.md, content_id: sha256:090b98bca753160f28c46b29934fac514ab108d193dca135915096c91c072a22}
+    outcome: MANUAL_MANIFEST_GAP_DETECTED_AND_STATICALLY_RECHECKED
+    formal_build_status: BLOCKED_BY_ENVIRONMENT
+
+  - scenario_id: 05-external-compiler-error
+    acceptance_case: ACC-EXT-001
+    case_coverage: NOT_SATISFIED
+    case_result: INCONCLUSIVE
+    defect_kind: compiler_error_text_without_equivalent_local_toolchain
+    evidence_source: ACCEPTANCE_FIXTURE
+    defect_observation_content_id: sha256:77afa4058c77cc342945b05fb08f8779f0c90fa35d06dad28fbe37a100fc2d4e
+    defect_observation_file:
+      path: 05-external-compiler-error/defect-observation/observation.json
+      content_id: sha256:b5628e21d6c9a3d291dc04946be59772c1f9907f7bcf7a5b51852b7aea5cbc64
+    fixed_observation_content_id: null
+    fixed_observation_file: null
+    before:
+      fact_set_hash: sha256:bd74a8fb5b619f521d3873c386e3ed2e9585adb2f3ba1fa668ae374a3bd9e88f
+      machine_report_content_id: sha256:dfaae04184b509f3d3fc4fa87a342dc0c4a2a3cc30b316ceb6f57d933f4d0007
+      target_manifest_content_id: sha256:3e92b7f2948e1159536ef8effc366c2f5ab3d974b25604d83e0ab94129239f25
+      workspace_content_id: sha256:f09569fed02fce4870d6a8309bcefdc873f912241b6887255c893808cc782c34
+      gates: {F0_CHECK_EFFECTIVENESS: INCONCLUSIVE, F1_STRUCTURAL_CHANGE_SAFETY: PASS, F2_BUILD_TARGET_AND_DEPENDENCY: INCONCLUSIVE, F5_EXTERNAL_EVIDENCE_RECONCILIATION: INCONCLUSIVE}
+      finding_codes: [TARGET_SCOPE_UNQUALIFIED, USER_ERROR_UNRESOLVED]
+      artifact_files:
+        machine: {path: 05-external-compiler-error/defect/machine.json, content_id: sha256:dfaae04184b509f3d3fc4fa87a342dc0c4a2a3cc30b316ceb6f57d933f4d0007}
+        professional: {path: 05-external-compiler-error/defect/professional.md, content_id: sha256:dc983ba3c7da0b3003fbe8d3769451f2ff8b9cf343ca8d76f8fe6ecbef452c6e}
+        plain_language: {path: 05-external-compiler-error/defect/plain-language.md, content_id: sha256:2a152d827fe9ece7edd47c5eb086356502ea855ceaf39d3af38d07136f3c7769}
+    after:
+      fact_set_hash: sha256:bd74a8fb5b619f521d3873c386e3ed2e9585adb2f3ba1fa668ae374a3bd9e88f
+      machine_report_content_id: sha256:dfaae04184b509f3d3fc4fa87a342dc0c4a2a3cc30b316ceb6f57d933f4d0007
+      target_manifest_content_id: sha256:3e92b7f2948e1159536ef8effc366c2f5ab3d974b25604d83e0ab94129239f25
+      workspace_content_id: sha256:f09569fed02fce4870d6a8309bcefdc873f912241b6887255c893808cc782c34
+      gates: {F0_CHECK_EFFECTIVENESS: INCONCLUSIVE, F1_STRUCTURAL_CHANGE_SAFETY: PASS, F2_BUILD_TARGET_AND_DEPENDENCY: INCONCLUSIVE, F5_EXTERNAL_EVIDENCE_RECONCILIATION: INCONCLUSIVE}
+      finding_codes: [TARGET_SCOPE_UNQUALIFIED, USER_ERROR_UNRESOLVED]
+      artifact_files:
+        machine: {path: 05-external-compiler-error/unresolved-current/machine.json, content_id: sha256:dfaae04184b509f3d3fc4fa87a342dc0c4a2a3cc30b316ceb6f57d933f4d0007}
+        professional: {path: 05-external-compiler-error/unresolved-current/professional.md, content_id: sha256:dc983ba3c7da0b3003fbe8d3769451f2ff8b9cf343ca8d76f8fe6ecbef452c6e}
+        plain_language: {path: 05-external-compiler-error/unresolved-current/plain-language.md, content_id: sha256:2a152d827fe9ece7edd47c5eb086356502ea855ceaf39d3af38d07136f3c7769}
+    outcome: EXTERNAL_FIXTURE_RETAINED_UNRESOLVED
+    formal_build_status: BLOCKED_BY_ENVIRONMENT
+
+qualification_effect: NONE
+limitations:
+  - The evidence root is local and external to this repository; content IDs preserve identity but do not make the artifacts portable.
+  - No authentic MSVC compiler, linker, CMake configure, build, CTest or DT execution was available.
+  - "Scenario 03 demonstrates an explicit static blind spot: restoring the include is visible in Git evidence but was not compiler-reverified."
+  - Scenario 04 proves the declared target gap disappeared, but manual bounded scope cannot qualify F2 PASS.
+  - Scenario 05 is an acceptance fixture, not user-provided production evidence, and remains unresolved.
+  - The generating script artifact hash was not captured at run time; generator provenance remains NOT_CAPTURED and this record cannot qualify the tool.

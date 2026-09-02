@@ -1,8 +1,31 @@
 schema_version: 1
 id: windows-static-precheck
 name: Windows Static Precheck
-version: 0.1.0-draft
-status: DESIGNED
+version: 0.2.1-mvp
+status: SCAFFOLDED
+status_dimensions:
+  specification_status: DESIGNED
+  implementation_status: PARTIAL
+  validation_status: PARTIAL
+  qualification_status: NOT_ASSESSED
+  activation_status: INACTIVE
+status_evidence:
+  implementation:
+    - subject_id: windows-static-precheck
+      status_axis: implementation
+      evidence_kind: IMPLEMENTATION_ARTIFACT
+      path: tools/windows_precheck_mvp.py
+      content_id: sha256:1d18fb1ac02b062367216f84967a35d5b824e6c3ae9f779f85cbdb5bd0c18b17
+      result: PARTIAL
+      observed_at: "2026-09-01T23:51:11Z"
+  validation:
+    - subject_id: windows-static-precheck
+      status_axis: validation
+      evidence_kind: TEST_RECEIPT
+      path: acceptance/status-receipts/windows-static-precheck-validation.json
+      content_id: sha256:22150ddb95e11a16feb5f15dece29614da80cbfe53efab2202ccf7cfad555e49
+      result: PARTIAL
+      observed_at: "2026-09-01T23:51:11Z"
 kind: independent_capability
 spec: SPEC.md
 entrypoint:
@@ -13,7 +36,7 @@ inputs:
   optional: [compile_database, header_map, code_fact_provider, rule_pack]
 outputs:
   primary: windows_precheck_report
-  includes: [environment_qualification, negative_canary, coverage, diagnostics, mismatches, evidence_ceiling]
+  includes: [environment_qualification, target_scope_qualification, detector_self_test, active_negative_canary_status, coverage, diagnostics, mismatches, evidence_ceiling]
 side_effects:
   repository_mutation: forbidden
   external_mutation: forbidden
@@ -21,4 +44,11 @@ side_effects:
 failure_policy: fail_closed
 result_states: [ISSUES_FOUND, NO_ISSUES_WITHIN_QUALIFIED_SCOPE, PARTIAL, NOT_QUALIFIED]
 evidence_ceiling: "Windows 静态预检不等价于 Linux/WSL 产品镜像编译，也不能证明 DT/TT 运行通过"
+
+implementation_note: >-
+  tools/windows_precheck_mvp.py implements only the bounded vertical MVP documented in SPEC.md.
+  Target-routed source/reachable-header analysis, Target Manifest validation, bounded/full scope separation,
+  fixture-only target qualification, approximate preprocessor analysis and detector self-tests are implemented.
+  CMake File API/BUILD_SYSTEM_EXPORT parsing, verified user-evidence provenance, end-to-end active Canary Receipts,
+  compiler-semantic parity, generated build expansion, full Provider adapters and company qualification remain unimplemented.
 

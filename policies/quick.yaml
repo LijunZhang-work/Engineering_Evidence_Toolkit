@@ -1,0 +1,32 @@
+schema_version: "1.0.0"
+kind: AssuranceRunPolicy
+id: quick
+version: 1.0.0
+display_name: 快速探索
+description: 优先快速定位和给出可复查线索；允许只用一个合适 Provider，但绝不生成通过结论。
+preset: QUICK
+mode: EXPLORE
+outcome_authority: HINTS_ONLY
+enforcement: ADVISORY
+allowed_final_verdicts: [NO_VERDICT]
+evidence_requirements:
+  coverage_requirement: BEST_EFFORT
+  corroboration: NOT_REQUIRED
+  minimum_independent_sources: 1
+  high_risk_minimum_independent_sources: 1
+  fresh_workspace_binding: false
+  active_negative_canary: false
+  user_error_reconciliation: true
+provider_strategy:
+  selection: FASTEST_AVAILABLE
+  fallback_required: false
+  provider_chain_is_hint: true
+  max_provider_invocations_per_claim: 1
+  timeout_budget_seconds: 120
+  preferred_provider_classes: [local_index, structural_search, lexical_search]
+invariants:
+  no_fabrication: true
+  no_hidden_conflicts: true
+  user_errors_are_first_class: true
+  no_unauthorized_mutation: true
+  no_overclaiming: true

@@ -1,0 +1,48 @@
+schema_version: "1.0.0"
+provider_id: beh
+status: DESIGNED
+identity_status: UNRESOLVED_PRIVATE_OR_PROJECT_SPECIFIC
+validation_status: NOT_RUN
+activation_status: INACTIVE
+
+purpose: >-
+  为用户或项目中名为 BEH 的真实产品/工具保留正式接入位置。BEH 不是 behavior 的缩写；
+  在权威身份资料到齐前，本文件不推测其功能、协议或证据能力。
+
+required_identity:
+  - canonical product or repository name
+  - authoritative owner
+  - canonical source location
+  - immutable revision or version
+  - license and distribution authority
+  - artifact digest
+
+required_contract:
+  - supported query families and exact request schema
+  - response schema and stable identifiers
+  - derivation method and assertion source
+  - corpus, build-profile, freshness and coverage model
+  - error, timeout, partial-result and empty-result semantics
+  - redaction and data-egress behavior
+  - installation, removal and state ownership
+  - qualification canaries and known false-confidence ceilings
+
+receipt_requirements:
+  - provider identity and version
+  - invocation and redacted configuration identity
+  - workspace and corpus content binding
+  - processed, failed, skipped and excluded units
+  - raw artifact and normalized Evidence references
+  - qualification, effectiveness, limitations and errors
+
+admission:
+  decision_schema: ../../../contracts/provider-adoption-decision.schema.json
+  current_decision: NO_SELECTION
+  cannot_activate_until:
+    - identity_status_is_resolved
+    - immutable_source_and_artifact_are_approved
+    - adapter_contract_is_implemented
+    - positive_and_negative_canaries_pass
+    - real_project_scope_is_qualified
+
+evidence_ceiling: NONE_UNTIL_QUALIFIED

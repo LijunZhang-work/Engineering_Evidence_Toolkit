@@ -1,24 +1,29 @@
 schema_version: 1
 id: autonomous-runner
-name: Autonomous Runner
-version: 0.1.0-draft
+name: Autonomous Continuation Policy
+version: 0.2.0-draft
 status: DESIGNED
+status_dimensions:
+  specification_status: DESIGNED
+  implementation_status: NOT_IMPLEMENTED
+  validation_status: NOT_RUN
+  qualification_status: NOT_ASSESSED
+  activation_status: INACTIVE
 kind: independent_capability
 spec: SPEC.md
 entrypoint:
-  operation: run_until_terminal_condition
+  operation: evaluate_continuation
   callable_without_profile: true
 inputs:
-  required: [task_graph, authority_envelope, stop_policy]
-  optional: [resource_budget, checkpoint_policy, escalation_policy]
+  required: [instance_state, authority_envelope, stop_policy]
+  optional: [resource_budget, retry_history, blocker_diagnostics]
 outputs:
-  primary: run_state
-  includes: [task_ledger, checkpoints, blocker_diagnostics, stop_receipt, unresolved_items]
+  primary: continuation_decision
+  includes: [ready_task_ids, retryable_task_ids, bounded_blockers, stop_condition_assessment, limitations]
 side_effects:
-  repository_mutation: policy_controlled
-  external_mutation: forbidden_by_default
-  allowed_writes: [declared_task_outputs, checkpoints, run_artifacts]
-failure_policy: diagnose_then_continue_or_escalate
-result_states: [RUNNING, COMPLETED, BLOCKED_WITH_DIAGNOSIS, STOPPED_BY_POLICY, FAILED]
-evidence_ceiling: "调度器只能在已授予权限和资源范围内自主；不能绕过授权、凭据或不可逆决策"
-
+  repository_mutation: forbidden
+  external_mutation: forbidden
+  allowed_writes: [run_artifacts]
+failure_policy: fail_closed
+result_states: [CONTINUE, WAITING_HUMAN_JUSTIFIED, STOP_CONDITION_MET, INVALID_STATE, UNKNOWN]
+evidence_ceiling: "只证明当前 Instance State 是否满足继续、等待或停机条件；不执行调度、不保存状态，也不产生业务事实"

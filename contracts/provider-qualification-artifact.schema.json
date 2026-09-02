@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/provider-qualification-artifact.schema.json",
+  "title": "Provider Qualification Artifact",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "kind", "qualification_id", "authority_ref", "qualified_by",
+    "authority_tier", "capability_id", "provider_id", "provider_version",
+    "provider_artifact_content_id", "trust_domain_id", "decision_ref", "result"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "kind": {"const": "ProviderQualificationArtifact"},
+    "qualification_id": {"type": "string", "pattern": "^qual_[A-Za-z0-9._-]+$"},
+    "authority_ref": {"type": "string", "pattern": "^authority_[A-Za-z0-9._-]+$"},
+    "qualified_by": {"type": "string", "minLength": 1},
+    "authority_tier": {"type": "string", "minLength": 1},
+    "capability_id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "provider_id": {"type": "string", "minLength": 1},
+    "provider_version": {"type": "string", "minLength": 1},
+    "provider_artifact_content_id": {"type": "string", "pattern": "^[a-z0-9_-]+:[A-Fa-f0-9]{16,}$"},
+    "trust_domain_id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "decision_ref": {"type": "string", "pattern": "^pad_[A-Za-z0-9._-]+$"},
+    "result": {"const": "QUALIFIED"}
+  }
+}

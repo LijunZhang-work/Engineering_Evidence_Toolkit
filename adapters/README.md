@@ -1,7 +1,7 @@
 # 适配器目录
 
 状态：**DESIGNED**  
-验证状态：**NOT_RUN**
+验证状态：**PARTIAL**（DeepSeek Harness 的 Skill 发现、外部自定义模型选择、Windows 工作区注册和只读命令调用已观察；Capability 验收仍为 NOT_RUN）
 
 适配器把外部运行环境、公司工具或托管系统映射到工具箱的公共契约。它们不拥有事实模型，也不应把某个公司的命令写进通用能力内核。
 
@@ -30,7 +30,7 @@
 
 当前设计适配器：
 
-- [`deepseek-harness/ADAPTER.yaml`](deepseek-harness/ADAPTER.yaml)：把 Harness 的任务调用映射到能力契约。
+- [`deepseek-harness/ADAPTER.yaml`](deepseek-harness/ADAPTER.yaml)：把 Harness 的任务调用映射到能力契约；项目级发现入口位于 [`.dsh/skills/engineering-evidence-toolkit/SKILL.md`](../.dsh/skills/engineering-evidence-toolkit/SKILL.md)。运行观察已证明入口可发现和命令可启动，但完全只读预设会阻断 Python 临时目录；Capability 验收仍未运行。
 - [`company-source-control/README.md`](company-source-control/README.md)：隔离公司多仓拉取、工作区、修订冻结和提交语义。
 - [`company-runtime-boundary/README.md`](company-runtime-boundary/README.md)：唯一的公司运行环境访问策略入口。
 

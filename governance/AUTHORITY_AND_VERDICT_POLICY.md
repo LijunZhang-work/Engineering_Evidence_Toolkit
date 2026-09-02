@@ -29,18 +29,26 @@
 
 最终 Verdict 只能由 ENFORCE 模式下的 Profile Gate Engine 根据已固定规则产生；人工可以接受例外，但必须生成独立的、带理由与范围的 waiver，不得回写原证据为绿色。
 
+### Authority Registry 不是自己的信任根
+
+仓内 `TRUSTED_AUTHORITY_REGISTRY.yaml` 只是一份内容可寻址的 Authority 目录。RunBundle 中保存它的摘要只能证明“本次运行引用了哪一版”，不能证明该版本值得信任；Registry、pin 列表和 Bundle 不能互相给自己背书。
+
+任何正式 RunBundle 校验都必须从外层运行边界取得仓外固定的 Registry 规范化摘要，或先验证由独立权限域签发的 Registry 签名。CLI 必须同时接收显式 Registry 路径和外部摘要；缺失或不匹配时 fail closed。仓内固定摘要只允许驱动 `ACCEPTANCE_FIXTURE`，不具有本地开发或公司资格 Authority。
+
 ## 4. Verdict 与其他状态分离
 
 禁止用一个 `status` 字段承载所有含义。至少分离：
 
-- `execution_status`：pending/running/completed/failed/blocked/cancelled；
+- `execution_status`：NOT_STARTED/READY/RUNNING/WAITING_HUMAN/BLOCKED/COMPLETED/FAILED/CANCELLED；
 - `claim_status`：PROVEN/DISPROVEN/NOT_PROVEN/CONFLICTED/UNKNOWN/NOT_APPLICABLE；
-- `gate_status`：PASS/FAIL/BLOCKED/NOT_EVALUATED/WAIVED；
-- `final_verdict`：ACCEPT/REJECT/INCOMPLETE/ACCEPT_WITH_RISK；
+- `gate_status`：PASS/FAIL/INCONCLUSIVE/NOT_APPLICABLE/WAIVED/NOT_EVALUATED；
+- `final_verdict`：ACCEPT/ACCEPT_WITH_RISK/REJECT/INCOMPLETE/NO_VERDICT；
 - `freshness_status`、`coverage_status`、`tool_qualification_status`；
 - `collaboration_readiness` 与 `mutation_validation_status`。
 
 执行完成不等于 Claim 成立，Claim 成立也不自动等于整体接受。
+`BLOCKED` 只描述执行状态；Gate 缺证据或有冲突时使用 `INCONCLUSIVE`。
+`WAIVED` 是有范围的风险处置，不是 PASS 证据。
 
 ## 5. 冲突裁决
 

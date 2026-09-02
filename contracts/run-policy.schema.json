@@ -1,0 +1,218 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/run-policy.schema.json",
+  "title": "Assurance Run Policy",
+  "description": "一次运行的显式保障策略。预设只是界面入口，机器裁决使用展开后的独立策略轴；降低检查强度必须同时降低结论上限。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "id",
+    "version",
+    "display_name",
+    "preset",
+    "mode",
+    "outcome_authority",
+    "enforcement",
+    "allowed_final_verdicts",
+    "evidence_requirements",
+    "provider_strategy",
+    "invariants"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "kind": {"const": "AssuranceRunPolicy"},
+    "id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$"},
+    "display_name": {"type": "string", "minLength": 1},
+    "description": {"type": "string", "minLength": 1},
+    "preset": {"enum": ["QUICK", "BALANCED", "STRICT", "CUSTOM"]},
+    "base_preset": {"enum": ["QUICK", "BALANCED", "STRICT"]},
+    "base_policy_content_id": {"$ref": "#/$defs/digest_id"},
+    "customization_reason": {"type": "string", "minLength": 1},
+    "mode": {"enum": ["EXPLORE", "EVIDENCE", "ENFORCE"]},
+    "outcome_authority": {"enum": ["HINTS_ONLY", "EVIDENCE_REPORT", "FINAL_VERDICT"]},
+    "enforcement": {"enum": ["ADVISORY", "RISK_BASED", "BLOCKING"]},
+    "allowed_final_verdicts": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"enum": ["ACCEPT", "ACCEPT_WITH_RISK", "REJECT", "INCOMPLETE", "NO_VERDICT"]}
+    },
+    "evidence_requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coverage_requirement",
+        "corroboration",
+        "minimum_independent_sources",
+        "high_risk_minimum_independent_sources",
+        "fresh_workspace_binding",
+        "active_negative_canary",
+        "user_error_reconciliation"
+      ],
+      "properties": {
+        "coverage_requirement": {"enum": ["BEST_EFFORT", "DECLARED_SCOPE", "COMPLETE_DECLARED_SCOPE"]},
+        "corroboration": {"enum": ["NOT_REQUIRED", "RISK_TRIGGERED", "REQUIRED_FOR_CRITICAL_CLAIMS"]},
+        "minimum_independent_sources": {"type": "integer", "minimum": 1},
+        "high_risk_minimum_independent_sources": {"type": "integer", "minimum": 1},
+        "fresh_workspace_binding": {"type": "boolean"},
+        "active_negative_canary": {"type": "boolean"},
+        "user_error_reconciliation": {"const": true}
+      }
+    },
+    "provider_strategy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selection",
+        "fallback_required",
+        "provider_chain_is_hint",
+        "max_provider_invocations_per_claim",
+        "timeout_budget_seconds"
+      ],
+      "properties": {
+        "selection": {"enum": ["FASTEST_AVAILABLE", "RISK_ADAPTIVE", "QUALIFIED_ACCURACY_FIRST"]},
+        "fallback_required": {"type": "boolean"},
+        "provider_chain_is_hint": {"const": true},
+        "max_provider_invocations_per_claim": {"type": "integer", "minimum": 1},
+        "timeout_budget_seconds": {"type": "integer", "minimum": 1},
+        "preferred_provider_classes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "invariants": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "no_fabrication",
+        "no_hidden_conflicts",
+        "user_errors_are_first_class",
+        "no_unauthorized_mutation",
+        "no_overclaiming"
+      ],
+      "properties": {
+        "no_fabrication": {"const": true},
+        "no_hidden_conflicts": {"const": true},
+        "user_errors_are_first_class": {"const": true},
+        "no_unauthorized_mutation": {"const": true},
+        "no_overclaiming": {"const": true}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"preset": {"const": "QUICK"}}, "required": ["preset"]},
+      "then": {
+        "properties": {
+          "id": {"const": "quick"},
+          "mode": {"const": "EXPLORE"},
+          "outcome_authority": {"const": "HINTS_ONLY"},
+          "enforcement": {"const": "ADVISORY"},
+          "allowed_final_verdicts": {"const": ["NO_VERDICT"]},
+          "evidence_requirements": {
+            "const": {
+              "coverage_requirement": "BEST_EFFORT",
+              "corroboration": "NOT_REQUIRED",
+              "minimum_independent_sources": 1,
+              "high_risk_minimum_independent_sources": 1,
+              "fresh_workspace_binding": false,
+              "active_negative_canary": false,
+              "user_error_reconciliation": true
+            }
+          },
+          "provider_strategy": {
+            "const": {
+              "selection": "FASTEST_AVAILABLE",
+              "fallback_required": false,
+              "provider_chain_is_hint": true,
+              "max_provider_invocations_per_claim": 1,
+              "timeout_budget_seconds": 120,
+              "preferred_provider_classes": ["local_index", "structural_search", "lexical_search"]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"preset": {"const": "BALANCED"}}, "required": ["preset"]},
+      "then": {
+        "properties": {
+          "id": {"const": "balanced"},
+          "mode": {"const": "EVIDENCE"},
+          "outcome_authority": {"const": "EVIDENCE_REPORT"},
+          "enforcement": {"const": "RISK_BASED"},
+          "allowed_final_verdicts": {"const": ["NO_VERDICT", "INCOMPLETE"]},
+          "evidence_requirements": {
+            "const": {
+              "coverage_requirement": "DECLARED_SCOPE",
+              "corroboration": "RISK_TRIGGERED",
+              "minimum_independent_sources": 1,
+              "high_risk_minimum_independent_sources": 2,
+              "fresh_workspace_binding": true,
+              "active_negative_canary": true,
+              "user_error_reconciliation": true
+            }
+          },
+          "provider_strategy": {
+            "const": {
+              "selection": "RISK_ADAPTIVE",
+              "fallback_required": true,
+              "provider_chain_is_hint": true,
+              "max_provider_invocations_per_claim": 3,
+              "timeout_budget_seconds": 900,
+              "preferred_provider_classes": ["qualified_index", "structural_search", "lexical_search", "compiler_or_parser"]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"preset": {"const": "STRICT"}}, "required": ["preset"]},
+      "then": {
+        "properties": {
+          "id": {"const": "strict"},
+          "mode": {"const": "ENFORCE"},
+          "outcome_authority": {"const": "FINAL_VERDICT"},
+          "enforcement": {"const": "BLOCKING"},
+          "allowed_final_verdicts": {"const": ["ACCEPT", "ACCEPT_WITH_RISK", "REJECT", "INCOMPLETE"]},
+          "evidence_requirements": {
+            "const": {
+              "coverage_requirement": "COMPLETE_DECLARED_SCOPE",
+              "corroboration": "REQUIRED_FOR_CRITICAL_CLAIMS",
+              "minimum_independent_sources": 2,
+              "high_risk_minimum_independent_sources": 2,
+              "fresh_workspace_binding": true,
+              "active_negative_canary": true,
+              "user_error_reconciliation": true
+            }
+          },
+          "provider_strategy": {
+            "const": {
+              "selection": "QUALIFIED_ACCURACY_FIRST",
+              "fallback_required": true,
+              "provider_chain_is_hint": true,
+              "max_provider_invocations_per_claim": 6,
+              "timeout_budget_seconds": 3600,
+              "preferred_provider_classes": ["compiler_or_parser", "qualified_index", "structural_search", "lexical_search"]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"preset": {"const": "CUSTOM"}}, "required": ["preset"]},
+      "then": {"required": ["base_preset", "base_policy_content_id", "customization_reason"]}
+    }
+  ],
+  "$defs": {
+    "digest_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]+:[A-Fa-f0-9]{16,}$"
+    }
+  }
+}

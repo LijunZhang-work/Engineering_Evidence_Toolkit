@@ -1,8 +1,8 @@
 schema: engineering-evidence-toolkit/code-fact-provider-registry/v1
-registry_version: 1.0.0-draft
+registry_version: 1.1.0-draft
 spec_status: DESIGNED
 verification_status: NOT_RUN
-as_of: 2026-08-29
+as_of: 2026-09-02
 
 notice: >-
   This registry declares designs and research candidates. It is not a deployment
@@ -68,6 +68,38 @@ providers:
     ceiling: Not proof of product compiler parity or complete cross-repository semantics.
     detail: providers/clangd.md
 
+  - provider_id: zg
+    provider_class: EXTERNAL_CANDIDATE
+    spec_status: DESIGNED
+    verification_status: NOT_RUN
+    artifact_lifecycle: DESIGNED
+    deployment_index_lifecycle: NOT_DEPLOYED
+    profile_binding_lifecycle: UNBOUND
+    canonical_source: https://github.com/zvec-ai/zvec-grep
+    license: Apache-2.0
+    maturity: EXPERIMENTAL
+    derivation_methods: [LEXICAL_SEARCH, MODEL_INFERENCE]
+    query_kinds: [TEXT_OCCURRENCE, SEMANTIC_DISCOVERY, FILE_DISCOVERY, CODEBASE_EXPLORATION]
+    requires_index: true
+    research_state: SOURCE_IDENTIFIED_REVERIFY_REVISION
+    ceiling: Hybrid search results are discovery evidence; absence and semantic relationships require proven corpus coverage and independent support.
+
+  - provider_id: ast-grep
+    provider_class: OPTIONAL_LOCAL
+    spec_status: DESIGNED
+    verification_status: NOT_RUN
+    artifact_lifecycle: DESIGNED
+    deployment_index_lifecycle: NOT_DEPLOYED
+    profile_binding_lifecycle: UNBOUND
+    canonical_source: https://github.com/ast-grep/ast-grep
+    license: MIT
+    maturity: MATURE_CANDIDATE
+    derivation_methods: [AST_PARSE]
+    query_kinds: [STRUCTURAL_SEARCH, STRUCTURAL_NEGATIVE_CANARY, REWRITE_CANDIDATE]
+    requires_index: false
+    research_state: SOURCE_IDENTIFIED_REVERIFY_REVISION
+    ceiling: Structural AST matches do not establish active compilation, target membership, runtime use, or whole-workspace absence.
+
   - provider_id: codegraph
     provider_class: EXTERNAL_CANDIDATE
     spec_status: DESIGNED
@@ -78,8 +110,24 @@ providers:
     derivation_methods: [GRAPH_QUERY]
     query_kinds: [SYMBOL_RELATIONSHIP, CROSS_FILE_NAVIGATION, DEPENDENCY_CANDIDATE]
     requires_index: true
+    canonical_source: UNRESOLVED_AMBIGUOUS_NAME
+    identity_rule: bind one canonical source and immutable revision before any build or qualification
     research_state: REVERIFY_REQUIRED
     ceiling: Provider-native graph edges require corpus, extractor, build-profile, freshness, and coverage receipts.
+
+  - provider_id: beh
+    provider_class: EXTERNAL_NAMED_UNRESOLVED
+    spec_status: DESIGNED
+    verification_status: NOT_RUN
+    artifact_lifecycle: DESIGNED
+    deployment_index_lifecycle: NOT_DEPLOYED
+    profile_binding_lifecycle: UNBOUND
+    derivation_methods: []
+    query_kinds: []
+    requires_index: false
+    identity_status: UNRESOLVED_PRIVATE_OR_PROJECT_SPECIFIC
+    contract: providers/BEH_PROVIDER_CONTRACT.yaml
+    ceiling: No evidence authority until identity, source, version, query semantics, receipts and failure behavior are supplied and qualified.
 
   - provider_id: codebase-memory
     provider_class: EXTERNAL_CANDIDATE

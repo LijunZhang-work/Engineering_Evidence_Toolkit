@@ -1,0 +1,11 @@
+schema_version: "1.0.0"
+target_id: app
+scope_kind: BOUNDED_FILE_SET
+source_origin: MANUAL
+source_origin_ref: user-declared-target-subset
+sources:
+  - src/main.cpp
+expected_sources:
+  - src/main.cpp
+include_dirs:
+  - include

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/profile-runner-mvp-record.schema.json",
+  "title": "Isolated Profile Runner MVP Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "run_id", "execution_status", "runtime_states", "policy", "bootstrap", "collaboration_snapshot", "before", "mutation", "post_mutation_validation", "after", "final_verdict", "limitations", "record_content_id"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "kind": {"const": "IsolatedProfileRunnerMvpRecord"},
+    "run_id": {"type": "string", "pattern": "^runner_[A-Za-z0-9._-]+$"},
+    "execution_status": {"enum": ["COMPLETED", "FAILED"]},
+    "runtime_states": {
+      "type": "array",
+      "minItems": 5,
+      "items": {"enum": ["NOT_STARTED", "BOOTSTRAPPING", "READY", "RUNNING", "COMPLETED", "FAILED"]}
+    },
+    "policy": {"type": "object"},
+    "bootstrap": {"type": "object"},
+    "collaboration_snapshot": {"type": "object"},
+    "before": {"$ref": "#/$defs/phase"},
+    "mutation": {"type": "object"},
+    "post_mutation_validation": {"type": "object"},
+    "after": {"$ref": "#/$defs/phase"},
+    "final_verdict": {"enum": ["REJECT", "INCOMPLETE", "NO_VERDICT"]},
+    "limitations": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "record_content_id": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^sha256:[A-Fa-f0-9]{64}$"},
+    "phase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fact_set_hash", "workspace_content_id", "gates", "reports"],
+      "properties": {
+        "fact_set_hash": {"$ref": "#/$defs/digest"},
+        "workspace_content_id": {"$ref": "#/$defs/digest"},
+        "gates": {"type": "object", "additionalProperties": {"enum": ["PASS", "FAIL", "INCONCLUSIVE", "NOT_APPLICABLE"]}},
+        "reports": {
+          "type": "object",
+          "required": ["machine", "professional", "plain_language"],
+          "additionalProperties": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

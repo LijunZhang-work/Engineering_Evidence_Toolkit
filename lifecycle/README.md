@@ -16,8 +16,8 @@
 运行只读体检：
 
 ```powershell
-py -3 .\tools\toolkit_doctor.py
-py -3 .\tools\toolkit_doctor.py --json
+.\.venv\Scripts\python.exe .\tools\toolkit_doctor.py
+.\.venv\Scripts\python.exe .\tools\toolkit_doctor.py --json
 ```
 
 ```bash

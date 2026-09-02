@@ -1,32 +1,47 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://engineering-evidence.local/schemas/receipt.schema.json",
-  "title": "Execution Receipt",
-  "description": "记录一次具体采集或检查怎样执行。退出码为 0 不等于 Claim 成立，也不等于检查对目标环境有效。",
+  "title": "Typed Execution Receipt",
+  "description": "记录检查、授权、边界决定、安装、激活、豁免或修改。Receipt 类型决定必须提供的事实；进程退出码和自报状态都不能单独证明 Claim。",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schema_version",
     "receipt_id",
-    "workspace_snapshot_id",
-    "capability_id",
-    "provider",
-    "started_at",
-    "ended_at",
+    "receipt_type",
+    "run_id",
+    "created_at",
     "execution_status",
-    "invocation",
-    "inputs",
-    "outputs",
     "content_id",
-    "provenance_id",
-    "tool_qualification_status",
-    "effectiveness_status"
+    "provenance_id"
   ],
   "properties": {
-    "schema_version": {"type": "string", "minLength": 1},
+    "schema_version": {"const": "1.0.0"},
     "receipt_id": {"type": "string", "pattern": "^rcpt_[A-Za-z0-9._-]+$"},
+    "receipt_type": {
+      "enum": [
+        "EVIDENCE_CHECK",
+        "AUTHORIZATION",
+        "BOUNDARY_DECISION",
+        "INSTALLATION",
+        "ACTIVATION",
+        "WAIVER",
+        "MUTATION",
+        "POST_MUTATION_VALIDATION"
+      ]
+    },
+    "run_id": {"type": "string", "pattern": "^run_[A-Za-z0-9._-]+$"},
     "workspace_snapshot_id": {"type": "string", "pattern": "^wss_[A-Za-z0-9._-]+$"},
-    "capability_id": {"type": "string", "minLength": 1},
+    "capability_id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "actor": {"type": "string", "minLength": 1},
+    "issued_by": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "format": "date-time"},
+    "started_at": {"type": "string", "format": "date-time"},
+    "ended_at": {"type": "string", "format": "date-time"},
+    "duration_ms": {"type": "integer", "minimum": 0},
+    "execution_status": {
+      "enum": ["COMPLETED", "FAILED", "TIMED_OUT", "CANCELLED", "SKIPPED", "BLOCKED"]
+    },
     "provider": {
       "type": "object",
       "additionalProperties": false,
@@ -35,14 +50,9 @@
         "provider_id": {"type": "string", "minLength": 1},
         "version": {"type": "string", "minLength": 1},
         "artifact_content_id": {"$ref": "#/$defs/digest_id"},
-        "adapter_version": {"type": "string"}
+        "adapter_version": {"type": "string", "minLength": 1},
+        "qualification_ref": {"type": "string", "pattern": "^qual_[A-Za-z0-9._-]+$"}
       }
-    },
-    "started_at": {"type": "string", "format": "date-time"},
-    "ended_at": {"type": "string", "format": "date-time"},
-    "duration_ms": {"type": "integer", "minimum": 0},
-    "execution_status": {
-      "enum": ["COMPLETED", "FAILED", "TIMED_OUT", "CANCELLED", "SKIPPED", "BLOCKED"]
     },
     "invocation": {
       "type": "object",
@@ -50,12 +60,12 @@
       "required": ["kind", "working_directory", "redacted"],
       "properties": {
         "kind": {"enum": ["COMMAND", "API", "LIBRARY", "MANUAL_OBSERVATION"]},
-        "command": {"type": "array", "items": {"type": "string"}},
-        "working_directory": {"type": "string"},
-        "environment_keys": {"type": "array", "items": {"type": "string"}},
+        "command": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "working_directory": {"type": "string", "minLength": 1},
+        "environment_keys": {"type": "array", "items": {"type": "string", "minLength": 1}},
         "config_content_ids": {"type": "array", "items": {"$ref": "#/$defs/digest_id"}},
         "redacted": {"type": "boolean"},
-        "redaction_notes": {"type": "string"}
+        "redaction_notes": {"type": "string", "minLength": 1}
       }
     },
     "inputs": {
@@ -81,6 +91,7 @@
     "coverage_summary": {
       "type": "object",
       "additionalProperties": false,
+      "required": ["expected_units", "processed_units", "failed_units", "skipped_units"],
       "properties": {
         "expected_units": {"type": "integer", "minimum": 0},
         "processed_units": {"type": "integer", "minimum": 0},
@@ -88,14 +99,244 @@
         "skipped_units": {"type": "integer", "minimum": 0}
       }
     },
-    "build_profile_id": {"type": "string"},
-    "limitations": {"type": "array", "items": {"type": "string"}},
-    "errors": {"type": "array", "items": {"type": "string"}}
+    "canary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "negative_input_content_id",
+        "control_input_content_id",
+        "result_artifact_content_id",
+        "expected_signal",
+        "observed_signal",
+        "control_observed_clean",
+        "status"
+      ],
+      "properties": {
+        "case_id": {"type": "string", "minLength": 1},
+        "negative_input_content_id": {"$ref": "#/$defs/digest_id"},
+        "control_input_content_id": {"$ref": "#/$defs/digest_id"},
+        "result_artifact_content_id": {"$ref": "#/$defs/digest_id"},
+        "expected_signal": {"type": "string", "minLength": 1},
+        "observed_signal": {"type": "boolean"},
+        "control_observed_clean": {"type": "boolean"},
+        "status": {"enum": ["PASS", "FAIL", "NOT_RUN"]}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"status": {"const": "PASS"}}, "required": ["status"]},
+          "then": {
+            "properties": {
+              "observed_signal": {"const": true},
+              "control_observed_clean": {"const": true}
+            }
+          }
+        }
+      ]
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subject", "decision", "reason", "authority_ref", "scope"],
+      "properties": {
+        "subject": {"type": "string", "minLength": 1},
+        "decision": {
+          "enum": ["GRANTED", "DENIED", "APPROVED", "REJECTED", "WAIVED", "ACTIVATED", "DEACTIVATED"]
+        },
+        "reason": {"type": "string", "minLength": 1},
+        "authority_ref": {"type": "string", "minLength": 1},
+        "scope": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "expires_at": {"type": "string", "format": "date-time"},
+        "limitations": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "edit_authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository_ids",
+        "allowed_paths",
+        "forbidden_paths",
+        "maximum_changed_files",
+        "maximum_deleted_lines",
+        "expires_at"
+      ],
+      "properties": {
+        "repository_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "allowed_paths": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "forbidden_paths": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "maximum_changed_files": {"type": "integer", "minimum": 1},
+        "maximum_deleted_lines": {"type": "integer", "minimum": 0},
+        "expires_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "installation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component_id", "source_ref", "version", "artifact_content_id", "target", "verification_refs"],
+      "properties": {
+        "component_id": {"type": "string", "minLength": 1},
+        "source_ref": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1},
+        "artifact_content_id": {"$ref": "#/$defs/digest_id"},
+        "target": {"type": "string", "minLength": 1},
+        "verification_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "mutation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authorization_receipt_ref",
+        "changed_paths",
+        "deleted_lines",
+        "baseline_content_id",
+        "result_content_id",
+        "diff_content_id",
+        "diff_artifact"
+      ],
+      "properties": {
+        "authorization_receipt_ref": {"type": "string", "pattern": "^rcpt_[A-Za-z0-9._-]+$"},
+        "changed_paths": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "deleted_lines": {"type": "integer", "minimum": 0},
+        "baseline_content_id": {"$ref": "#/$defs/digest_id"},
+        "result_content_id": {"$ref": "#/$defs/digest_id"},
+        "diff_content_id": {"$ref": "#/$defs/digest_id"},
+        "diff_artifact": {"$ref": "#/$defs/content_file_ref"},
+        "rollback_ref": {"type": "string", "minLength": 1}
+      }
+    },
+    "post_mutation_validation": {
+      "description": "复验完成后产生的独立回执；反向绑定已经存在的 Mutation 和实际验证回执，避免 Mutation 预先引用未来对象。",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mutation_receipt_ref", "validation_receipt_refs", "result_content_id", "result_file_manifest_content_id", "validated_paths", "status"],
+      "properties": {
+        "mutation_receipt_ref": {"type": "string", "pattern": "^rcpt_[A-Za-z0-9._-]+$"},
+        "validation_receipt_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^rcpt_[A-Za-z0-9._-]+$"}
+        },
+        "result_content_id": {"$ref": "#/$defs/digest_id"},
+        "result_file_manifest_content_id": {"$ref": "#/$defs/digest_id"},
+        "validated_paths": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "status": {"enum": ["PASS", "FAIL"]}
+      }
+    },
+    "build_profile_id": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "errors": {"type": "array", "items": {"type": "string", "minLength": 1}}
   },
+  "allOf": [
+    {
+      "if": {"properties": {"receipt_type": {"const": "EVIDENCE_CHECK"}}, "required": ["receipt_type"]},
+      "then": {
+        "required": [
+          "workspace_snapshot_id",
+          "capability_id",
+          "provider",
+          "started_at",
+          "ended_at",
+          "invocation",
+          "inputs",
+          "outputs",
+          "tool_qualification_status",
+          "effectiveness_status",
+          "coverage_summary"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "receipt_type": {"const": "EVIDENCE_CHECK"},
+          "execution_status": {"const": "COMPLETED"},
+          "effectiveness_status": {"const": "EFFECTIVE_FOR_SCOPE"}
+        },
+        "required": ["receipt_type", "execution_status", "effectiveness_status"]
+      },
+      "then": {
+        "properties": {
+          "inputs": {"minItems": 1},
+          "outputs": {"minItems": 1}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "receipt_type": {
+            "enum": ["AUTHORIZATION", "BOUNDARY_DECISION", "ACTIVATION", "WAIVER"]
+          }
+        },
+        "required": ["receipt_type"]
+      },
+      "then": {"required": ["decision"]}
+    },
+    {
+      "if": {"properties": {"receipt_type": {"const": "AUTHORIZATION"}}, "required": ["receipt_type"]},
+      "then": {"required": ["workspace_snapshot_id", "issued_by", "edit_authorization"]}
+    },
+    {
+      "if": {"properties": {"receipt_type": {"const": "WAIVER"}}, "required": ["receipt_type"]},
+      "then": {"required": ["issued_by"]}
+    },
+    {
+      "if": {"properties": {"receipt_type": {"const": "INSTALLATION"}}, "required": ["receipt_type"]},
+      "then": {"required": ["installation"]}
+    },
+    {
+      "if": {"properties": {"receipt_type": {"const": "MUTATION"}}, "required": ["receipt_type"]},
+      "then": {"required": ["workspace_snapshot_id", "capability_id", "mutation"]}
+    },
+    {
+      "if": {"properties": {"receipt_type": {"const": "POST_MUTATION_VALIDATION"}}, "required": ["receipt_type"]},
+      "then": {
+        "required": [
+          "workspace_snapshot_id",
+          "capability_id",
+          "started_at",
+          "ended_at",
+          "post_mutation_validation"
+        ]
+      }
+    }
+  ],
   "$defs": {
     "digest_id": {
       "type": "string",
       "pattern": "^[a-z0-9_-]+:[A-Fa-f0-9]{16,}$"
+    },
+    "content_file_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["location", "content_id", "media_type"],
+      "properties": {
+        "location": {"type": "string", "minLength": 1},
+        "content_id": {"$ref": "#/$defs/digest_id"},
+        "media_type": {"const": "text/x-diff"}
+      }
     },
     "io_artifact": {
       "type": "object",
@@ -104,9 +345,12 @@
       "properties": {
         "name": {"type": "string", "minLength": 1},
         "content_id": {"$ref": "#/$defs/digest_id"},
+        "role": {
+          "enum": ["TARGET_INPUT", "CANARY_NEGATIVE", "CANARY_CONTROL", "RESULT", "CANARY_RESULT", "CONTEXT"]
+        },
         "provenance_id": {"$ref": "#/$defs/digest_id"},
-        "location": {"type": "string"},
-        "media_type": {"type": "string"}
+        "location": {"type": "string", "minLength": 1},
+        "media_type": {"type": "string", "minLength": 1}
       }
     }
   }

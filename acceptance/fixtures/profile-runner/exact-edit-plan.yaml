@@ -1,0 +1,10 @@
+schema_version: "1.0.0"
+kind: ExactTextEditPlan
+plan_id: fixture-fix-missing-parenthesis
+path: source.cpp
+encoding: utf-8
+expected_input_content_id: sha256:f2464eee21246f5c8370198db8ab3db3970f940c1ad1a82d4d8ea8e6e3a645df
+expected_output_content_id: sha256:9190f46f9771823699c26c0affece3191788f5231c984eaf27f8f456b3b518fd
+old_text: "int compute(int value {"
+new_text: "int compute(int value) {"
+maximum_replacements: 1

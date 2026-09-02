@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/trusted-authority-registry.schema.json",
+  "title": "Trusted Evidence Authority Registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "version", "registry_role", "external_anchor_required", "allowed_provider_source_schemes", "authorities"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "kind": {"const": "TrustedAuthorityRegistry"},
+    "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "registry_role": {"const": "AUTHORITY_CATALOG_REQUIRES_EXTERNAL_TRUST_ANCHOR"},
+    "external_anchor_required": {"const": true},
+    "allowed_provider_source_schemes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"enum": ["https", "git+https", "file", "acceptance-fixture"]}
+    },
+    "authorities": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/authority"}
+    }
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[a-z0-9_-]+:[A-Fa-f0-9]{16,}$"},
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority_ref", "issuer_id", "status", "environment_scope", "permissions", "authority_tiers", "capability_ids", "status_subject_ids", "status_receipt_content_ids", "authorization_receipt_content_ids", "waiver_receipt_content_ids", "provider_source_receipt_content_ids", "cpp_acceptance_receipt_content_ids", "trust_domains"],
+      "properties": {
+        "authority_ref": {"type": "string", "pattern": "^authority_[A-Za-z0-9._-]+$"},
+        "issuer_id": {"type": "string", "minLength": 1},
+        "status": {"enum": ["ACTIVE", "REVOKED"]},
+        "environment_scope": {"enum": ["ACCEPTANCE_FIXTURE", "LOCAL_DEVELOPMENT", "COMPANY_QUALIFIED"]},
+        "permissions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"enum": ["PROVIDER_QUALIFICATION", "PROVIDER_SOURCE_ATTESTATION", "STATUS_QUALIFICATION", "STATUS_ACTIVATION", "MUTATION_AUTHORIZATION", "WAIVER_APPROVAL", "CPP_ACCEPTANCE_ATTESTATION"]}
+        },
+        "authority_tiers": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "capability_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"}},
+        "status_subject_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"}},
+        "status_receipt_content_ids": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/digest"}},
+        "authorization_receipt_content_ids": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/digest"}},
+        "waiver_receipt_content_ids": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/digest"}},
+        "provider_source_receipt_content_ids": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/digest"}},
+        "cpp_acceptance_receipt_content_ids": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/digest"}},
+        "trust_domains": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["trust_domain_id", "provider_ids", "provider_artifact_content_ids"],
+            "properties": {
+              "trust_domain_id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+              "provider_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+              "provider_artifact_content_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/digest"}}
+            }
+          }
+        }
+      }
+    }
+  }
+}

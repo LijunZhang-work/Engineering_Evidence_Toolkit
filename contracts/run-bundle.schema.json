@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/run-bundle.schema.json",
+  "title": "Complete Run Bundle",
+  "description": "一个裁决所需的完整事实集合。各内嵌对象还必须分别通过其核心 Schema，并通过跨对象语义校验。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "bundle_id",
+    "created_at",
+    "trust_context",
+    "run_policy",
+    "workspace_snapshot",
+    "instance",
+    "receipts",
+    "evidence",
+    "claims",
+    "waivers",
+    "reports",
+    "report_fact_digest"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "bundle_id": {"type": "string", "pattern": "^rnb_[A-Za-z0-9._-]+$"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "trust_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority_registry_content_id", "environment_scope"],
+      "properties": {
+        "authority_registry_content_id": {"type": "string", "pattern": "^[a-z0-9_-]+:[A-Fa-f0-9]{16,}$"},
+        "environment_scope": {"enum": ["ACCEPTANCE_FIXTURE", "LOCAL_DEVELOPMENT", "COMPANY_QUALIFIED"]}
+      }
+    },
+    "run_policy": {"type": "object"},
+    "workspace_snapshot": {"type": "object"},
+    "baseline_workspace_snapshot": {"type": "object"},
+    "collaboration_snapshot": {"type": "object"},
+    "instance": {"type": "object"},
+    "receipts": {"type": "array", "items": {"type": "object"}},
+    "evidence": {"type": "array", "items": {"type": "object"}},
+    "claims": {"type": "array", "items": {"type": "object"}},
+    "waivers": {"type": "array", "items": {"type": "object"}},
+    "provider_adoption_decisions": {"type": "array", "items": {"type": "object"}},
+    "provider_qualifications": {"type": "array", "items": {"type": "object"}},
+    "reports": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["report_id", "audience", "location", "content_id", "fact_digest"],
+        "properties": {
+          "report_id": {"type": "string", "pattern": "^rpt_[A-Za-z0-9._-]+$"},
+          "audience": {"enum": ["MACHINE", "PROFESSIONAL", "NOVICE"]},
+          "location": {"type": "string", "minLength": 1},
+          "content_id": {"type": "string", "pattern": "^[a-z0-9_-]+:[A-Fa-f0-9]{16,}$"},
+          "fact_digest": {"type": "string", "pattern": "^[a-z0-9_-]+:[A-Fa-f0-9]{16,}$"}
+        }
+      }
+    },
+    "report_fact_digest": {"type": "string", "pattern": "^[a-z0-9_-]+:[A-Fa-f0-9]{16,}$"}
+  }
+}

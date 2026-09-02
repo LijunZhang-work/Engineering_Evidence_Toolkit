@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://engineering-evidence.local/schemas/claim.schema.json",
   "title": "Claim",
-  "description": "可检验主张及其独立状态维度。UNKNOWN/NOT_PROVEN 均不得被解释为通过。",
+  "description": "可检验主张及其独立状态维度。PROVEN 不得同时携带反证、未知项或未解决冲突；UNKNOWN/NOT_PROVEN 均不得被解释为通过。",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -10,6 +10,7 @@
     "claim_id",
     "statement",
     "claim_type",
+    "criticality",
     "workspace_snapshot_id",
     "scope",
     "acceptance_criteria",
@@ -17,7 +18,7 @@
     "created_at"
   ],
   "properties": {
-    "schema_version": {"type": "string", "minLength": 1},
+    "schema_version": {"const": "1.0.0"},
     "claim_id": {"type": "string", "pattern": "^cl_[A-Za-z0-9._-]+$"},
     "statement": {"type": "string", "minLength": 1},
     "claim_type": {
@@ -36,6 +37,7 @@
         "OTHER"
       ]
     },
+    "criticality": {"enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]},
     "workspace_snapshot_id": {"type": "string", "pattern": "^wss_[A-Za-z0-9._-]+$"},
     "scope": {
       "type": "object",
@@ -43,11 +45,11 @@
       "required": ["description"],
       "properties": {
         "description": {"type": "string", "minLength": 1},
-        "repository_ids": {"type": "array", "items": {"type": "string"}},
-        "targets": {"type": "array", "items": {"type": "string"}},
-        "files": {"type": "array", "items": {"type": "string"}},
-        "symbols": {"type": "array", "items": {"type": "string"}},
-        "build_profile_ids": {"type": "array", "items": {"type": "string"}}
+        "repository_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "targets": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "files": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "symbols": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "build_profile_ids": {"type": "array", "items": {"type": "string", "minLength": 1}}
       }
     },
     "acceptance_criteria": {
@@ -57,63 +59,112 @@
     },
     "required_authority_tiers": {
       "type": "array",
-      "items": {"type": "string"}
+      "items": {"type": "string", "minLength": 1}
     },
     "required_coverage": {"enum": ["complete", "partial_allowed", "profile_defined"]},
     "claim_status": {
       "enum": ["PROVEN", "DISPROVEN", "NOT_PROVEN", "CONFLICTED", "UNKNOWN", "NOT_APPLICABLE"]
     },
-    "status_reason": {"type": "string"},
+    "status_reason": {"type": "string", "minLength": 1},
     "supporting_evidence_refs": {
       "type": "array",
+      "uniqueItems": true,
       "items": {"type": "string", "pattern": "^ev_[A-Za-z0-9._-]+$"}
     },
     "refuting_evidence_refs": {
       "type": "array",
+      "uniqueItems": true,
       "items": {"type": "string", "pattern": "^ev_[A-Za-z0-9._-]+$"}
     },
     "unresolved_conflicts": {
       "type": "array",
-      "items": {"type": "string"}
+      "items": {"type": "string", "minLength": 1}
     },
     "unknowns": {
       "type": "array",
-      "items": {"type": "string"}
+      "items": {"type": "string", "minLength": 1}
+    },
+    "applicability_basis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason", "evidence_refs"],
+      "properties": {
+        "reason": {"type": "string", "minLength": 1},
+        "evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "pattern": "^ev_[A-Za-z0-9._-]+$"}
+        }
+      }
     },
     "created_at": {"type": "string", "format": "date-time"},
     "evaluated_at": {"type": "string", "format": "date-time"},
-    "evaluated_by": {"type": "string"}
+    "evaluated_by": {"type": "string", "minLength": 1}
   },
   "allOf": [
     {
-      "if": {
-        "properties": {"claim_status": {"const": "PROVEN"}},
-        "required": ["claim_status"]
-      },
+      "if": {"properties": {"claim_status": {"const": "PROVEN"}}, "required": ["claim_status"]},
       "then": {
-        "required": ["supporting_evidence_refs", "status_reason"],
+        "required": ["supporting_evidence_refs", "required_authority_tiers", "status_reason", "evaluated_at", "evaluated_by"],
         "properties": {
           "supporting_evidence_refs": {"minItems": 1},
-          "unresolved_conflicts": {"maxItems": 0}
+          "required_authority_tiers": {"minItems": 1, "uniqueItems": true},
+          "refuting_evidence_refs": {"maxItems": 0},
+          "unresolved_conflicts": {"maxItems": 0},
+          "unknowns": {"maxItems": 0}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"claim_status": {"const": "DISPROVEN"}}, "required": ["claim_status"]},
+      "then": {
+        "required": ["refuting_evidence_refs", "status_reason", "evaluated_at", "evaluated_by"],
+        "properties": {
+          "refuting_evidence_refs": {"minItems": 1},
+          "supporting_evidence_refs": {"maxItems": 0},
+          "unresolved_conflicts": {"maxItems": 0},
+          "unknowns": {"maxItems": 0}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"claim_status": {"const": "CONFLICTED"}}, "required": ["claim_status"]},
+      "then": {
+        "required": [
+          "supporting_evidence_refs",
+          "refuting_evidence_refs",
+          "unresolved_conflicts",
+          "status_reason",
+          "evaluated_at",
+          "evaluated_by"
+        ],
+        "properties": {
+          "supporting_evidence_refs": {"minItems": 1},
+          "refuting_evidence_refs": {"minItems": 1},
+          "unresolved_conflicts": {"minItems": 1}
         }
       }
     },
     {
       "if": {
-        "properties": {"claim_status": {"const": "DISPROVEN"}},
+        "properties": {"claim_status": {"enum": ["NOT_PROVEN", "UNKNOWN"]}},
         "required": ["claim_status"]
       },
       "then": {
-        "required": ["refuting_evidence_refs", "status_reason"],
-        "properties": {"refuting_evidence_refs": {"minItems": 1}}
+        "required": ["status_reason", "unknowns", "evaluated_at", "evaluated_by"],
+        "properties": {"unknowns": {"minItems": 1}}
       }
     },
     {
-      "if": {
-        "properties": {"claim_status": {"enum": ["NOT_PROVEN", "CONFLICTED", "UNKNOWN"]}},
-        "required": ["claim_status"]
-      },
-      "then": {"required": ["status_reason"]}
+      "if": {"properties": {"claim_status": {"const": "NOT_APPLICABLE"}}, "required": ["claim_status"]},
+      "then": {
+        "required": ["status_reason", "applicability_basis", "evaluated_at", "evaluated_by"],
+        "properties": {
+          "supporting_evidence_refs": {"maxItems": 0},
+          "refuting_evidence_refs": {"maxItems": 0},
+          "unresolved_conflicts": {"maxItems": 0}
+        }
+      }
     }
   ]
 }

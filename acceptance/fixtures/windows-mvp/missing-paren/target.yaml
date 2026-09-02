@@ -1,0 +1,8 @@
+schema_version: "1.0.0"
+target_id: sample_target
+scope_kind: FULL_TARGET
+source_origin: FIXTURE_DECLARATION
+source_origin_ref: target.yaml
+sources: [source.cpp]
+expected_sources: [source.cpp]
+include_dirs: [.]

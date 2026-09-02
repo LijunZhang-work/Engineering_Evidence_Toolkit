@@ -7,6 +7,7 @@ status_dimensions:
   specification_status: DESIGNED
   implementation_status: NOT_IMPLEMENTED
   validation_status: NOT_RUN
+  qualification_status: NOT_ASSESSED
   activation_status: INACTIVE
 kind: independent_capability
 spec: SPEC.md

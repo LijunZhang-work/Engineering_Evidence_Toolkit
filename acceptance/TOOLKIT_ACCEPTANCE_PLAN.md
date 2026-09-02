@@ -7,7 +7,32 @@ document_version: 1.1.0
 
 本计划不是“让 AI 看一眼觉得合理”，而是为未来实现准备可重复、带预期结果的反例夹具。每个用例都要证明：能力真的看见了错误、证据来自正确快照与环境、Profile 没有把无效检查或未知项美化成通过。
 
-当前状态为 **DESIGNED**：用例、输入与判定已定义，但尚未生成可执行夹具，也没有宣称任何实现已通过。
+当前状态为 **PARTIAL_EXECUTABLE**：完整矩阵仍只是设计，尚未整体执行；但 Windows 纵向
+MVP 已为 `ACC-STRUCT-002`、`ACC-STRUCT-003`、`ACC-BUILD-001`、缺 include 子集、
+`ACC-EXT-001` 以及干净反向对照提供静态夹具和自动测试。该子集通过不代表其余用例、
+正式编译、DT、公司环境或完整 Capability 已通过。
+
+此外，`cpp-target-selection/REAL_VALIDATION.yaml` 已在固定 Catch2 commit 的隔离 worktree 上复跑上述五类真实源码场景。它证明当前静态入口能发现两类结构破坏和目标未接线，也如实暴露缺 include 无法被当前静态启发式检出。由于本机没有 MSVC/CMake/Ninja，这仍不是正式编译、测试或资格验证。
+
+## 已执行的纵向子集
+
+运行 `python tools/test_windows_precheck_mvp.py` 会在只读静态夹具上实际完成：
+
+1. 冻结工作区字节与 target manifest；
+2. 运行内存 detector self-test，并明确它不能替代端到端 active Canary；
+3. 通过 Target Manifest Schema，只检查 source 与可达 quoted header，拒绝工作区逃逸；
+4. 检查缺右括号、文件尾截断、raw string、带引号 include、空范围与 source→target；
+5. 接收并保留“本地结构绿、用户环境红”的外部错误；
+6. 按 quick/balanced/strict 结论上限计算结果；
+7. 从同一 fact-set hash 生成专业、小白和机器三视图（含同一 limitations）。
+
+运行 `python -m unittest tools.test_profile_runner_mvp -v` 会只在 OS 临时目录复制件中完成一次
+少右括号的授权修复链：首个 Workspace Snapshot、Solo Collaboration Snapshot、before FAIL、
+固定 exact edit、content-addressed diff、after PASS 与三报告。该用例只证明隔离 Runner 路径可执行，
+不证明生产 Profile Runner、真实项目写权限、MSVC 编译、DT、资格或激活。
+
+这是一个诚实的纵向 MVP，不是完整矩阵的替代品。`ACC-PRECHECK-001` 要求的真实入口
+active Canary 仍未实现，所以 Strict 干净样本保持 `INCOMPLETE`。
 
 ## 验收方法
 

@@ -6,10 +6,27 @@ capability_source: TOOLKIT_MANIFEST.yaml
 harnesses:
   - adapter_id: deepseek-harness
     matrix_status: DESIGNED
-    runtime_validation_status: NOT_RUN
+    runtime_validation_status: PARTIAL
+    runtime_evidence:
+      - path: acceptance/harness-validation/GLM_COMPATIBILITY_OBSERVATION.yaml
+        content_id: sha256:5dbb8bd3ff39855be77f555a6c7ae6aead750d4eb2f49924bf97263e9b270f7e
+        role: OBSERVATION
+      - path: acceptance/harness-validation/glm-final-observation.png
+        content_id: sha256:3975cae0cb7d47def21f1a56d25723cdc6677e38059d4f49ccabe2c8d55e2292
+        role: UI_SCREENSHOT
+    runtime_limitations:
+      - Project Skill discovery, custom-model selection, Windows workspace registration and validator invocation were observed; no Toolkit Capability acceptance run completed.
+      - The Harness read-only preset denied child-process temporary-directory writes, so Doctor and tempfile-dependent tests were environment-blocked.
+      - PowerShell ConstrainedLanguage and stream-capture artifacts can add stderr or line-fragment noise that is not Toolkit output.
     surfaces:
       standalone_capability_invocation: DESIGNED
       structured_receipts: DESIGNED
+      project_skill_discovery: VERIFIED
+      custom_model_configuration: VERIFIED
+      windows_workspace_registration: VERIFIED
+      source_read_only_observation: VERIFIED
+      child_process_temp_write_under_read_only_preset: UNSUPPORTED
+      chinese_and_windows_path_rendering: VERIFIED
       fresh_context_reviewer: NOT_ASSESSED
       resumable_long_run: NOT_ASSESSED
       lifecycle_hooks: NOT_ASSESSED
@@ -41,7 +58,7 @@ harnesses:
         integration_status: DESIGNED
         validation_status: NOT_RUN
         evidence_refs: []
-        limitation: Adapter contract exists, but no DeepSeek Harness runtime execution is proven.
+        limitation: Adapter contract exists, but no Code Fact Capability execution or acceptance is proven.
       - capability_id: behavior-recovery
         integration_status: NOT_ASSESSED
         validation_status: NOT_RUN

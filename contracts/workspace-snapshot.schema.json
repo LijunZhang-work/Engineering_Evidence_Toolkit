@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://engineering-evidence.local/schemas/workspace-snapshot.schema.json",
   "title": "Workspace Snapshot",
-  "description": "冻结一次多仓工作区、构建画像和协作代码到齐状态。未知字段必须显式记录，不得由 AI 猜测。",
+  "description": "冻结一次多仓技术工作区和构建画像。协作代码到齐状态由后置 Collaboration Snapshot 独立记录，避免两个快照互相依赖。未知字段必须显式记录，不得由 AI 猜测。",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -11,10 +11,9 @@
     "captured_at",
     "content_id",
     "provenance_id",
-    "delivery_mode",
     "repositories",
-    "collaboration",
-    "build_context"
+    "build_context",
+    "file_manifest"
   ],
   "properties": {
     "schema_version": {"type": "string", "minLength": 1},
@@ -23,38 +22,10 @@
     "captured_by": {"type": "string"},
     "content_id": {"$ref": "#/$defs/digest_id"},
     "provenance_id": {"$ref": "#/$defs/digest_id"},
-    "delivery_mode": {
-      "description": "本任务由单人完整交付，还是多人分工/部分代码待交付。",
-      "enum": ["SOLO", "COLLABORATIVE", "MIXED", "UNKNOWN"]
-    },
     "repositories": {
       "type": "array",
       "minItems": 1,
       "items": {"$ref": "#/$defs/repository"}
-    },
-    "collaboration": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["readiness", "components"],
-      "properties": {
-        "readiness": {
-          "enum": ["ALL_EXPECTED_CODE_PRESENT", "PARTIAL_EXPECTED_CODE", "CODE_EXPECTED_LATER", "UNKNOWN"]
-        },
-        "confirmed_at": {"type": "string", "format": "date-time"},
-        "confirmed_by": {"type": "string"},
-        "components": {
-          "type": "array",
-          "items": {"$ref": "#/$defs/collaboration_component"}
-        },
-        "handoff_artifact_refs": {
-          "type": "array",
-          "items": {"type": "string"}
-        },
-        "unknowns": {
-          "type": "array",
-          "items": {"type": "string"}
-        }
-      }
     },
     "build_context": {
       "type": "object",
@@ -73,6 +44,20 @@
         "equivalence_evidence_refs": {
           "type": "array",
           "items": {"type": "string"}
+        }
+      }
+    },
+    "file_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["content_id", "expected_units", "entries"],
+      "properties": {
+        "content_id": {"$ref": "#/$defs/digest_id"},
+        "expected_units": {"type": "integer", "minimum": 1},
+        "entries": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/file_entry"}
         }
       }
     },
@@ -119,28 +104,22 @@
         "submodules": {"enum": ["CAPTURED", "PARTIAL", "NONE", "UNKNOWN"]},
         "lfs": {"enum": ["CAPTURED", "PARTIAL", "NONE", "UNKNOWN"]},
         "patchset_content_id": {"$ref": "#/$defs/digest_id"},
+        "untracked_manifest_content_id": {"$ref": "#/$defs/digest_id"},
         "working_tree_status": {"enum": ["CLEAN", "DIRTY_CAPTURED", "DIRTY_NOT_CAPTURED", "UNKNOWN"]},
         "untracked_files_status": {"enum": ["CAPTURED", "PRESENT_NOT_CAPTURED", "NONE", "UNKNOWN"]},
         "owner": {"type": "string"},
         "notes": {"type": "string"}
-      }
-    },
-    "collaboration_component": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["component_id", "responsible_party", "code_availability", "expected_in_snapshot"],
-      "properties": {
-        "component_id": {"type": "string", "minLength": 1},
-        "responsible_party": {"type": "string", "minLength": 1},
-        "code_availability": {
-          "enum": ["PRESENT", "PARTIAL", "EXPECTED_MISSING", "NOT_EXPECTED", "UNKNOWN"]
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"working_tree_status": {"const": "DIRTY_CAPTURED"}}, "required": ["working_tree_status"]},
+          "then": {"required": ["patchset_content_id"]}
         },
-        "expected_in_snapshot": {"type": "boolean"},
-        "repository_id": {"type": "string"},
-        "handoff_contract_status": {"enum": ["CONFIRMED", "PARTIAL", "NOT_AVAILABLE", "UNKNOWN"]},
-        "expected_delivery": {"type": "string"},
-        "notes": {"type": "string"}
-      }
+        {
+          "if": {"properties": {"untracked_files_status": {"const": "CAPTURED"}}, "required": ["untracked_files_status"]},
+          "then": {"required": ["untracked_manifest_content_id"]}
+        }
+      ]
     },
     "build_profile": {
       "type": "object",
@@ -159,6 +138,17 @@
         "dependency_lock_ref": {"type": "string"},
         "completeness": {"enum": ["COMPLETE_FOR_SCOPE", "PARTIAL", "UNKNOWN"]},
         "receipt_refs": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "file_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository_id", "path", "content_id", "size_bytes"],
+      "properties": {
+        "repository_id": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "minLength": 1},
+        "content_id": {"$ref": "#/$defs/digest_id"},
+        "size_bytes": {"type": "integer", "minimum": 0}
       }
     }
   }

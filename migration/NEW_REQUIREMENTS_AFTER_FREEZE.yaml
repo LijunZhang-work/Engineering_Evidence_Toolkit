@@ -129,6 +129,82 @@ requirements:
       只有五轴全部完成才显示绿色100%，只有五轴均为0才显示红色0%；任何缺失轴必须显示灰色UNKNOWN并标注已知下限。
       页面渲染成功不得升级任何Capability状态，源事实变化后旧页面必须能被检测为过期。
     targets: [capability-progress-dashboard, report-renderer, specification-validator]
+  - id: EET-NEW-027
+    title: 可选保障强度与不可关闭的诚实不变量
+    requirement: >-
+      用户界面提供快速探索、平衡取证、严格门禁三档，并允许高级用户展开独立策略轴；
+      减少覆盖、交叉验证、Canary或预算必须同步降低结论权限。不得编造、隐藏冲突、
+      忽略用户错误、越权修改或过度声称在任何档位都不可关闭。
+    targets: [run-policy, user-experience, evidence-kernel, profile-runner]
+  - id: EET-NEW-028
+    title: 统一 RunBundle、Gate、Verdict 与执行词汇
+    requirement: >-
+      Receipt、Evidence、Claim、Gate、Waiver、Instance和Policy必须进入同一RunBundle，
+      使用唯一枚举并进行跨对象引用、效力、覆盖、鲜度与Verdict重算。
+    targets: [run-bundle, machine-contracts, profile-runner]
+  - id: EET-NEW-029
+    title: 红队负向样本是发布门禁
+    requirement: >-
+      空运行ACCEPT、PASS无证据、假有效Receipt、PROVEN带反证、外部错误无理由排除、
+      快速模式越权结论、覆盖伪完整和看板协同伪绿必须由自动测试拒绝。
+    targets: [acceptance-tests, specification-validator, dashboard]
+  - id: EET-NEW-030
+    title: Profile Runner是唯一控制面
+    requirement: >-
+      调度、重试、Checkpoint、Instance State和Verdict仅由Profile Runner拥有；
+      autonomous-runner保留兼容ID但只作为无状态Continuation Policy，不建立第二状态机。
+    targets: [profile-runner, autonomous-runner]
+  - id: EET-NEW-031
+    title: Workspace与Collaboration快照单向启动
+    requirement: >-
+      Workspace Snapshot只冻结技术仓库与构建事实；Collaboration Snapshot后置引用它，
+      记录交付模式和代码到齐状态，禁止互相成为必需输入。
+    targets: [workspace-snapshot, collaboration-snapshot]
+  - id: EET-NEW-032
+    title: 受权修改与修改后复验闭环
+    requirement: >-
+      change-safety正式暴露受权最小修改和只读完整性检查操作；Mutation Receipt必须引用
+      Authorization Receipt。修改后必须重做快照、失效旧证据、刷新Provider并复验受影响Gate。
+    targets: [change-safety, safe-ai-edit-profile, recovery-review-profile]
+  - id: EET-NEW-033
+    title: 恢复zg、ast-grep、CodeGraph与BEH Provider需求
+    requirement: >-
+      zg作为新兴实验候选、ast-grep作为结构搜索候选登记；CodeGraph在同名来源未消歧前不得构建；
+      BEH只按真实专名接入，必须先补齐身份、版本、查询、覆盖、失败与Receipt契约。
+    targets: [code-fact-provider-catalog, provider-registry, beh-provider-contract]
+  - id: EET-NEW-034
+    title: Benchmark冻结模型与Agent控制变量
+    requirement: >-
+      除仓库、Provider、硬件和缓存外，还必须冻结模型ID/版本、Prompt哈希、Agent策略、
+      推理与采样设置、工具面、权限、预算、Harness版本、试验种子和顺序。
+    targets: [code-fact-benchmark, provider-admission]
+  - id: EET-NEW-035
+    title: Adopt Adapt Build机器决策Gate
+    requirement: >-
+      每个外部Provider或自建工具选择必须按Adopt→Adapt→Build记录候选、不可变来源、
+      许可证、成熟度、适配度、拒绝理由和证据；前一层未被证据否决时不得进入后一层。
+    targets: [provider-adoption-decision, third-party-supply-chain, code-fact]
+  - id: EET-NEW-036
+    title: 真实中型 Windows C++ 项目作为纵向验收目标
+    requirement: >-
+      最终纵向验收不得只使用工具集自身或玩具夹具。必须从多个活跃、宽松许可证、CMake/MSVC可构建的
+      公开C++项目中，量化比较代码行数、源/头文件、编译单元、CMake目标、模块、依赖、测试以及Windows
+      冷/增量构建耗时；选择一个中等规模项目并冻结URL、许可证、分支和不可变commit。
+    targets: [acceptance-plan, third-party-supply-chain, windows-static-precheck, build-dependency-audit]
+  - id: EET-NEW-037
+    title: 隔离副本中的五类缺陷修复闭环
+    requirement: >-
+      在选定真实项目的隔离副本或专用分支中，依次注入并验证少右括号、文件尾截断、缺include、
+      新文件未进入target和用户提供编译错误；每类必须记录基线、授权范围、缺陷触发、修复diff、
+      防误删检查、重新冻结、正式构建/测试和三视图报告，禁止污染上游基线。
+    targets: [acceptance-tests, safe-ai-edit-profile, run-bundle, report-renderer]
+  - id: EET-NEW-038
+    title: DeepSeek Harness和GLM只承担末端兼容性验证
+    requirement: >-
+      工具集设计与代码审查、红队检查和修复由主建设流程完成；只有内部多角度复审通过后，才允许通过
+      DeepSeek Harness自定义模型界面调用GLM，验证Capability/Profile接入、项目选择、文件链接、
+      三视图事实一致性和外部显示。GLM结论不得替代本地机器门禁或升级资格状态。
+    targets: [deepseek-harness-adapter, harness-support-matrix, acceptance-plan, report-renderer]
 
 status:
   specification_status: REGISTERED

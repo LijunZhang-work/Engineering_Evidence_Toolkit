@@ -11,12 +11,13 @@
 | Provider | `Provider` | 实现某项能力的具体工具或服务，只负责观察/推导，不拥有最终裁决权 |
 | Adapter | `Adapter` | 把 Provider 私有输入输出转换为 Capability Contract 的薄适配层 |
 | Profile | `Profile` | 面向某类任务的可选组合，声明能力绑定、Gate、权威与报告要求 |
-| Runner | `Runner` | 调度任务、重试、恢复、落盘和无人值守执行的运行组件 |
+| Runner | `ProfileRunner` | 唯一拥有调度、重试、恢复、Checkpoint、Instance State 和 Verdict 的运行控制面 |
 | Claim | `Claim` | 有明确范围与判定条件、可以被证据支持或反驳的主张 |
 | 证据包 | `EvidenceBundle` | 围绕一个 Claim 的 Artifact、Receipt、来源、限制与证据上限集合 |
-| Receipt | `Receipt` | 一次工具/人工采集实际如何执行的不可含糊记录 |
+| Receipt | `Receipt` | 检查、授权、边界决定、安装、激活、豁免或修改的一次类型化、不可含糊记录 |
 | Artifact | `Artifact` | 源文件、日志、索引结果、diff、报告等可寻址内容对象 |
-| Workspace Snapshot | `WorkspaceSnapshot` | 多仓修订、补丁集、工作区、构建画像及协作到齐状态的冻结描述 |
+| Workspace Snapshot | `WorkspaceSnapshot` | 多仓修订、补丁集、工作区和构建画像的技术冻结描述 |
+| Collaboration Snapshot | `CollaborationSnapshot` | 在 Workspace Snapshot 之后冻结交付模式、责任边界和代码到齐状态 |
 | Gate | `Gate` | Profile 根据 Claim 和证据计算的局部门禁 |
 | Verdict | `Verdict` | ENFORCE Profile 对整个运行给出的最终裁决 |
 | Waiver | `Waiver` | 经授权接受某个已知 Gate 失败或风险的独立记录，不改变原始事实 |
@@ -29,13 +30,15 @@
 | `EVIDENCE` | 形成带来源、覆盖、新鲜度和上限的证据 | 否 |
 | `ENFORCE` | 由 Profile 依据固定规则计算 Gate 和 Verdict | 是 |
 
+默认界面映射为 `快速探索 → EXPLORE`、`平衡取证 → EVIDENCE`、`严格门禁 → ENFORCE`。预设会展开成覆盖、交叉验证、鲜度、Canary、Provider 预算和结论权限等独立轴；它不是允许任意拔高结论的单一滑块。
+
 ## 3. 独立状态维度
 
 ### execution_status
 
 描述任务/进程有没有执行完成，不描述结论真假。
 
-`PENDING`、`READY`、`RUNNING`、`COMPLETED`、`FAILED`、`BLOCKED`、`CANCELLED`；Receipt 还可使用 `TIMED_OUT`、`SKIPPED`。
+`NOT_STARTED`、`BOOTSTRAPPING`、`READY`、`RUNNING`、`WAITING_HUMAN`、`BLOCKED`、`COMPLETED`、`FAILED`、`CANCELLED`；`BOOTSTRAPPING` 只负责从 BootstrapRequest 产生首个 Workspace Snapshot；Receipt 还可使用 `TIMED_OUT`、`SKIPPED`。
 
 ### claim_status
 
@@ -52,13 +55,13 @@
 
 ### gate_status
 
-`PASS`、`FAIL`、`BLOCKED`、`NOT_EVALUATED`、`WAIVED`。
+`PASS`、`FAIL`、`INCONCLUSIVE`、`NOT_APPLICABLE`、`WAIVED`、`NOT_EVALUATED`。
 
-`BLOCKED` 表示缺失关键证据或存在未决冲突；`WAIVED` 表示风险被授权接受，不表示事实变为通过。
+`BLOCKED` 只属于执行状态，不属于 Gate。缺失关键证据或未决冲突使用 `INCONCLUSIVE`；`WAIVED` 表示风险被授权接受，不表示事实变为通过。
 
 ### final_verdict
 
-`ACCEPT`、`REJECT`、`INCOMPLETE`、`ACCEPT_WITH_RISK`。
+`ACCEPT`、`ACCEPT_WITH_RISK`、`REJECT`、`INCOMPLETE`、`NO_VERDICT`。
 
 ### tool_qualification_status
 

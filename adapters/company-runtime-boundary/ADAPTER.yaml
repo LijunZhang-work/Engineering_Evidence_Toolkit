@@ -35,6 +35,11 @@ policy:
     access: DENY_BY_DEFAULT
   provider_artifact_source:
     requirement: approved_environment_source_with_integrity_receipt
+  authority_registry_trust_anchor:
+    source: protected_runtime_or_ci_configuration
+    accepted_forms: [pinned_canonical_content_id, independently_verified_signature]
+    repository_registry_role: authority_catalog_not_self_authenticating_trust_root
+    missing_or_mismatched_result: DENIED
 
 capability_declaration_contract:
   capabilities_may_declare:
@@ -59,6 +64,7 @@ receipts:
     - requested_access_class
     - decision
     - redacted_configuration_refs
+    - authority_registry_anchor_reference
     - denial_or_unconfigured_reason
   forbidden:
     - raw_api_key
@@ -69,6 +75,7 @@ failure_semantics:
   missing_configured_model_endpoint: UNCONFIGURED
   missing_api_key: UNCONFIGURED
   undeclared_access_attempt: DENIED
+  missing_authority_registry_anchor: DENIED
   policy_evaluation_error: BOUNDARY_ERROR
   rule: >-
     A denied, unconfigured, or failed access decision remains visible and may not

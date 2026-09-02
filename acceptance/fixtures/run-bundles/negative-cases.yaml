@@ -1,0 +1,189 @@
+schema_version: "1.0.0"
+base_fixture: valid-strict.yaml
+cases:
+  - id: empty_accept
+    expected_issue: SCHEMA_INSTANCE
+    purpose: 禁止 tasks、claims、gates 全空却 COMPLETED + ACCEPT
+  - id: pass_without_evidence
+    expected_issue: SCHEMA_INSTANCE
+    purpose: 禁止 PASS Gate 没有 Evidence
+  - id: fake_qualified_receipt
+    expected_issue: RECEIPT_FALSE_EFFECTIVE
+    purpose: 禁止空输入空输出 Receipt 自称 QUALIFIED/EFFECTIVE
+  - id: proven_with_refutation
+    expected_issue: SCHEMA_CLAIM
+    purpose: 禁止 PROVEN Claim 同时携带反证
+  - id: external_error_without_reason
+    expected_issue: SCHEMA_INSTANCE
+    purpose: 禁止用户错误被标记 DOES_NOT_APPLY 却无理由和消解证据
+  - id: quick_accept
+    expected_issue: POLICY_VERDICT_CEILING
+    purpose: 禁止快速探索模式签发 ACCEPT
+  - id: unresolved_user_error_accept
+    expected_issue: VERDICT_USER_ERROR_UNRESOLVED
+    purpose: 禁止未消解的用户错误被本地绿色覆盖
+  - id: false_complete_coverage
+    expected_issue: EVIDENCE_FALSE_COMPLETE
+    purpose: 禁止覆盖不完整却自称 complete
+  - id: strict_single_source
+    expected_issue: CLAIM_CORROBORATION
+    purpose: 禁止严格高风险 Claim 只靠一个 Provider
+  - id: forged_accept_with_risk
+    expected_issue: VERDICT_MISMATCH
+    purpose: 禁止没有 Waiver 却伪造 ACCEPT_WITH_RISK
+  - id: custom_policy_overclaim
+    expected_issue: CUSTOM_POLICY_OVERCLAIM
+    purpose: 禁止高级设置降低证据轴后仍保留严格最终结论权限
+  - id: build_without_rejecting_adopt
+    expected_issue: PROVIDER_DECISION_ORDER
+    purpose: 禁止未证据化否决 Adopt/Adapt 候选就直接自建
+  - id: strict_axis_downgrade
+    expected_issue: PRESET_POLICY_DRIFT
+    purpose: 禁止保留 STRICT 标签却关闭覆盖、交叉验证、Canary 或 fallback
+  - id: inactive_profile_accept
+    expected_issue: PROFILE_NOT_ACTIVE
+    purpose: 禁止未实现、未验证、未资格认定、未激活的 Profile 签发最终裁决
+  - id: all_required_false
+    expected_issue: ZERO_REQUIRED_FACTS
+    purpose: 禁止把所有 Task 和 Claim 标成非必需后 ACCEPT
+  - id: not_applicable_without_evidence
+    expected_issue: CLAIM_INVALID_APPLICABILITY
+    purpose: 禁止用不可解析的 NOT_APPLICABLE 恢复空壳成功
+  - id: missing_task_receipt
+    expected_issue: TASK_RECEIPT_REF
+    purpose: 禁止完成的必需任务引用不存在的 Receipt
+  - id: same_receipt_fake_independence
+    expected_issue: CLAIM_CORROBORATION
+    purpose: 禁止一个执行回执包装成两个独立 Provider
+  - id: provider_mismatch
+    expected_issue: EVIDENCE_FALSE_VERIFIED
+    purpose: 禁止 Evidence 自报与 Receipt 不同的 Provider
+  - id: forged_artifact
+    expected_issue: EVIDENCE_ARTIFACT_BINDING
+    purpose: 禁止伪造未由 Receipt 输出的 Artifact
+  - id: missing_artifact
+    expected_issue: ARTIFACT_MISSING
+    purpose: 禁止引用磁盘上不存在的证据产物
+  - id: stale_claim_workspace
+    expected_issue: WORKSPACE_BINDING
+    purpose: 禁止 Claim 绑定过期 Workspace
+  - id: unrelated_scope
+    expected_issue: CLAIM_SCOPE_COVERAGE
+    purpose: 禁止用无关文件范围证明 Claim
+  - id: model_inference_proof
+    expected_issue: EVIDENCE_NOT_STRICT_PROOF
+    purpose: 禁止模型推理自称严格机器证明
+  - id: strict_missing_canary
+    expected_issue: EVIDENCE_NOT_STRICT_PROOF
+    purpose: 禁止 STRICT Proof 缺少主动负向与控制 Canary
+  - id: canary_not_detected
+    expected_issue: CANARY_INVALID
+    purpose: 禁止 Canary 未命中却继续使用检查结果
+  - id: collaboration_mismatch
+    expected_issue: COLLABORATION_DRIFT
+    purpose: 禁止 Instance 覆盖协作代码未到齐事实
+  - id: user_error_dismissed_by_local_green
+    expected_issue: EXTERNAL_RECONCILIATION_CLAIM
+    purpose: 禁止普通本地绿色把用户错误标为不适用
+  - id: expired_waiver
+    expected_issue: GATE_INVALID_WAIVER
+    purpose: 禁止过期 Waiver 生成 ACCEPT_WITH_RISK
+  - id: selected_candidate_rejected
+    expected_issue: PROVIDER_DECISION_SELECTION
+    purpose: 禁止被选 Provider 同时标记为 REJECTED
+  - id: unacceptable_provider_license
+    expected_issue: PROVIDER_DECISION_LICENSE
+    purpose: 禁止采用许可证不可接受的 Provider
+  - id: provider_fake_refs
+    expected_issue: PROVIDER_DECISION_EVIDENCE_REF
+    purpose: 禁止 Adopt Adapt Build 决策引用虚构证据
+  - id: provider_gate_fail
+    expected_issue: PROVIDER_DECISION_GATE
+    purpose: 禁止供应链 Gate FAIL 时仍使用 Provider
+  - id: missing_provider_qualification
+    expected_issue: RECEIPT_QUALIFICATION_REF
+    purpose: 禁止 Receipt 自行声称 Provider 已合格
+  - id: self_issued_qualification
+    expected_issue: QUALIFICATION_SELF_ISSUED
+    purpose: 禁止 Provider 给自己签发资格
+  - id: expired_qualification
+    expected_issue: QUALIFICATION_EXPIRED
+    purpose: 禁止使用过期 Provider 资格
+  - id: qualification_artifact_forged
+    expected_issue: ARTIFACT_DIGEST
+    purpose: 禁止资格对象引用错误的资格产物摘要
+  - id: missing_reports
+    expected_issue: REPORT_VIEW_CLOSURE
+    purpose: 禁止 STRICT 完成时缺少机器、专业或小白报告
+  - id: report_fact_drift
+    expected_issue: REPORT_FACT_DIGEST
+    purpose: 禁止三种报告使用不同事实集
+  - id: bundle_digest_forged
+    expected_issue: RUN_BUNDLE_DIGEST
+    purpose: 禁止 RunBundle 对象被篡改后摘要仍自称有效
+  - id: manifest_digest_forged
+    expected_issue: WORKSPACE_FILE_MANIFEST
+    purpose: 禁止冻结文件清单摘要与内容不一致
+  - id: target_input_mismatch
+    expected_issue: EVIDENCE_INPUT_BINDING
+    purpose: 禁止 Receipt 检查无关输入却证明冻结文件
+  - id: claim_authority_missing
+    expected_issue: CLAIM_AUTHORITY
+    purpose: 禁止缺少 Claim 要求的权威层级
+  - id: duplicate_nested_ids
+    expected_issue: DUPLICATE_ID
+    purpose: 禁止嵌套 Task、Gate、Repo 等标识重复
+  - id: task_dependency_cycle
+    expected_issue: TASK_DEPENDENCY_CYCLE
+    purpose: 禁止 Runner 任务依赖图形成循环
+  - id: authoritative_profile_missing
+    expected_issue: WORKSPACE_PROFILE_REF
+    purpose: 禁止 Workspace 引用不存在的权威构建画像
+  - id: collaboration_repo_missing
+    expected_issue: COLLABORATION_REPO_REF
+    purpose: 禁止协作组件引用不存在的仓库
+  - id: dirty_capture_without_patch
+    expected_issue: SCHEMA_WORKSPACE_SNAPSHOT
+    purpose: 禁止 dirty 已捕获却没有 patchset 摘要
+  - id: unauthorized_mutation
+    expected_issue: MUTATION_SCOPE
+    purpose: 禁止超出路径授权的修改用自报 VALIDATED 过门
+  - id: strict_accept_without_profile
+    expected_issue: STRICT_ACCEPT_WITHOUT_ACTIVE_PROFILE
+    purpose: 禁止 STRICT 在没有精确、已激活 Profile 信任根时签发 ACCEPT
+  - id: duplicate_receipt_alias_fake_independence
+    expected_issue: CLAIM_CORROBORATION
+    purpose: 禁止复制同一次执行并只更换 Receipt ID 来伪造独立双源
+  - id: untrusted_qualification_authority
+    expected_issue: QUALIFICATION_UNTRUSTED_AUTHORITY
+    purpose: 禁止未登记的自报 Authority 给 Provider 签发资格
+  - id: qualification_artifact_semantic_drift
+    expected_issue: QUALIFICATION_ARTIFACT_SEMANTICS
+    purpose: 禁止资格对象与资格产物字段不一致
+  - id: fabricated_adoption_source
+    expected_issue: PROVIDER_DECISION_SOURCE
+    purpose: 禁止虚构来源协议和不可验证 revision 通过 Adopt Gate
+  - id: https_source_without_matching_attestation
+    expected_issue: PROVIDER_SOURCE_RECEIPT
+    purpose: 禁止仅把来源改成形式合法但不存在的 HTTPS URL，并继续复用不匹配的 Authority-pinned source receipt
+  - id: irrelevant_adoption_evidence
+    expected_issue: PROVIDER_DECISION_EVIDENCE_RELEVANCE
+    purpose: 禁止用另一个 Capability 或 Provider 的存在证据支撑采用决策
+  - id: mutation_without_post_validation
+    expected_issue: MUTATION_NOT_REVALIDATED
+    purpose: 禁止 Mutation 在没有独立后置复验回执时晋级为 VALIDATED
+  - id: adapt_without_rejecting_adopt
+    expected_issue: PROVIDER_DECISION_ORDER
+    purpose: 禁止仍有未拒绝的 ADOPT 候选时绕过顺序直接选择 ADAPT
+  - id: derivation_label_fake_independence
+    expected_issue: CLAIM_CORROBORATION
+    purpose: 禁止复制同一信任域的执行后只改 derivation_method 来伪造第二个独立证据源
+  - id: authority_registry_binding
+    expected_issue: AUTHORITY_REGISTRY_BINDING
+    purpose: 禁止 RunBundle 不绑定实际参与裁决的 Authority Registry 版本
+  - id: qualification_wrong_environment
+    expected_issue: QUALIFICATION_UNTRUSTED_AUTHORITY
+    purpose: 禁止验收夹具 Authority 跨环境冒充本地开发或公司资格 Authority
+  - id: fictional_mutation_without_manifest_change
+    expected_issue: MUTATION_CHANGED_PATH_DRIFT
+    purpose: 禁止用虚构 baseline、diff 摘要和自报 changed_paths 制造并不存在的代码修改

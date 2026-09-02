@@ -7,8 +7,9 @@
   "additionalProperties": false,
   "required": ["status", "status_dimensions", "schema_version", "kind", "id", "version", "title", "intent", "profile_is_optional", "runner_contract", "capability_internal_access", "direct_provider_access", "capabilities"],
   "properties": {
-    "status": {"const": "DESIGNED"},
+    "status": {"enum": ["DESIGNED", "SCAFFOLDED", "IMPLEMENTED", "VALIDATED", "ACTIVE"]},
     "status_dimensions": {"$ref": "#/$defs/status_dimensions"},
+    "status_evidence": {"$ref": "#/$defs/status_evidence"},
     "schema_version": {"const": "1.0.0"},
     "kind": {"const": "ToolkitProfile"},
     "id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
@@ -90,11 +91,29 @@
     },
     "stages": {"$ref": "#/$defs/nonempty_string_array"},
     "gates": {"$ref": "#/$defs/nonempty_string_array"},
-    "gate_result_values": {"$ref": "#/$defs/nonempty_string_array"},
+    "gate_result_values": {"$ref": "#/$defs/gate_values"},
     "global_precedence_rules": {"$ref": "#/$defs/nonempty_string_array"},
-    "final_verdicts": {"$ref": "#/$defs/nonempty_string_array"},
+    "final_verdicts": {"$ref": "#/$defs/verdict_values"},
     "report_views": {"$ref": "#/$defs/nonempty_string_array"},
     "single_fact_source_for_all_views": {"const": true},
+    "memory_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "automatic_chat_transcript_ingestion",
+        "write_requires_explicit_memory_intent",
+        "recall_default_scope",
+        "use_as_gate_evidence_without_reverification",
+        "correction_mode"
+      ],
+      "properties": {
+        "automatic_chat_transcript_ingestion": {"enum": ["forbidden", "explicit_opt_in"]},
+        "write_requires_explicit_memory_intent": {"type": "boolean"},
+        "recall_default_scope": {"type": "string", "minLength": 1},
+        "use_as_gate_evidence_without_reverification": {"const": "forbidden"},
+        "correction_mode": {"enum": ["append_and_supersede", "replace_with_audit_trail"]}
+      }
+    },
     "edit_authorization": {
       "type": "object",
       "additionalProperties": false,
@@ -107,7 +126,24 @@
     },
     "hard_invariants": {"$ref": "#/$defs/nonempty_string_array"},
     "repository_reader_policy": {"type": "string", "minLength": 1},
-    "results": {"$ref": "#/$defs/nonempty_string_array"},
+    "edit_assessment_states": {
+      "type": "array",
+      "const": [
+        "POST_EDIT_EVIDENCE_COMPLETE",
+        "POST_EDIT_EVIDENCE_INCOMPLETE",
+        "EDIT_NOT_REQUIRED",
+        "EDIT_BLOCKED"
+      ]
+    },
+    "assessment_projection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "rules"],
+      "properties": {
+        "target": {"const": "CANONICAL_CLAIM_GATE_VERDICT"},
+        "rules": {"$ref": "#/$defs/nonempty_string_array"}
+      }
+    },
     "separate_outputs": {
       "type": "object",
       "minProperties": 1,
@@ -117,20 +153,50 @@
   },
   "allOf": [
     {
-      "if": {"properties": {"id": {"const": "recovery-review"}}, "required": ["id"]},
-      "then": {"required": ["mandatory_confirmation", "alignment_lock", "execution_model", "stages", "gates", "gate_result_values", "global_precedence_rules", "final_verdicts", "report_views", "single_fact_source_for_all_views", "repository_reader_policy"]}
+      "if": {
+        "properties": {"supported_modes": {"contains": {"const": "ENFORCE"}}},
+        "required": ["supported_modes"]
+      },
+      "then": {
+        "required": [
+          "gates",
+          "gate_result_values",
+          "final_verdicts",
+          "report_views",
+          "single_fact_source_for_all_views"
+        ]
+      }
     },
     {
-      "if": {"properties": {"id": {"const": "safe-ai-edit"}}, "required": ["id"]},
-      "then": {"required": ["edit_authorization", "hard_invariants", "results", "repository_reader_policy"]}
+      "if": {"required": ["mandatory_confirmation"]},
+      "then": {
+        "required": [
+          "alignment_lock",
+          "execution_model",
+          "stages",
+          "global_precedence_rules",
+          "repository_reader_policy"
+        ]
+      }
     },
     {
-      "if": {"properties": {"id": {"const": "ad-hoc-code-investigation"}}, "required": ["id"]},
-      "then": {"required": ["default_mode", "supported_modes", "boundaries", "outputs"]}
+      "if": {"required": ["edit_assessment_states"]},
+      "then": {
+        "required": [
+          "assessment_projection",
+          "edit_authorization",
+          "hard_invariants",
+          "repository_reader_policy"
+        ]
+      }
     },
     {
-      "if": {"properties": {"id": {"const": "test-trace-preparation"}}, "required": ["id"]},
-      "then": {"required": ["separate_outputs", "hard_rules"]}
+      "if": {"required": ["boundaries"]},
+      "then": {"required": ["default_mode", "supported_modes", "outputs"]}
+    },
+    {
+      "if": {"required": ["separate_outputs"]},
+      "then": {"required": ["hard_rules"]}
     }
   ],
   "$defs": {
@@ -150,13 +216,46 @@
     "status_dimensions": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["specification_status", "implementation_status", "validation_status", "activation_status"],
+      "required": ["specification_status", "implementation_status", "validation_status", "qualification_status", "activation_status"],
       "properties": {
-        "specification_status": {"const": "DESIGNED"},
+        "specification_status": {"enum": ["DRAFT", "DESIGNED", "REVIEWED", "BASELINED"]},
         "implementation_status": {"enum": ["NOT_IMPLEMENTED", "PARTIAL", "IMPLEMENTED"]},
         "validation_status": {"enum": ["NOT_RUN", "PARTIAL", "PASSED", "FAILED", "STALE"]},
+        "qualification_status": {"enum": ["NOT_ASSESSED", "UNQUALIFIED", "QUALIFIED_WITH_LIMITS", "QUALIFIED"]},
         "activation_status": {"enum": ["INACTIVE", "ACTIVE", "SUSPENDED", "RETIRED"]}
       }
+    },
+    "status_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "implementation": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/status_evidence_item"}},
+        "validation": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/status_evidence_item"}},
+        "qualification": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/status_evidence_item"}},
+        "activation": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/status_evidence_item"}}
+      }
+    },
+    "status_evidence_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subject_id", "status_axis", "evidence_kind", "path", "content_id", "result", "observed_at"],
+      "properties": {
+        "subject_id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+        "status_axis": {"enum": ["implementation", "validation", "qualification", "activation"]},
+        "evidence_kind": {"enum": ["IMPLEMENTATION_ARTIFACT", "IMPLEMENTATION_RECEIPT", "TEST_RECEIPT", "QUALIFICATION_RECEIPT", "ACTIVATION_RECEIPT"]},
+        "path": {"type": "string", "pattern": "^(?![A-Za-z]:|/|.*(?:^|[\\\\/])\\.\\.(?:[\\\\/]|$)).+$"},
+        "content_id": {"type": "string", "pattern": "^sha256:[A-Fa-f0-9]{64}$"},
+        "result": {"enum": ["PARTIAL", "IMPLEMENTED", "PASSED", "FAILED", "STALE", "UNQUALIFIED", "QUALIFIED_WITH_LIMITS", "QUALIFIED", "ACTIVE", "SUSPENDED", "RETIRED"]},
+        "observed_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "gate_values": {
+      "type": "array",
+      "const": ["PASS", "FAIL", "INCONCLUSIVE", "NOT_APPLICABLE", "WAIVED", "NOT_EVALUATED"]
+    },
+    "verdict_values": {
+      "type": "array",
+      "const": ["ACCEPT", "ACCEPT_WITH_RISK", "REJECT", "INCOMPLETE", "NO_VERDICT"]
     }
   }
 }

@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/provider-source-receipt.schema.json",
+  "title": "Authority-pinned Provider Source Receipt",
+  "description": "证明 Provider 候选来自一次真实解析的来源观测；只有当前 Authority Registry 固定其文件摘要时才具有来源证明力。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "receipt_id",
+    "authority_ref",
+    "issued_by",
+    "environment_scope",
+    "capability_id",
+    "provider_id",
+    "source_identity",
+    "resolved_revision",
+    "provider_artifact_content_id",
+    "license",
+    "observed_at"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "kind": {"const": "ProviderSourceReceipt"},
+    "receipt_id": {"type": "string", "pattern": "^psr_[A-Za-z0-9._-]+$"},
+    "authority_ref": {"type": "string", "pattern": "^authority_[A-Za-z0-9._-]+$"},
+    "issued_by": {"type": "string", "minLength": 1},
+    "environment_scope": {"enum": ["ACCEPTANCE_FIXTURE", "LOCAL_DEVELOPMENT", "COMPANY_QUALIFIED"]},
+    "capability_id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "provider_id": {"type": "string", "minLength": 1},
+    "source_identity": {"type": "string", "format": "uri", "minLength": 1},
+    "resolved_revision": {"type": "string", "minLength": 1},
+    "provider_artifact_content_id": {"$ref": "#/$defs/digest"},
+    "license": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["spdx_id", "artifact"],
+      "properties": {
+        "spdx_id": {"type": "string", "minLength": 1},
+        "artifact": {"$ref": "#/$defs/file_ref"}
+      }
+    },
+    "observed_at": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[a-z0-9_-]+:[A-Fa-f0-9]{16,}$"},
+    "file_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["location", "content_id"],
+      "properties": {
+        "location": {"type": "string", "minLength": 1},
+        "content_id": {"$ref": "#/$defs/digest"}
+      }
+    }
+  }
+}

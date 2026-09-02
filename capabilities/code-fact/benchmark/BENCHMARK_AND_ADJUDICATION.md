@@ -47,8 +47,20 @@ Every campaign freezes:
 - timeout policy;
 - warm/cold cache policy;
 - measurement scripts and report version.
+- Harness/runtime version and adapter revision;
+- model provider, exact model ID, served model revision/snapshot, endpoint class and region when applicable;
+- system/developer/user prompt template versions plus canonical prompt content hashes;
+- agent orchestration strategy, planner/router version, reasoning effort, retry and fallback policy;
+- sampling controls such as temperature, top-p, seed and determinism settings when exposed;
+- complete allowed tool surface, per-tool permissions and versions;
+- token, tool-invocation, wall-time, concurrency and cost budgets;
+- trial count, random seed, randomized order manifest and early-stop rule;
+- output parser/normalizer version and any post-processing configuration.
 
 If a material item changes, the result belongs to a new campaign ID.
+
+Model or agent results whose served revision, prompts, tool surface or budgets cannot be frozen are
+reported as `UNSCORABLE_ENVIRONMENT`; they must not be compared as if only the Provider changed.
 
 ## 4. Query set
 

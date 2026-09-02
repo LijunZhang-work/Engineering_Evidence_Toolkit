@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/collaboration-snapshot.schema.json",
+  "title": "Collaboration Snapshot",
+  "description": "在技术 Workspace Snapshot 之后独立冻结交付模式、责任边界和待到齐代码，避免启动循环。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "snapshot_id",
+    "workspace_snapshot_id",
+    "captured_at",
+    "content_id",
+    "provenance_id",
+    "delivery_mode",
+    "readiness",
+    "components",
+    "unknowns"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "snapshot_id": {"type": "string", "pattern": "^css_[A-Za-z0-9._-]+$"},
+    "workspace_snapshot_id": {"type": "string", "pattern": "^wss_[A-Za-z0-9._-]+$"},
+    "captured_at": {"type": "string", "format": "date-time"},
+    "captured_by": {"type": "string", "minLength": 1},
+    "content_id": {"$ref": "#/$defs/digest_id"},
+    "provenance_id": {"$ref": "#/$defs/digest_id"},
+    "delivery_mode": {"enum": ["SOLO", "COLLABORATIVE", "MIXED", "UNKNOWN"]},
+    "readiness": {"enum": ["ALL_EXPECTED_CODE_PRESENT", "PARTIAL_EXPECTED_CODE", "CODE_EXPECTED_LATER", "UNKNOWN"]},
+    "confirmed_at": {"type": "string", "format": "date-time"},
+    "confirmed_by": {"type": "string", "minLength": 1},
+    "components": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/component"}
+    },
+    "handoff_artifact_refs": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "unknowns": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "receipt_refs": {"type": "array", "items": {"type": "string", "pattern": "^rcpt_[A-Za-z0-9._-]+$"}}
+  },
+  "$defs": {
+    "digest_id": {"type": "string", "pattern": "^[a-z0-9_-]+:[A-Fa-f0-9]{16,}$"},
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component_id", "responsible_party", "code_availability", "expected_in_snapshot"],
+      "properties": {
+        "component_id": {"type": "string", "minLength": 1},
+        "responsible_party": {"type": "string", "minLength": 1},
+        "code_availability": {"enum": ["PRESENT", "PARTIAL", "EXPECTED_MISSING", "NOT_EXPECTED", "UNKNOWN"]},
+        "expected_in_snapshot": {"type": "boolean"},
+        "repository_id": {"type": "string", "minLength": 1},
+        "handoff_contract_status": {"enum": ["CONFIRMED", "PARTIAL", "NOT_AVAILABLE", "UNKNOWN"]},
+        "expected_delivery": {"type": "string", "minLength": 1},
+        "notes": {"type": "string"}
+      }
+    }
+  }
+}

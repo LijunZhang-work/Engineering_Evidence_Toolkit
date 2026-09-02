@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import importlib.util
+import copy
 import json
 import re
 import unittest
@@ -54,7 +55,48 @@ class GeneratedDashboardTests(unittest.TestCase):
         cls.embedded = json.loads(match.group(1))
 
     def test_current_dashboard_is_fresh(self) -> None:
-        self.assertEqual(self.embedded["source_digest"], self.snapshot["source_digest"])
+        self.assertTrue(renderer.snapshots_match(self.embedded, self.snapshot))
+
+    def test_coordinated_100_percent_tamper_is_detected(self) -> None:
+        tampered = copy.deepcopy(self.snapshot)
+        for capability in tampered["capabilities"]:
+            capability["score"] = 100
+            capability["score_display"] = "100%"
+            capability["category"] = "complete"
+            capability["status_label"] = "已完成"
+            capability["unknown_stages"] = []
+            for stage in capability["stages"]:
+                stage["score"] = 100
+                stage["status"] = "FORGED"
+        tampered["summary"] = {
+            "complete": len(tampered["capabilities"]),
+            "in_progress": 0,
+            "not_started": 0,
+            "unknown": 0,
+            "total": len(tampered["capabilities"]),
+            "average": 100,
+        }
+        self.assertEqual(tampered["source_digest"], self.snapshot["source_digest"])
+        self.assertFalse(renderer.snapshots_match(tampered, self.snapshot))
+
+    def test_promoted_status_displays_declared_evidence_not_self_declaration(self) -> None:
+        windows = next(item for item in self.snapshot["capabilities"] if item["id"] == "windows-static-precheck")
+        by_stage = {stage["key"]: stage for stage in windows["stages"]}
+        self.assertIn("tools/windows_precheck_mvp.py", by_stage["implementation"]["evidence"])
+        self.assertIn("acceptance/status-receipts/windows-static-precheck-validation.json", by_stage["validation"]["evidence"])
+        self.assertNotIn(
+            "capabilities/windows-static-precheck/CAPABILITY.yaml#status_dimensions.implementation_status",
+            by_stage["implementation"]["evidence"],
+        )
+
+    def test_freshness_dependencies_include_custom_spec_and_declared_status_evidence(self) -> None:
+        toolkit = renderer.load_yaml(ROOT / "TOOLKIT_MANIFEST.yaml")
+        entries = {entry["id"]: entry for entry in toolkit["capabilities"]}
+        windows_paths = {path.relative_to(ROOT).as_posix() for path in renderer.capability_source_paths(entries["windows-static-precheck"])}
+        code_fact_paths = {path.relative_to(ROOT).as_posix() for path in renderer.capability_source_paths(entries["code-fact"])}
+        self.assertIn("tools/windows_precheck_mvp.py", windows_paths)
+        self.assertIn("acceptance/status-receipts/windows-static-precheck-validation.json", windows_paths)
+        self.assertIn("capabilities/code-fact/README.md", code_fact_paths)
 
     def test_static_first_view_has_every_capability(self) -> None:
         static_body = self.html.split('<script id="capabilityData"', 1)[0]

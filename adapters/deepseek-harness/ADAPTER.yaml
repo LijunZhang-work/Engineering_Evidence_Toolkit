@@ -2,13 +2,54 @@ schema: engineering-evidence-toolkit/adapter/v1
 id: deepseek-harness
 version: 1.0.0-draft
 spec_status: DESIGNED
-verification_status: NOT_RUN
+verification_status: PARTIAL
 support_matrix_ref: ../HARNESS_CAPABILITY_MATRIX.yaml
 automation_policy_ref: ../../governance/AUTOMATION_AND_HOOK_POLICY.md
+
+project_skill_entrypoint:
+  path: .dsh/skills/engineering-evidence-toolkit/SKILL.md
+  discovery_source: project-dsh
+  discovery_rank: 100
+  format_basis: deepseek-harness/docs/subsystems/skills.zh.md
+  file_status: PRESENT
+  runtime_validation_status: PASSED
+  limitation: >-
+    Project Skill discovery and GLM Web invocation were observed on the pinned Harness
+    revision. This does not prove Capability compatibility, acceptance, or lifecycle qualification.
 
 purpose: >-
   Map a DeepSeek Harness task to toolkit capability contracts and return structured
   artifacts without embedding provider-specific logic in prompts.
+
+glm_compatibility_observer:
+  model: GLM
+  role: FINAL_COMPATIBILITY_OBSERVER
+  must_run_after: TOOLKIT_MULTI_ANGLE_REVIEW
+  claim_authority: NONE
+  gate_authority: NONE
+  qualification_authority: NONE
+  lifecycle_promotion_authority: NONE
+
+runtime_observation:
+  status: PARTIAL
+  observation_ref: ../../acceptance/harness-validation/GLM_COMPATIBILITY_OBSERVATION.yaml
+  screenshot_ref: ../../acceptance/harness-validation/glm-final-observation.png
+  capability_acceptance_status: NOT_RUN
+  environment_blocker: >-
+    The Harness read-only preset denied child-process temporary-directory writes. Doctor
+    and tempfile-dependent tests were therefore environment-blocked, not Toolkit-failed.
+
+verification_runtime_profile:
+  source_tree_write: DENY
+  os_temp_write: ALLOW_FOR_BOUNDED_CHECKS
+  external_run_artifact_write: ALLOW
+  secrets: HARNESS_PROVIDER_UI_ONLY
+  fully_read_only_use: INSPECTION_ONLY
+  mismatch_result: ENVIRONMENT_BLOCKED
+  rule: >-
+    Executable verification needs a split boundary: repository source remains read-only,
+    while an OS temporary directory and declared external run directory are writable.
+    A preset that blocks all temporary writes cannot produce a test Verdict.
 
 supported_capabilities:
   - capability_id: code-fact
@@ -48,6 +89,7 @@ runtime_boundary_ref: ../company-runtime-boundary/ADAPTER.yaml
 
 action_policy:
   source_tree_write: DENY
+  os_temp_write: ALLOW_FOR_BOUNDED_CHECKS
   run_artifact_write: ALLOW
   submit_or_merge: DENY
   provider_selection: explicit_or_profile_bound
@@ -102,5 +144,6 @@ acceptance_refs:
   - capabilities/code-fact/ACCEPTANCE.yaml#CF-D003
 
 implementation_note: >-
-  This adapter is a design specification. No Harness integration or acceptance
-  execution is asserted by this file.
+  Skill discovery, custom-model Web invocation, Windows workspace registration and
+  read-only validator execution have a content-addressed partial runtime observation.
+  No Capability integration, acceptance execution or lifecycle qualification is asserted.

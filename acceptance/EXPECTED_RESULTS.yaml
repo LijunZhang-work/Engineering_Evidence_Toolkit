@@ -11,6 +11,30 @@ result_contract:
     - forbidden_claim_absence
     - counter_control_result
 
+executable_subset:
+  status: PARTIAL
+  runner: tools/windows_precheck_mvp.py
+  tests: tools/test_windows_precheck_mvp.py
+  fixtures: acceptance/fixtures/windows-mvp
+  covered_or_partially_covered_cases:
+    - ACC-STRUCT-002
+    - ACC-STRUCT-003
+    - ACC-BUILD-001
+    - ACC-EXT-001
+    - quoted_include_resolution_subset
+    - target_routed_reachable_header_scope
+    - empty_scope_is_inconclusive
+    - raw_string_counter_control
+    - workspace_path_containment
+    - report_limitation_parity
+    - clean_counter_control
+  explicit_non_claims:
+    - full_acceptance_matrix_executed
+    - product_compiler_or_linker_executed
+    - dt_or_runtime_executed
+    - company_environment_qualified
+    - end_to_end_active_negative_canary_executed
+
 cases:
   ACC-STRUCT-001:
     expected_findings:

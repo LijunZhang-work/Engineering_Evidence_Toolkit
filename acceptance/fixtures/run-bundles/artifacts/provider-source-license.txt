@@ -1,0 +1,2 @@
+Acceptance fixture license marker.
+This file is test data only and grants no production qualification or activation.

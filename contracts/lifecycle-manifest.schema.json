@@ -13,11 +13,12 @@
     "status_dimensions": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["specification_status", "implementation_status", "validation_status", "activation_status"],
+      "required": ["specification_status", "implementation_status", "validation_status", "qualification_status", "activation_status"],
       "properties": {
         "specification_status": {"const": "DESIGNED"},
         "implementation_status": {"enum": ["NOT_IMPLEMENTED", "PARTIAL", "IMPLEMENTED"]},
         "validation_status": {"enum": ["NOT_RUN", "PARTIAL", "PASSED", "FAILED", "STALE"]},
+        "qualification_status": {"enum": ["NOT_ASSESSED", "UNQUALIFIED", "QUALIFIED_WITH_LIMITS", "QUALIFIED"]},
         "activation_status": {"enum": ["INACTIVE", "ACTIVE", "SUSPENDED", "RETIRED"]}
       }
     },
@@ -37,8 +38,30 @@
           "side_effect": {"enum": ["READ_ONLY", "TOOLKIT_MANAGED_WRITE", "TOOLKIT_MANAGED_REMOVE"]},
           "dry_run_required": {"type": "boolean"},
           "command": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+          "evidence_refs": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {"type": "string", "minLength": 1}
+          },
           "description": {"type": "string", "minLength": 1}
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {"implementation_status": {"const": "IMPLEMENTED"}},
+              "required": ["implementation_status"]
+            },
+            "then": {"required": ["command", "evidence_refs"]}
+          },
+          {
+            "if": {
+              "properties": {"validation_status": {"enum": ["PASSED", "FAILED", "STALE"]}},
+              "required": ["validation_status"]
+            },
+            "then": {"required": ["evidence_refs"]}
+          }
+        ]
       }
     },
     "safety_invariants": {

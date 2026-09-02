@@ -190,6 +190,51 @@ stages:
       - F3_DT_AND_CONTRACT_INTEGRATION
       - F5_EXTERNAL_EVIDENCE_RECONCILIATION
 
+  - id: S6A_AUTHORIZED_REMEDIATION
+    objective: 仅在当前快照绑定的显式授权范围内修复已被证据定位的高置信问题
+    invoke: change-safety
+    operation: apply_bounded_change
+    conditional: approved_remediation_exists_and_valid_authorization_receipt_is_present
+    requirements:
+      - root_cause_claim_is_proven_for_declared_scope
+      - proposed_change_is_bound_to_allowed_paths_and_size_limits
+      - unrelated_user_changes_are_preserved
+      - each_changed_hunk_is_recorded
+      - mutation_receipt_references_authorization_receipt
+    when_not_authorized:
+      - preserve_finding_and_recommended_change
+      - perform_no_mutation
+      - continue_to_verdict_with_explicit_limitation
+    outputs:
+      - mutation_receipt
+      - exact_change_set
+      - updated_workspace_content_id
+
+  - id: S6B_POST_REMEDIATION_REVERIFY
+    objective: 修改后重新冻结输入、失效旧证据并复跑受影响门禁
+    conditional: mutation_receipt_exists
+    invokes:
+      - workspace-snapshot
+      - change-safety
+      - code-fact
+      - build-dependency-audit
+      - windows-static-precheck
+      - external-evidence
+      - evidence-kernel
+    requirements:
+      - invalidate_all_evidence_bound_to_previous_workspace_content_id
+      - capture_new_workspace_snapshot
+      - run_change_safety_before_any_success_claim
+      - refresh_or_reject_stale_provider_indexes
+      - rerun_affected_claims_and_gates
+      - reconcile_original_user_error_against_new_snapshot
+    outputs:
+      - post_change_workspace_snapshot
+      - post_change_safety_receipts
+      - refreshed_evidence
+      - re_evaluated_claims
+      - re_evaluated_gates
+
   - id: S7_VERDICT_AND_REPORTS
     objective: 对全部 Gate 求值并从同一事实源生成三种视图
     invokes:

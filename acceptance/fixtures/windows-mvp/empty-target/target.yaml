@@ -1,0 +1,8 @@
+schema_version: "1.0.0"
+target_id: empty_target
+scope_kind: FULL_TARGET
+source_origin: FIXTURE_DECLARATION
+source_origin_ref: target.yaml
+sources: []
+expected_sources: []
+include_dirs: [.]

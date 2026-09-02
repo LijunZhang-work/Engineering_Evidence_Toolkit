@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "StatusEvidenceReceipt",
+  "subject_id": "windows-static-precheck",
+  "status_axis": "validation",
+  "evidence_kind": "TEST_RECEIPT",
+  "result": "PARTIAL",
+  "observed_at": "2026-09-01T23:51:11Z",
+  "scope": "FOCUSED_SUBSET",
+  "command": ["python", "-m", "unittest", "tools.test_windows_precheck_mvp", "-v"],
+  "exit_code": 0,
+  "checks": {"passed": 25, "total": 25},
+  "dependencies": [
+    {"path": "tools/windows_precheck_mvp.py", "content_id": "sha256:1d18fb1ac02b062367216f84967a35d5b824e6c3ae9f779f85cbdb5bd0c18b17"},
+    {"path": "tools/test_windows_precheck_mvp.py", "content_id": "sha256:79d68ee7819dd985a28e5ce675d19edbef02d6493883bbf0b54562fd997ab06a"}
+  ]
+}

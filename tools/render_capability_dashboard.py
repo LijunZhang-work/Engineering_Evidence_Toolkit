@@ -9,6 +9,7 @@ generated from parseable inputs; it does not validate or activate a capability.
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import html
 import json
@@ -59,6 +60,7 @@ STATUS_SCORES = {
         "VALIDATED": 100,
     },
     "qualification": {
+        "NOT_ASSESSED": 0,
         "NOT_RUN": 0,
         "UNQUALIFIED": 0,
         "QUALIFIED_WITH_LIMITS": 50,
@@ -174,7 +176,7 @@ def build_capability(
         "specification": str(dimensions.get("specification_status") or manifest.get("status") or "MISSING"),
         "implementation": dimensions.get("implementation_status"),
         "validation": dimensions.get("validation_status"),
-        "qualification": manifest.get("qualification_status"),
+        "qualification": dimensions.get("qualification_status"),
         "activation": dimensions.get("activation_status"),
     }
     evidence: dict[str, list[str]] = {
@@ -189,16 +191,16 @@ def build_capability(
     if spec_path.exists():
         evidence["specification"].append(str(spec_path.relative_to(ROOT)))
 
-    dimension_field = {
-        "implementation": "implementation_status",
-        "validation": "validation_status",
-        "activation": "activation_status",
-    }
-    for stage, field in dimension_field.items():
-        if raw_statuses[stage] is not None:
-            evidence[stage].append(f"{manifest_path.relative_to(ROOT)}#status_dimensions.{field}")
-    if raw_statuses["qualification"] is not None:
-        evidence["qualification"].append(f"{manifest_path.relative_to(ROOT)}#qualification_status")
+    declared_evidence = manifest.get("status_evidence", {})
+    if isinstance(declared_evidence, dict):
+        for stage in ("implementation", "validation", "qualification", "activation"):
+            refs = declared_evidence.get(stage, [])
+            if isinstance(refs, list):
+                evidence[stage].extend(
+                    str(ref.get("path"))
+                    for ref in refs
+                    if isinstance(ref, dict) and isinstance(ref.get("path"), str) and ref.get("path")
+                )
 
     for stage in ("implementation", "validation", "qualification", "activation"):
         if raw_statuses[stage] is None:
@@ -269,6 +271,32 @@ def data_digest(paths: list[Path]) -> str:
     return digest.hexdigest()
 
 
+def capability_source_paths(entry: dict[str, Any]) -> list[Path]:
+    """Return every file that can justify a capability card or its freshness."""
+
+    capability_root = ROOT / str(entry["path"])
+    manifest_path = capability_root / "CAPABILITY.yaml"
+    manifest = load_yaml(manifest_path)
+    paths = [manifest_path]
+    spec_path = capability_root / str(manifest.get("spec") or "SPEC.md")
+    if spec_path.is_file():
+        paths.append(spec_path)
+    status_evidence = manifest.get("status_evidence", {})
+    if isinstance(status_evidence, dict):
+        for refs in status_evidence.values():
+            if not isinstance(refs, list):
+                continue
+            for ref in refs:
+                if not isinstance(ref, dict) or not isinstance(ref.get("path"), str):
+                    continue
+                dependency = ROOT / ref["path"]
+                if dependency.is_file():
+                    paths.append(dependency)
+                elif dependency.is_dir():
+                    paths.extend(path for path in dependency.rglob("*") if path.is_file())
+    return paths
+
+
 def build_snapshot() -> dict[str, Any]:
     toolkit_manifest_path = ROOT / "TOOLKIT_MANIFEST.yaml"
     state_path = ROOT / "CURRENT_STATE.yaml"
@@ -284,11 +312,7 @@ def build_snapshot() -> dict[str, Any]:
         if not isinstance(entry, dict) or "id" not in entry or "path" not in entry:
             raise ValueError(f"Invalid capability entry: {entry!r}")
         capabilities.append(build_capability(entry, state))
-        capability_root = ROOT / str(entry["path"])
-        source_paths.append(capability_root / "CAPABILITY.yaml")
-        spec_path = capability_root / "SPEC.md"
-        if spec_path.exists():
-            source_paths.append(spec_path)
+        source_paths.extend(capability_source_paths(entry))
 
     summary = {
         "complete": sum(item["category"] == "complete" for item in capabilities),
@@ -304,11 +328,23 @@ def build_snapshot() -> dict[str, Any]:
     return {
         "toolkit_version": metadata.get("version", "UNKNOWN") if isinstance(metadata, dict) else "UNKNOWN",
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "source_digest": data_digest(source_paths),
+        "source_digest": data_digest(list(dict.fromkeys(source_paths))),
         "formula": [dict(item) for item in STAGES],
         "summary": summary,
         "capabilities": capabilities,
     }
+
+
+def stable_snapshot(snapshot: dict[str, Any]) -> dict[str, Any]:
+    """Return the full comparable payload, excluding only render time."""
+
+    result = copy.deepcopy(snapshot)
+    result.pop("generated_at", None)
+    return result
+
+
+def snapshots_match(left: dict[str, Any], right: dict[str, Any]) -> bool:
+    return stable_snapshot(left) == stable_snapshot(right)
 
 
 def static_card_html(item: dict[str, Any], selected: bool = False) -> str:

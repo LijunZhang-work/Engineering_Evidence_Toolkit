@@ -1,0 +1,17 @@
+schema_version: "1.0.0"
+kind: BoundedEditAuthorization
+authorization_id: fixture-safe-edit
+authority_ref: authority_fixture_safe_edit_runner
+issued_by: fixture-safe-edit-authority
+environment_scope: ACCEPTANCE_FIXTURE
+issued_at: "2026-09-01T00:00:00Z"
+expires_at: "2027-09-01T00:00:00Z"
+edit_plan:
+  path: acceptance/fixtures/profile-runner/exact-edit-plan.yaml
+  content_id: sha256:74d2c0aacdafcdecad7546ce0842a95f096b661524918302a483634338b85ce5
+allowed_paths: [source.cpp]
+expected_input_content_ids:
+  - sha256:f2464eee21246f5c8370198db8ab3db3970f940c1ad1a82d4d8ea8e6e3a645df
+maximum_changed_files: 1
+maximum_deleted_lines: 0
+purpose: 仅用于临时复制的少右括号验收夹具，验证显式授权、修改、diff 与后置复验链路。

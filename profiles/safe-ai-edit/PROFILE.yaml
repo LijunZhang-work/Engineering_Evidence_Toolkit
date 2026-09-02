@@ -3,6 +3,7 @@ status_dimensions:
   specification_status: DESIGNED
   implementation_status: NOT_IMPLEMENTED
   validation_status: NOT_RUN
+  qualification_status: NOT_ASSESSED
   activation_status: INACTIVE
 schema_version: "1.0.0"
 kind: ToolkitProfile
@@ -18,6 +19,10 @@ profile_is_optional: true
 standalone_capability_use_allowed: true
 capability_internal_access: forbidden
 direct_provider_access: forbidden
+default_mode: EVIDENCE
+supported_modes:
+  - EVIDENCE
+  - ENFORCE
 runner_contract: ../../composition/PROFILE_RUNNER_CONTRACT.yaml
 
 capabilities:
@@ -68,8 +73,46 @@ hard_invariants:
 
 repository_reader_policy: ../../governance/REPOSITORY_READER_AND_NAMING_POLICY.yaml
 
-results:
-  - ACCEPTABLE_WITH_EVIDENCE
-  - REJECTED
+edit_assessment_states:
+  - POST_EDIT_EVIDENCE_COMPLETE
+  - POST_EDIT_EVIDENCE_INCOMPLETE
+  - EDIT_NOT_REQUIRED
+  - EDIT_BLOCKED
+
+assessment_projection:
+  target: CANONICAL_CLAIM_GATE_VERDICT
+  rules:
+    - edit_assessment_is_not_a_second_final_verdict
+    - post_edit_evidence_complete_still_requires_all_required_claims_and_gates
+    - incomplete_or_blocked_assessment_cannot_project_to_ACCEPT
+    - no_edit_required_preserves_original_claim_and_gate_evaluation
+
+gates:
+  - F0_EDIT_AUTHORIZATION
+  - F1_BASELINE_AND_SCOPE
+  - F2_STRUCTURAL_CHANGE_SAFETY
+  - F3_BUILD_TARGET_AND_DEPENDENCY
+  - F4_POST_EDIT_REVALIDATION
+  - F5_EXTERNAL_EVIDENCE_RECONCILIATION
+  - F6_AUDITABILITY_AND_DELIVERY
+
+gate_result_values:
+  - PASS
+  - FAIL
   - INCONCLUSIVE
-  - NO_EDIT_NEEDED
+  - NOT_APPLICABLE
+  - WAIVED
+  - NOT_EVALUATED
+
+final_verdicts:
+  - ACCEPT
+  - ACCEPT_WITH_RISK
+  - REJECT
+  - INCOMPLETE
+  - NO_VERDICT
+
+report_views:
+  - professional
+  - plain-language
+  - machine_readable
+single_fact_source_for_all_views: true

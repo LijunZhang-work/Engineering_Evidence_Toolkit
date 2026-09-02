@@ -58,9 +58,13 @@ def classify(checks: list[dict[str, Any]]) -> str:
 def build_report() -> dict[str, Any]:
     checks = [
         dependency_status("yaml", required=True),
-        dependency_status("jsonschema", required=False),
+        dependency_status("jsonschema", required=True),
         run_script("tools/test_capability_dashboard.py"),
         run_script("tools/test_lifecycle_and_harness_contracts.py"),
+        run_script("tools/test_run_bundle_validator.py"),
+        run_script("tools/test_windows_precheck_mvp.py"),
+        run_script("tools/test_profile_runner_mvp.py"),
+        run_script("tools/test_status_promotion.py"),
         run_script("tools/validate_toolkit.py"),
     ]
     status = classify(checks)
@@ -71,7 +75,7 @@ def build_report() -> dict[str, Any]:
         "status": status,
         "checks": checks,
         "limitations": [
-            "No Capability implementation or business source was executed.",
+            "No business source was executed; the Runner check mutates only an isolated OS-temp acceptance-fixture copy.",
             "Doctor success does not prove Windows precheck, compilation, DT, provider or review correctness.",
         ],
     }
@@ -85,7 +89,7 @@ def render_text(report: dict[str, Any]) -> str:
     ]
     for check in report["checks"]:
         lines.append(f"- {check['status']}: {check['id']}")
-    lines.append("No Capability or business-code check was executed.")
+    lines.append("No business-code check was executed; any mutation test is restricted to an OS-temp fixture copy.")
     return "\n".join(lines)
 
 

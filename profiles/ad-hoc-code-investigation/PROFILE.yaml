@@ -3,6 +3,7 @@ status_dimensions:
   specification_status: DESIGNED
   implementation_status: NOT_IMPLEMENTED
   validation_status: NOT_RUN
+  qualification_status: NOT_ASSESSED
   activation_status: INACTIVE
 schema_version: "1.0.0"
 kind: ToolkitProfile
@@ -55,3 +56,31 @@ outputs:
   - freshness
   - conclusion_ceiling
   - limitations
+
+gates:
+  - F0_SCOPE_AND_SNAPSHOT
+  - F1_PROVIDER_QUALIFICATION
+  - F2_CODE_FACT_COVERAGE
+  - F3_CLAIM_EVIDENCE
+  - F4_AUDITABILITY_AND_DELIVERY
+
+gate_result_values:
+  - PASS
+  - FAIL
+  - INCONCLUSIVE
+  - NOT_APPLICABLE
+  - WAIVED
+  - NOT_EVALUATED
+
+final_verdicts:
+  - ACCEPT
+  - ACCEPT_WITH_RISK
+  - REJECT
+  - INCOMPLETE
+  - NO_VERDICT
+
+report_views:
+  - professional
+  - plain-language
+  - machine_readable
+single_fact_source_for_all_views: true

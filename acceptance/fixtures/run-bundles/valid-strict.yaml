@@ -1,0 +1,557 @@
+schema_version: "1.0.0"
+bundle_id: rnb_valid_strict
+created_at: "2026-09-02T00:00:00Z"
+
+trust_context:
+  authority_registry_content_id: sha256:fbc6da1e3475a36146c17fbafec30bc9602e4c30c5902b663b69170fe2672431
+  environment_scope: ACCEPTANCE_FIXTURE
+
+run_policy:
+  schema_version: "1.0.0"
+  kind: AssuranceRunPolicy
+  id: strict
+  version: 1.0.0
+  display_name: 严格门禁
+  description: 对声明范围执行阻断式机器门禁；关键 Claim 必须有独立交叉证据、有效 Canary 和完整语义校验。
+  preset: STRICT
+  mode: ENFORCE
+  outcome_authority: FINAL_VERDICT
+  enforcement: BLOCKING
+  allowed_final_verdicts: [ACCEPT, ACCEPT_WITH_RISK, REJECT, INCOMPLETE]
+  evidence_requirements:
+    coverage_requirement: COMPLETE_DECLARED_SCOPE
+    corroboration: REQUIRED_FOR_CRITICAL_CLAIMS
+    minimum_independent_sources: 2
+    high_risk_minimum_independent_sources: 2
+    fresh_workspace_binding: true
+    active_negative_canary: true
+    user_error_reconciliation: true
+  provider_strategy:
+    selection: QUALIFIED_ACCURACY_FIRST
+    fallback_required: true
+    provider_chain_is_hint: true
+    max_provider_invocations_per_claim: 6
+    timeout_budget_seconds: 3600
+    preferred_provider_classes: [compiler_or_parser, qualified_index, structural_search, lexical_search]
+  invariants:
+    no_fabrication: true
+    no_hidden_conflicts: true
+    user_errors_are_first_class: true
+    no_unauthorized_mutation: true
+    no_overclaiming: true
+
+workspace_snapshot:
+  schema_version: "1.0.0"
+  snapshot_id: wss_valid_strict
+  captured_at: "2026-09-02T00:00:00Z"
+  captured_by: acceptance-fixture
+  content_id: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  provenance_id: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  repositories:
+    - repository_id: repo_main
+      path: acceptance/fixtures/run-bundles/workspace
+      role: product_source
+      availability: PRESENT
+      revision_status: FROZEN
+      commit: "0123456789abcdef"
+      branch: main
+      submodules: NONE
+      lfs: NONE
+      working_tree_status: CLEAN
+      untracked_files_status: NONE
+  build_context:
+    target_environment_status: KNOWN
+    profiles:
+      - profile_id: build_windows
+        purpose: WINDOWS_PRECHECK
+        environment: Windows 11 + MSVC
+        compiler: cl.exe
+        compiler_version: "19.40"
+        target: sample_target
+        generated_inputs_status: COMPLETE
+        completeness: COMPLETE_FOR_SCOPE
+        receipt_refs: [rcpt_parser]
+    authoritative_profile_id: build_windows
+    windows_precheck_equivalence: EQUIVALENT_FOR_DECLARED_SCOPE
+    equivalence_evidence_refs: [ev_parser]
+  authority_source_refs: [authority_fixture]
+  limitations: []
+  file_manifest:
+    content_id: sha256:66d7e8fbd214ce7f3253de1b3ca9ee98dd8a1371ce2e3f6197c1d3274dfbcc67
+    expected_units: 1
+    entries:
+      - repository_id: repo_main
+        path: sample.cpp
+        content_id: sha256:9e920c9d63eff27d16f021e776a187fa15e8a7f0aa885ab46ead8312de3b1cf5
+        size_bytes: 86
+
+collaboration_snapshot:
+  schema_version: "1.0.0"
+  snapshot_id: css_valid_strict
+  workspace_snapshot_id: wss_valid_strict
+  captured_at: "2026-09-02T00:00:01Z"
+  captured_by: acceptance-fixture
+  content_id: sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  provenance_id: sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+  delivery_mode: SOLO
+  readiness: ALL_EXPECTED_CODE_PRESENT
+  components:
+    - component_id: sample_target
+      responsible_party: fixture-owner
+      code_availability: PRESENT
+      expected_in_snapshot: true
+      repository_id: repo_main
+      handoff_contract_status: CONFIRMED
+  unknowns: []
+  receipt_refs: []
+
+instance:
+  schema_version: "1.0.0"
+  run_id: run_valid_strict
+  assurance_policy:
+    policy_id: strict
+    version: 1.0.0
+    policy_content_id: sha256:974e5f69ab899b7dedac57562607b08238554e58fedbb30f6ab1b8f96981e646
+    preset: STRICT
+    outcome_authority: FINAL_VERDICT
+  mode: ENFORCE
+  profile: null
+  execution_status: COMPLETED
+  workspace_snapshot_id: wss_valid_strict
+  collaboration_snapshot_id: css_valid_strict
+  started_at: "2026-09-02T00:00:00Z"
+  updated_at: "2026-09-02T00:02:00Z"
+  heartbeat_at: "2026-09-02T00:02:00Z"
+  tasks:
+    - task_id: task_parser
+      capability_id: windows-static-precheck
+      execution_status: COMPLETED
+      attempt: 1
+      required_for_verdict: true
+      depends_on: []
+      receipt_refs: [rcpt_parser]
+    - task_id: task_structural
+      capability_id: change-safety
+      execution_status: COMPLETED
+      attempt: 1
+      required_for_verdict: true
+      depends_on: []
+      receipt_refs: [rcpt_structural]
+  claims:
+    - claim_id: cl_build_validity
+      claim_status: PROVEN
+      claim_ref: cl_build_validity
+      required_for_verdict: true
+  gates:
+    - gate_id: F2_BUILD_TARGET_AND_DEPENDENCY
+      gate_status: PASS
+      reason: 两个独立且合格的检查在当前快照完整覆盖声明范围。
+      claim_refs: [cl_build_validity]
+      evidence_refs: [ev_parser, ev_structural]
+  final_verdict: INCOMPLETE
+  collaboration_readiness: ALL_EXPECTED_CODE_PRESENT
+  mutation_validation_status: NOT_APPLICABLE
+  wait_state:
+    waiting_for_user: false
+    reason_code: NONE
+    continueable_task_ids: []
+  external_failures: []
+  checkpoint_refs: [checkpoint_final]
+  report_refs: [rpt_machine, rpt_professional, rpt_novice]
+  run_bundle_digest: sha256:28c670d92c05d7bb2bc2a66dc6b516bc8a63613e89a3a19a374ff37c6aca51a8
+
+receipts:
+  - schema_version: "1.0.0"
+    receipt_id: rcpt_parser
+    receipt_type: EVIDENCE_CHECK
+    run_id: run_valid_strict
+    workspace_snapshot_id: wss_valid_strict
+    capability_id: windows-static-precheck
+    actor: acceptance-fixture
+    created_at: "2026-09-02T00:00:30Z"
+    started_at: "2026-09-02T00:00:10Z"
+    ended_at: "2026-09-02T00:00:30Z"
+    duration_ms: 20000
+    execution_status: COMPLETED
+    provider:
+      provider_id: fixture-parser
+      version: "1.0"
+      artifact_content_id: sha256:1111111111111111111111111111111111111111111111111111111111111111
+      qualification_ref: qual_fixture_parser
+    invocation:
+      kind: COMMAND
+      command: [fixture-parser, --check, sample.cpp]
+      working_directory: acceptance/fixtures/run-bundles/workspace
+      environment_keys: [PATH]
+      redacted: true
+      redaction_notes: fixture has no secrets
+    inputs:
+      - name: sample.cpp
+        content_id: sha256:9e920c9d63eff27d16f021e776a187fa15e8a7f0aa885ab46ead8312de3b1cf5
+        role: TARGET_INPUT
+        provenance_id: sha256:2323232323232323232323232323232323232323232323232323232323232323
+        location: acceptance/fixtures/run-bundles/workspace/sample.cpp
+        media_type: text/x-c++src
+      - name: missing-paren.cpp
+        content_id: sha256:ada3b920a4f8e5cbe10fff837a4553077921d99145273d62b80414d9eda3ac9a
+        role: CANARY_NEGATIVE
+        provenance_id: sha256:2424242424242424242424242424242424242424242424242424242424242424
+        location: acceptance/fixtures/run-bundles/canary/missing-paren.cpp
+        media_type: text/x-c++src
+      - name: control.cpp
+        content_id: sha256:d618c758c4a31eea28192878f7b3b473b26b5ae635b2dc84c078616a7cce1bdd
+        role: CANARY_CONTROL
+        provenance_id: sha256:2525252525252525252525252525252525252525252525252525252525252525
+        location: acceptance/fixtures/run-bundles/canary/control.cpp
+        media_type: text/x-c++src
+    outputs:
+      - name: parser-diagnostics.json
+        content_id: sha256:0ed0b1d92dc875a8978c93fb814b6c185370797456b48d5a32928c0603b80ed5
+        role: RESULT
+        provenance_id: sha256:3434343434343434343434343434343434343434343434343434343434343434
+        location: acceptance/fixtures/run-bundles/artifacts/parser-diagnostics.json
+        media_type: application/json
+      - name: parser-canary.json
+        content_id: sha256:d572f7f899d5e41b79bd2741e8f7773541303275f04e31cf3325cd290d4294c4
+        role: CANARY_RESULT
+        provenance_id: sha256:3535353535353535353535353535353535353535353535353535353535353535
+        location: acceptance/fixtures/run-bundles/artifacts/parser-canary.json
+        media_type: application/json
+    exit_code: 0
+    content_id: sha256:4444444444444444444444444444444444444444444444444444444444444444
+    provenance_id: sha256:4545454545454545454545454545454545454545454545454545454545454545
+    tool_qualification_status: QUALIFIED
+    effectiveness_status: EFFECTIVE_FOR_SCOPE
+    coverage_summary:
+      expected_units: 1
+      processed_units: 1
+      failed_units: 0
+      skipped_units: 0
+    canary:
+      case_id: missing-paren
+      negative_input_content_id: sha256:ada3b920a4f8e5cbe10fff837a4553077921d99145273d62b80414d9eda3ac9a
+      control_input_content_id: sha256:d618c758c4a31eea28192878f7b3b473b26b5ae635b2dc84c078616a7cce1bdd
+      result_artifact_content_id: sha256:d572f7f899d5e41b79bd2741e8f7773541303275f04e31cf3325cd290d4294c4
+      expected_signal: missing closing parenthesis is diagnosed
+      observed_signal: true
+      control_observed_clean: true
+      status: PASS
+    build_profile_id: build_windows
+    limitations: []
+    errors: []
+  - schema_version: "1.0.0"
+    receipt_id: rcpt_structural
+    receipt_type: EVIDENCE_CHECK
+    run_id: run_valid_strict
+    workspace_snapshot_id: wss_valid_strict
+    capability_id: change-safety
+    actor: acceptance-fixture
+    created_at: "2026-09-02T00:01:00Z"
+    started_at: "2026-09-02T00:00:40Z"
+    ended_at: "2026-09-02T00:01:00Z"
+    duration_ms: 20000
+    execution_status: COMPLETED
+    provider:
+      provider_id: fixture-ast
+      version: "1.0"
+      artifact_content_id: sha256:5555555555555555555555555555555555555555555555555555555555555555
+      qualification_ref: qual_fixture_ast
+    invocation:
+      kind: COMMAND
+      command: [fixture-ast, scan, sample.cpp]
+      working_directory: acceptance/fixtures/run-bundles/workspace
+      environment_keys: [PATH]
+      redacted: true
+      redaction_notes: fixture has no secrets
+    inputs:
+      - name: sample.cpp
+        content_id: sha256:9e920c9d63eff27d16f021e776a187fa15e8a7f0aa885ab46ead8312de3b1cf5
+        role: TARGET_INPUT
+        provenance_id: sha256:2323232323232323232323232323232323232323232323232323232323232323
+        location: acceptance/fixtures/run-bundles/workspace/sample.cpp
+        media_type: text/x-c++src
+      - name: missing-paren.cpp
+        content_id: sha256:ada3b920a4f8e5cbe10fff837a4553077921d99145273d62b80414d9eda3ac9a
+        role: CANARY_NEGATIVE
+        provenance_id: sha256:6868686868686868686868686868686868686868686868686868686868686868
+        location: acceptance/fixtures/run-bundles/canary/missing-paren.cpp
+        media_type: text/x-c++src
+      - name: control.cpp
+        content_id: sha256:d618c758c4a31eea28192878f7b3b473b26b5ae635b2dc84c078616a7cce1bdd
+        role: CANARY_CONTROL
+        provenance_id: sha256:6969696969696969696969696969696969696969696969696969696969696969
+        location: acceptance/fixtures/run-bundles/canary/control.cpp
+        media_type: text/x-c++src
+    outputs:
+      - name: structural-report.json
+        content_id: sha256:3a4f9d46a0439d8e8e56ff4132a2f1564983cb621dd5bb6fd072f45a0a6fde3f
+        role: RESULT
+        provenance_id: sha256:6767676767676767676767676767676767676767676767676767676767676767
+        location: acceptance/fixtures/run-bundles/artifacts/structural-report.json
+        media_type: application/json
+      - name: structural-canary.json
+        content_id: sha256:1c7ebb5eea026f4f3e5831fa825a99a8df594cf247f7081f98efeede931fa5ef
+        role: CANARY_RESULT
+        provenance_id: sha256:7070707070707070707070707070707070707070707070707070707070707070
+        location: acceptance/fixtures/run-bundles/artifacts/structural-canary.json
+        media_type: application/json
+    exit_code: 0
+    content_id: sha256:7777777777777777777777777777777777777777777777777777777777777777
+    provenance_id: sha256:7878787878787878787878787878787878787878787878787878787878787878
+    tool_qualification_status: QUALIFIED
+    effectiveness_status: EFFECTIVE_FOR_SCOPE
+    coverage_summary:
+      expected_units: 1
+      processed_units: 1
+      failed_units: 0
+      skipped_units: 0
+    canary:
+      case_id: missing-paren
+      negative_input_content_id: sha256:ada3b920a4f8e5cbe10fff837a4553077921d99145273d62b80414d9eda3ac9a
+      control_input_content_id: sha256:d618c758c4a31eea28192878f7b3b473b26b5ae635b2dc84c078616a7cce1bdd
+      result_artifact_content_id: sha256:1c7ebb5eea026f4f3e5831fa825a99a8df594cf247f7081f98efeede931fa5ef
+      expected_signal: missing closing parenthesis is diagnosed
+      observed_signal: true
+      control_observed_clean: true
+      status: PASS
+    limitations: []
+    errors: []
+
+evidence:
+  - schema_version: "1.0.0"
+    evidence_id: ev_parser
+    claim_id: cl_build_validity
+    workspace_snapshot_id: wss_valid_strict
+    content_id: sha256:8888888888888888888888888888888888888888888888888888888888888888
+    provenance_id: sha256:8989898989898989898989898989898989898989898989898989898989898989
+    created_at: "2026-09-02T00:00:31Z"
+    direction: SUPPORTS
+    mode: ENFORCE
+    capability:
+      capability_id: windows-static-precheck
+      version: 0.1.0-draft
+      contract_version: "1.0.0"
+      provider_id: fixture-parser
+      provider_version: "1.0"
+      provider_qualification_status: QUALIFIED
+    scope:
+      description: sample_target 中 sample.cpp 的声明范围
+      repository_ids: [repo_main]
+      targets: [sample_target]
+      files: [sample.cpp]
+      build_profile_ids: [build_windows]
+    derivation_method: parser
+    assertion_source: code
+    verification_status: verified
+    freshness_status: fresh
+    freshness_basis:
+      workspace_content_id: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      checked_at: "2026-09-02T00:00:31Z"
+      receipt_ref: rcpt_parser
+    coverage_status: complete
+    coverage:
+      expected_units: 1
+      covered_units: 1
+      failed_units: 0
+      excluded_units: 0
+      exclusion_reasons: []
+    authority_tier: qualified_parser_for_declared_scope
+    evidence_ceiling: PROOF_FOR_DECLARED_SCOPE
+    artifacts:
+      - artifact_id: art_parser_report
+        content_id: sha256:0ed0b1d92dc875a8978c93fb814b6c185370797456b48d5a32928c0603b80ed5
+        provenance_id: sha256:3434343434343434343434343434343434343434343434343434343434343434
+        location: acceptance/fixtures/run-bundles/artifacts/parser-diagnostics.json
+        media_type: application/json
+        size_bytes: 63
+        captured_at: "2026-09-02T00:00:30Z"
+        description: Parser diagnostics
+    receipt_refs: [rcpt_parser]
+    observations: [声明范围内未发现 Parser 诊断]
+    limitations: []
+    conflict_refs: []
+  - schema_version: "1.0.0"
+    evidence_id: ev_structural
+    claim_id: cl_build_validity
+    workspace_snapshot_id: wss_valid_strict
+    content_id: sha256:9999999999999999999999999999999999999999999999999999999999999999
+    provenance_id: sha256:9090909090909090909090909090909090909090909090909090909090909090
+    created_at: "2026-09-02T00:01:01Z"
+    direction: SUPPORTS
+    mode: ENFORCE
+    capability:
+      capability_id: change-safety
+      version: 0.1.0-draft
+      contract_version: "1.0.0"
+      provider_id: fixture-ast
+      provider_version: "1.0"
+      provider_qualification_status: QUALIFIED
+    scope:
+      description: sample.cpp 的 AST 和文件尾结构
+      repository_ids: [repo_main]
+      targets: [sample_target]
+      files: [sample.cpp]
+    derivation_method: parser
+    assertion_source: code
+    verification_status: verified
+    freshness_status: fresh
+    freshness_basis:
+      workspace_content_id: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      checked_at: "2026-09-02T00:01:01Z"
+      receipt_ref: rcpt_structural
+    coverage_status: complete
+    coverage:
+      expected_units: 1
+      covered_units: 1
+      failed_units: 0
+      excluded_units: 0
+      exclusion_reasons: []
+    authority_tier: qualified_ast_for_declared_scope
+    evidence_ceiling: PROOF_FOR_DECLARED_SCOPE
+    artifacts:
+      - artifact_id: art_structural_report
+        content_id: sha256:3a4f9d46a0439d8e8e56ff4132a2f1564983cb621dd5bb6fd072f45a0a6fde3f
+        provenance_id: sha256:6767676767676767676767676767676767676767676767676767676767676767
+        location: acceptance/fixtures/run-bundles/artifacts/structural-report.json
+        media_type: application/json
+        size_bytes: 60
+        captured_at: "2026-09-02T00:01:00Z"
+        description: Structural report
+    receipt_refs: [rcpt_structural]
+    observations: [声明范围内 AST 和文件尾结构完整]
+    limitations: []
+    conflict_refs: []
+
+claims:
+  - schema_version: "1.0.0"
+    claim_id: cl_build_validity
+    statement: sample.cpp 在冻结的 build_windows 声明范围内通过两种独立结构检查。
+    claim_type: BUILD_VALIDITY
+    criticality: HIGH
+    workspace_snapshot_id: wss_valid_strict
+    scope:
+      description: sample_target 中 sample.cpp 的冻结范围
+      repository_ids: [repo_main]
+      targets: [sample_target]
+      files: [sample.cpp]
+      build_profile_ids: [build_windows]
+    acceptance_criteria:
+      - 两个独立且合格的 Provider 完整覆盖当前快照中的 sample.cpp
+      - 没有反证、失败单元、排除单元或未解决冲突
+    required_authority_tiers: [qualified_parser_for_declared_scope, qualified_ast_for_declared_scope]
+    required_coverage: complete
+    claim_status: PROVEN
+    status_reason: 两份独立、fresh、complete 且有效的证据满足声明范围。
+    supporting_evidence_refs: [ev_parser, ev_structural]
+    refuting_evidence_refs: []
+    unresolved_conflicts: []
+    unknowns: []
+    created_at: "2026-09-02T00:00:00Z"
+    evaluated_at: "2026-09-02T00:01:10Z"
+    evaluated_by: acceptance-fixture
+
+waivers: []
+provider_adoption_decisions:
+  - schema_version: "1.0.0"
+    decision_id: pad_fixture_parser
+    capability_id: windows-static-precheck
+    need: Parse the frozen C++ target and detect the active negative Canary.
+    selected_action: ADOPT
+    selected_candidate_id: fixture-parser
+    candidates:
+      - candidate_id: fixture-parser
+        source_identity: acceptance-fixture://fixture-parser
+        source_receipt:
+          location: acceptance/fixtures/run-bundles/artifacts/provider-source-parser.json
+          content_id: sha256:e2f0512a551e7984fa440220d6eeca3c8b80dcf7f77d35f1e46292840bb2ef22
+        provider_artifact_content_id: sha256:1111111111111111111111111111111111111111111111111111111111111111
+        immutable_revision: fixture-parser@1.0+sha256:1111111111111111111111111111111111111111111111111111111111111111
+        maturity: MATURE
+        license_status: ACCEPTABLE
+        fit: DIRECT
+        decision_layer: ADOPT
+        disposition: SELECTED
+        reason: The acceptance fixture binds an immutable parser artifact and qualification.
+        evidence_refs: [rcpt_parser, ev_parser]
+    decision_reason: Adopt the qualified fixture parser for this bounded acceptance run.
+    evidence_refs: [rcpt_parser, ev_parser]
+    gate_result: PASS
+  - schema_version: "1.0.0"
+    decision_id: pad_fixture_ast
+    capability_id: change-safety
+    need: Independently check AST/file-tail structure and detect the active negative Canary.
+    selected_action: ADOPT
+    selected_candidate_id: fixture-ast
+    candidates:
+      - candidate_id: fixture-ast
+        source_identity: acceptance-fixture://fixture-ast
+        source_receipt:
+          location: acceptance/fixtures/run-bundles/artifacts/provider-source-ast.json
+          content_id: sha256:c4c7140474a254d6be7baa012dc44a833906c47bb89b95e8084f64f933ad59bc
+        provider_artifact_content_id: sha256:5555555555555555555555555555555555555555555555555555555555555555
+        immutable_revision: fixture-ast@1.0+sha256:5555555555555555555555555555555555555555555555555555555555555555
+        maturity: MATURE
+        license_status: ACCEPTABLE
+        fit: DIRECT
+        decision_layer: ADOPT
+        disposition: SELECTED
+        reason: The acceptance fixture binds an independent immutable AST checker and qualification.
+        evidence_refs: [rcpt_structural, ev_structural]
+    decision_reason: Adopt the qualified independent structural checker for this bounded run.
+    evidence_refs: [rcpt_structural, ev_structural]
+    gate_result: PASS
+
+provider_qualifications:
+  - schema_version: "1.0.0"
+    qualification_id: qual_fixture_parser
+    capability_id: windows-static-precheck
+    provider_id: fixture-parser
+    provider_version: "1.0"
+    provider_artifact_content_id: sha256:1111111111111111111111111111111111111111111111111111111111111111
+    status: QUALIFIED
+    authority_tier: qualified_parser_for_declared_scope
+    qualified_by: fixture-qualification-lab
+    authority_ref: authority_fixture_qualification_lab
+    trust_domain_id: fixture-parser-implementation
+    decision_ref: pad_fixture_parser
+    qualification_artifact:
+      location: acceptance/fixtures/run-bundles/artifacts/qualification-parser.json
+      content_id: sha256:a7537f6c092561e37fed55da5686b3c78368be6796aec7b035834dc89c56c511
+    issued_at: "2026-09-01T00:00:00Z"
+    expires_at: "2027-09-01T00:00:00Z"
+    limitations: []
+  - schema_version: "1.0.0"
+    qualification_id: qual_fixture_ast
+    capability_id: change-safety
+    provider_id: fixture-ast
+    provider_version: "1.0"
+    provider_artifact_content_id: sha256:5555555555555555555555555555555555555555555555555555555555555555
+    status: QUALIFIED
+    authority_tier: qualified_ast_for_declared_scope
+    qualified_by: fixture-qualification-lab
+    authority_ref: authority_fixture_qualification_lab
+    trust_domain_id: fixture-ast-implementation
+    decision_ref: pad_fixture_ast
+    qualification_artifact:
+      location: acceptance/fixtures/run-bundles/artifacts/qualification-ast.json
+      content_id: sha256:05cbea69ac8fc37919fe5f8b6f764e349d7cdc5a8ee39971c9545a8664376e28
+    issued_at: "2026-09-01T00:00:00Z"
+    expires_at: "2027-09-01T00:00:00Z"
+    limitations: []
+reports:
+  - report_id: rpt_machine
+    audience: MACHINE
+    location: acceptance/fixtures/run-bundles/reports/machine.json
+    content_id: sha256:0dcc8fc26a1d8907a164726ac3053445028717476743b782fe0ecabfc4b5ceba
+    fact_digest: sha256:3e3569f5c1143fc06173be008a93aaea9a19bb5404fdaf5402ad6f1103b8db38
+  - report_id: rpt_professional
+    audience: PROFESSIONAL
+    location: acceptance/fixtures/run-bundles/reports/professional.json
+    content_id: sha256:a3b67df66def996c55bb526c6bdd1a2cfbe83597beb5dd91e1fcb9b3049f2528
+    fact_digest: sha256:3e3569f5c1143fc06173be008a93aaea9a19bb5404fdaf5402ad6f1103b8db38
+  - report_id: rpt_novice
+    audience: NOVICE
+    location: acceptance/fixtures/run-bundles/reports/novice.json
+    content_id: sha256:6e2afd1bd1bf87580ac2dd304115767250460702e1c8d721813908d536ffe5ad
+    fact_digest: sha256:3e3569f5c1143fc06173be008a93aaea9a19bb5404fdaf5402ad6f1103b8db38
+report_fact_digest: sha256:3e3569f5c1143fc06173be008a93aaea9a19bb5404fdaf5402ad6f1103b8db38

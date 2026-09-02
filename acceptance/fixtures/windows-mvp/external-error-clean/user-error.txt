@@ -1,0 +1,2 @@
+source.cpp(2): error C2143: syntax error: missing ')' before '{'
+Environment: authoritative company build; exact flag reconciliation pending.

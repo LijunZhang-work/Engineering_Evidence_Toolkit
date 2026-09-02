@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "CppAcceptanceReceipt",
+  "receipt_type": "SELECTION",
+  "subject_id": "catch2",
+  "environment_scope": "LOCAL_DEVELOPMENT",
+  "environment_content_id": "sha256:344555b6cff20acfaa589d80ac4d924068bd5151b0ed7daffb3386c08ad61afb",
+  "observed_at": "2026-09-02T05:00:00Z",
+  "producer_tool": {
+    "path": "tools/validate_run_bundle.py",
+    "content_id": "sha256:ebfc167dec76f5edcc04973cc3680254dfe9a1dbf84aaf1f8e4efde1526c7d81"
+  },
+  "command": ["python", "tools/validate_run_bundle.py", "self-reported-selection.yaml"],
+  "exit_code": 0,
+  "dependencies": [
+    {
+      "path": "acceptance/cpp-target-selection/CANDIDATE_SELECTION.yaml",
+      "content_id": "sha256:314bc2d176137c324f853add5f0948deed56046d94e82034d2ad7c1d2d2caf58"
+    }
+  ],
+  "raw_artifacts": [
+    {
+      "path": "acceptance/cpp-target-selection/CANDIDATE_SELECTION.yaml",
+      "content_id": "sha256:314bc2d176137c324f853add5f0948deed56046d94e82034d2ad7c1d2d2caf58"
+    }
+  ],
+  "attestation": {
+    "authority_ref": "authority_fixture_qualification_lab",
+    "issued_by": "fixture-qualification-lab"
+  },
+  "result": {
+    "candidate_id": "catch2",
+    "commit": "317ac1ed4c0bb6e6b91eafc817e05c488feffcb3",
+    "decision": "SELECTED",
+    "gate_result": "PASS",
+    "selection_criteria_content_id": "sha256:cfaa492b5d8ef97b95f8a7a708700faac1b6e8b891a1ded4969df745fecaa305"
+  }
+}

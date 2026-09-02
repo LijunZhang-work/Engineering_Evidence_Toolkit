@@ -1,0 +1,56 @@
+schema_version: "1.0.0"
+strategy_id: code-fact-query-family-provider-selection
+status: DESIGNED
+validation_status: NOT_RUN
+
+principles:
+  - Provider selection follows the frozen Run Policy and query family, not a universal chain.
+  - QUICK may return after one qualified provider and must keep outcome_authority=HINTS_ONLY.
+  - BALANCED triggers corroboration for high-risk or ambiguous claims.
+  - STRICT requires policy-defined independent evidence for critical Claims and does not treat tool count as proof.
+  - A missing optional Provider never disables native source reading, ripgrep, or Git.
+  - User-selected Providers are honored within qualification and evidence-ceiling constraints.
+
+query_families:
+  - id: broad_discovery
+    preferred_candidates: [zg, codegraph, ripgrep]
+    sequence_semantics: preference_only
+    quick: first_qualified_result_may_stop
+    balanced: corroborate_when_risk_or_ambiguity_triggers
+    strict: use_independent_source_or_parser_evidence_required_by_claim
+  - id: exact_text_and_configuration
+    preferred_candidates: [ripgrep, native-search, zg]
+    sequence_semantics: preference_only
+    quick: first_qualified_result_may_stop
+    balanced: source_location_must_be_returned
+    strict: complete_declared_scope_and_negative_case_coverage_required_for_absence
+  - id: structural_syntax
+    preferred_candidates: [ast-grep, language_parser, native-search]
+    sequence_semantics: query_specific
+    quick: structural_candidate_only
+    balanced: parser_failure_and_scope_are_explicit
+    strict: active_negative_canary_and_full_declared_file_scope_required
+  - id: compiler_and_target_semantics
+    preferred_candidates: [clangd, compiler_or_build_metadata, native-search]
+    sequence_semantics: query_specific
+    quick: hint_only
+    balanced: build_context_binding_required
+    strict: authoritative_target_membership_and_environment_equivalence_required
+  - id: history_and_diff
+    preferred_candidates: [git, native-search]
+    sequence_semantics: query_specific
+    quick: first_qualified_result_may_stop
+    balanced: revision_and_dirty_state_binding_required
+    strict: complete_workspace_snapshot_binding_required
+
+forbidden:
+  - force_ripgrep_after_every_codegraph_or_zg_query
+  - infer_accuracy_from_latency_or_provider_popularity
+  - count_two_views_of_the_same_index_as_independent_sources
+  - use_ast_grep_as_compiler_or_runtime_proof
+  - use_zg_or_codegraph_empty_result_as_unqualified_absence_proof
+
+adoption_gate:
+  schema: ../../contracts/provider-adoption-decision.schema.json
+  order: [ADOPT, ADAPT, BUILD]
+  rule: A later action requires evidence-backed rejection of the earlier applicable candidates.

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/windows-target-manifest.schema.json",
+  "title": "Windows Precheck Target Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "target_id",
+    "scope_kind",
+    "source_origin",
+    "source_origin_ref",
+    "sources",
+    "expected_sources",
+    "include_dirs"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "target_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+    "scope_kind": {"enum": ["FULL_TARGET", "BOUNDED_FILE_SET"]},
+    "source_origin": {
+      "description": "Declared provenance class. This field alone never qualifies a target scope.",
+      "enum": ["CMAKE_FILE_API", "BUILD_SYSTEM_EXPORT", "FIXTURE_DECLARATION", "MANUAL"]
+    },
+    "source_origin_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Artifact identity reference only; qualification requires a supported parser and semantic target binding."
+    },
+    "source_origin_content_id": {
+      "$ref": "#/$defs/digest_id",
+      "description": "Binds bytes but does not prove that those bytes are a valid build-system artifact."
+    },
+    "sources": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/relative_file"}
+    },
+    "expected_sources": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/relative_file"}
+    },
+    "include_dirs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"source_origin": {"enum": ["CMAKE_FILE_API", "BUILD_SYSTEM_EXPORT"]}},
+        "required": ["source_origin"]
+      },
+      "then": {"required": ["source_origin_content_id"]}
+    }
+  ],
+  "$defs": {
+    "digest_id": {"type": "string", "pattern": "^sha256:[A-Fa-f0-9]{64}$"},
+    "relative_file": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?![A-Za-z]:)(?![/\\\\])(?!.*(?:^|[/\\\\])\\.\\.(?:[/\\\\]|$)).+"
+    }
+  }
+}

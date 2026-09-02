@@ -1,0 +1,68 @@
+schema_version: "1.0.0"
+kind: HarnessRuntimeObservation
+observation_id: hro_deepseek-harness_glm-5.3-flash_20260902
+observed_at: "2026-09-01T23:42:44Z"
+adapter_id: deepseek-harness
+harness:
+  source_repository: https://github.com/deepseek-ai/DeepSeek-Harness
+  source_revision: 4e84901e6471b79ec0338099867ebb4606d12bb5
+  version: 0.1.2-alpha.4-4e84901
+  surface: WEB
+model:
+  provider_id: zhipu
+  model_id: glm-5.3-flash
+  configuration_surface: EXTERNAL_CUSTOM_MODEL_UI
+  secret_storage: HARNESS_UI_ONLY
+observer_boundary:
+  role: FINAL_COMPATIBILITY_OBSERVER
+  must_run_after: TOOLKIT_MULTI_ANGLE_REVIEW
+  review_authority: NONE
+  claim_authority: NONE
+  gate_authority: NONE
+  qualification_authority: NONE
+  lifecycle_promotion_authority: NONE
+execution_environment:
+  platform: WINDOWS
+  workspace_root_name: work_Engineering_Evidence_Toolkit
+  source_tree_write: DENIED
+  child_process_temp_write: DENIED
+  access_preset: read-only
+checks:
+  - check_id: specification-validator
+    command: [.venv/Scripts/python.exe, tools/validate_toolkit.py]
+    exit_code: 0
+    status: PASSED
+    checks_passed: 1
+    checks_total: 1
+    error_count: 0
+    assertion_failure_count: 0
+  - check_id: toolkit-doctor
+    command: [.venv/Scripts/python.exe, tools/toolkit_doctor.py]
+    exit_code: 1
+    status: ENVIRONMENT_BLOCKED
+    error_count: 4
+    assertion_failure_count: 0
+    limitation: The read-only Harness preset denied child-process temporary-directory writes required by focused tests.
+  - check_id: selected-unittest-modules
+    command: [.venv/Scripts/python.exe, -m, unittest, tools.test_profile_runner_mvp, tools.test_windows_precheck_mvp, tools.test_lifecycle_and_harness_contracts, -v]
+    exit_code: 1
+    status: ENVIRONMENT_BLOCKED
+    checks_passed: 12
+    checks_total: 41
+    error_count: 29
+    assertion_failure_count: 0
+    limitation: All 29 errors were FileNotFoundError for no usable temporary directory; no assertion failure was observed.
+ui_checks:
+  skill_discovery: PASS
+  custom_model_selection: PASS
+  workspace_registration: PASS
+  chinese_rendering: PASS
+  windows_path_rendering: PASS
+conclusion:
+  runtime_validation_status: PARTIAL
+  capability_validation_status: NOT_RUN
+  environment_blocked: true
+  verdict: NONE
+screenshot:
+  path: acceptance/harness-validation/glm-final-observation.png
+  content_id: sha256:3975cae0cb7d47def21f1a56d25723cdc6677e38059d4f49ccabe2c8d55e2292

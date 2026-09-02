@@ -1,53 +1,33 @@
-# Autonomous Runner
+# Autonomous Continuation Policy
 
-状态：`DESIGNED`。
+状态：`DESIGNED`。为保持 Capability ID 兼容，目录仍名为 `autonomous-runner`，但它不再是第二套 Runner。
 
-## 职责
+## 唯一控制面
 
-在用户离开电脑期间持续推进一张显式任务图：选择 READY 任务、执行、验证、记录、重试或转向其他可执行分支，并周期性保存 checkpoint。它的核心硬约束是：只要仍有 READY 任务且未触发明确 stop policy，就不能因为一项受阻、一次工具失败或“已经有一些结果”而退出。
+`composition/PROFILE_RUNNER_CONTRACT.yaml` 是唯一拥有任务调度、重试、Checkpoint、Instance State 持久化和 Verdict 重算的控制面。本能力是无状态的策略求值器：
+
+`evaluate_continuation(instance_state, authority_envelope, stop_policy) -> continuation_decision`
+
+它回答当前是否仍有 READY/可重试任务、等待用户是否有充分理由、预设停机条件是否真的成立。它不能执行任务、调用 Provider、写 Checkpoint 或修改 Instance State。
+
+## 决策规则
+
+- 仍有 READY 或安全可重试项时返回 `CONTINUE`。
+- 一个分支受阻不能冻结不相关 READY 项。
+- `WAITING_HUMAN_JUSTIFIED` 仅限缺少新增权限、密钥、不可恢复输入或会改变产品语义的用户唯一选择，并必须引用诊断 Receipt。
+- 时间/资源预算耗尽可以返回 `STOP_CONDITION_MET`，但最终结果只能诚实地进入 `INCOMPLETE` 或 `NO_VERDICT`。
+- 任务图循环、状态引用损坏、授权边界不明或无法证明停机条件时返回 `INVALID_STATE/UNKNOWN`。
 
 ## 非职责
 
-- 不自行扩大任务范围、权限或进行未授权外部操作。
-- 不用“冻结”代替诊断，也不把所有不确定项都抛给用户。
-- 不在证据不足时制造一个漂亮的完成报告。
-- 不负责各领域检查逻辑；只调度独立能力。
-
-## 独立入口
-
-`run_until_terminal_condition(task_graph, authority_envelope, stop_policy, budgets?) -> run_state`
-
-## 任务状态与选择
-
-任务状态至少包括 `PENDING`、`READY`、`RUNNING`、`RETRYABLE`、`BLOCKED_LOCAL`、`NEEDS_AUTHORITY`、`DONE`、`FAILED_TERMINAL`。每次调度都重算依赖；一个分支阻塞后必须寻找其他 READY 任务。只允许在下列情况下结束：
-
-1. 所有任务到达允许的终态；
-2. 无 READY/RETRYABLE 项，且每个阻塞项已有诊断、已尝试方案和所缺输入；
-3. 命中用户预先声明的时间/资源/安全 stop policy；
-4. 需要新增权限、凭据、不可逆选择或相互冲突的权威裁决。
-
-## 先诊断再提问
-
-遇到问题必须依次：保留失败证据→分类环境/输入/工具/代码/权限→尝试安全替代路径→缩小最小缺口→继续其他任务。只有答案会实质改变结果且无法从现有证据推导时才提问。提问必须是最小、可行动的问题，而不是“我卡住了怎么办”。
-
-“冻结”只能用于稳定复现输入或隔离受影响分支，必须附范围、原因、解除条件和 owner；禁止把每个问题都冻结，禁止冻结整个 run 来回避定位。
-
-## 输入与输出
-
-输入包含 DAG、每项入口/前置条件/资源/最大重试、授权边界和停机规则。输出必须有事件时间线、每项尝试、证据、checkpoint、剩余 READY/blocked 数、停机判据逐项证明。
-
-## 失败关闭
-
-状态存储损坏、任务图循环、授权不明或无法证明停机条件时不得声称 `COMPLETED`。重启必须从 checkpoint 恢复并校验工作区漂移，不能默默从头或跳项。
-
-## Side effects
-
-仅执行各任务在 authority envelope 内声明的副作用；默认禁止外部提交、上传、消息、依赖安装和系统配置变更。所有修改必须可审计并在任务后验证。
+- 不拥有调度循环、恢复令牌、重试计数或持久化格式。
+- 不生产代码事实、Gate 或最终 Verdict。
+- 不自行扩大任务范围、权限或进行外部操作。
+- 不把“已经有一些结果”当作停机条件。
 
 ## 验收要点
 
-- 一个任务失败但另有 READY 项时 runner 继续执行。
-- 阻塞项至少产生一次有效诊断，不会无限“冻结”。
-- 有 READY 项时退出的 canary 必须被判协议失败。
-- checkpoint 恢复后能发现输入漂移并使旧证据失效。
-
+- 有 READY 项却建议停止的样本必须失败。
+- 阻塞项没有诊断 Receipt 时不能建议等待用户。
+- 同一输入产生确定的 Continuation Decision。
+- Profile Runner 能调用本能力，但本能力不能反向调用 Runner。

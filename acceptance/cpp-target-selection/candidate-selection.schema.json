@@ -1,0 +1,230 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/cpp-acceptance-target-selection.schema.json",
+  "title": "C++ Acceptance Target Selection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "measured_at",
+    "measurement_tool",
+    "selection_criteria",
+    "candidates",
+    "selected_candidate_id",
+    "selection_status",
+    "selection_gate_status",
+    "environment",
+    "unresolved_requirements",
+    "selection_receipt"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "kind": {"const": "CppAcceptanceTargetSelection"},
+    "measured_at": {"type": "string", "format": "date-time"},
+    "measurement_tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "content_id", "definition"],
+      "properties": {
+        "path": {"const": "tools/measure_cpp_candidate.py"},
+        "content_id": {"$ref": "#/$defs/contentId"},
+        "definition": {"type": "string", "minLength": 1}
+      }
+    },
+    "selection_criteria": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["product_physical_loc", "product_compilation_units", "minimum_test_cpp_files"],
+      "properties": {
+        "product_physical_loc": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["minimum", "maximum"],
+          "properties": {
+            "minimum": {"type": "integer", "minimum": 1},
+            "maximum": {"type": "integer", "minimum": 1}
+          }
+        },
+        "product_compilation_units": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["minimum", "maximum"],
+          "properties": {
+            "minimum": {"type": "integer", "minimum": 1},
+            "maximum": {"type": "integer", "minimum": 1}
+          }
+        },
+        "minimum_test_cpp_files": {"type": "integer", "minimum": 1}
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "minItems": 3,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/candidate"},
+      "contains": {
+        "type": "object",
+        "properties": {"disposition": {"enum": ["PROVISIONALLY_SELECTED", "SELECTED"]}},
+        "required": ["disposition"]
+      },
+      "minContains": 1,
+      "maxContains": 1
+    },
+    "selected_candidate_id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+    "selection_status": {"enum": ["PROVISIONAL", "FINAL"]},
+    "selection_gate_status": {"enum": ["PASS", "INCONCLUSIVE", "FAIL"]},
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["environment_scope", "context_content_id", "os", "msvc", "cmake", "ninja", "build_timing_status", "install_attempts", "discovery_receipt"],
+      "properties": {
+        "environment_scope": {"enum": ["LOCAL_DEVELOPMENT", "COMPANY_QUALIFIED"]},
+        "context_content_id": {"$ref": "#/$defs/contentId"},
+        "os": {"const": "Windows"},
+        "msvc": {"enum": ["AVAILABLE", "NOT_AVAILABLE"]},
+        "msvc_version": {"type": "string", "minLength": 1},
+        "cmake": {"enum": ["AVAILABLE", "NOT_AVAILABLE"]},
+        "cmake_version": {"type": "string", "minLength": 1},
+        "ninja": {"enum": ["AVAILABLE", "NOT_AVAILABLE"]},
+        "ninja_version": {"type": "string", "minLength": 1},
+        "build_timing_status": {"enum": ["MEASURED", "BLOCKED_BY_ENVIRONMENT", "NOT_RUN"]},
+        "discovery_receipt": {"oneOf": [{"$ref": "#/$defs/receiptRef"}, {"type": "null"}]},
+        "install_attempts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["package", "version", "result", "reason"],
+            "properties": {
+              "package": {"type": "string", "minLength": 1},
+              "version": {"type": "string", "minLength": 1},
+              "result": {"enum": ["SUCCEEDED", "FAILED", "CANCELLED"]},
+              "reason": {"type": "string", "minLength": 1},
+              "installer_sha256": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"}
+            }
+          }
+        }
+      },
+      "allOf": [
+        {"if": {"properties": {"msvc": {"const": "AVAILABLE"}}, "required": ["msvc"]}, "then": {"required": ["msvc_version"]}},
+        {"if": {"properties": {"cmake": {"const": "AVAILABLE"}}, "required": ["cmake"]}, "then": {"required": ["cmake_version"]}},
+        {"if": {"properties": {"ninja": {"const": "AVAILABLE"}}, "required": ["ninja"]}, "then": {"required": ["ninja_version"]}}
+      ]
+    },
+    "unresolved_requirements": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "selection_receipt": {"oneOf": [{"$ref": "#/$defs/receiptRef"}, {"type": "null"}]}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"selection_status": {"const": "FINAL"}}, "required": ["selection_status"]},
+      "then": {
+        "properties": {
+          "selection_gate_status": {"const": "PASS"},
+          "environment": {
+            "properties": {"build_timing_status": {"const": "MEASURED"}}
+          },
+          "unresolved_requirements": {"maxItems": 0}
+        },
+        "required": ["selection_receipt"],
+        "properties": {"selection_receipt": {"$ref": "#/$defs/receiptRef"}}
+      }
+    }
+  ],
+  "$defs": {
+    "contentId": {"type": "string", "pattern": "^sha256:[A-Fa-f0-9]{64}$"},
+    "receiptRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "content_id"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^(?![A-Za-z]:|/|.*(?:^|[\\\\/])\\.\\.(?:[\\\\/]|$)).+$"},
+        "content_id": {"$ref": "#/$defs/contentId"}
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "origin",
+        "branch",
+        "commit",
+        "commit_time",
+        "license_id",
+        "license_content_id",
+        "metrics",
+        "build_measurement",
+        "disposition",
+        "reason"
+      ],
+      "properties": {
+        "candidate_id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+        "origin": {"type": "string", "format": "uri", "pattern": "^https://github\\.com/"},
+        "branch": {"type": "string", "minLength": 1},
+        "commit": {"type": "string", "pattern": "^[A-Fa-f0-9]{40}$"},
+        "commit_time": {"type": "string", "format": "date-time"},
+        "license_id": {"enum": ["MIT", "BSL-1.0", "Apache-2.0"]},
+        "license_content_id": {"type": "string", "pattern": "^sha256:[A-Fa-f0-9]{64}$"},
+        "metrics": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "product_physical_loc",
+            "product_nonblank_loc",
+            "product_compilation_units",
+            "product_headers",
+            "all_cpp_files",
+            "test_cpp_files",
+            "cmake_files",
+            "cmake_targets",
+            "cmake_modules",
+            "cmake_test_registrations",
+            "code_roots",
+            "declared_dependencies"
+          ],
+          "properties": {
+            "product_physical_loc": {"type": "integer", "minimum": 1},
+            "product_nonblank_loc": {"type": "integer", "minimum": 1},
+            "product_compilation_units": {"type": "integer", "minimum": 1},
+            "product_headers": {"type": "integer", "minimum": 1},
+            "all_cpp_files": {"type": "integer", "minimum": 1},
+            "test_cpp_files": {"type": "integer", "minimum": 1},
+            "cmake_files": {"type": "integer", "minimum": 1},
+            "cmake_targets": {"type": "integer", "minimum": 1},
+            "cmake_modules": {"type": "integer", "minimum": 0},
+            "cmake_test_registrations": {"type": "integer", "minimum": 0},
+            "code_roots": {"type": "integer", "minimum": 1},
+            "declared_dependencies": {"type": "array", "items": {"type": "string"}}
+          }
+        },
+        "build_measurement": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "generator", "configuration", "clean_build_ms", "incremental_build_ms", "test_status", "receipt"],
+          "properties": {
+            "status": {"enum": ["MEASURED", "BLOCKED_BY_ENVIRONMENT", "NOT_RUN"]},
+            "generator": {"type": ["string", "null"]},
+            "configuration": {"type": ["string", "null"]},
+            "clean_build_ms": {"type": ["integer", "null"], "minimum": 0},
+            "incremental_build_ms": {"type": ["integer", "null"], "minimum": 0},
+            "test_status": {"enum": ["PASSED", "FAILED", "NOT_RUN", "BLOCKED_BY_ENVIRONMENT"]},
+            "receipt": {"oneOf": [{"$ref": "#/$defs/receiptRef"}, {"type": "null"}]}
+          },
+          "allOf": [
+            {
+              "if": {"properties": {"status": {"const": "MEASURED"}}, "required": ["status"]},
+              "then": {"properties": {"receipt": {"$ref": "#/$defs/receiptRef"}}},
+              "else": {"properties": {"receipt": {"type": "null"}}}
+            }
+          ]
+        },
+        "disposition": {"enum": ["PROVISIONALLY_SELECTED", "SELECTED", "ALTERNATE"]},
+        "reason": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

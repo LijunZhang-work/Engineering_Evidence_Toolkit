@@ -34,7 +34,10 @@ steps:
     no_code_change_if: root_cause_or_scope_is_unknown
 
   - id: E3_APPLY_BOUNDED_EDIT
+    invoke: change-safety
+    operation: apply_bounded_change
     requirements:
+      - valid_authorization_receipt_bound_to_current_workspace
       - preserve_unrelated_user_changes
       - edit_only_authorized_paths
       - record_each_changed_hunk
@@ -45,6 +48,7 @@ steps:
   - id: E4_IMMEDIATE_STRUCTURAL_CHECK
     invokes:
       - change-safety
+    operation: inspect_change_integrity
     checks:
       - before_after_file_size_and_line_count
       - unexpected_large_deletion

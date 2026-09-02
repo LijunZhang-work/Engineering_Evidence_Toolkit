@@ -5,15 +5,41 @@ metadata:
   id: engineering-evidence-toolkit
   name: Engineering Evidence Toolkit
   chinese_name: 可组合工程事实与验证能力集
-  version: 0.6.0
-  status: DESIGNED
-  released_on: "2026-09-01"
+  version: 0.7.0
+  status: SCAFFOLDED
+  released_on: "2026-09-02"
 
 status_dimensions:
   specification_status: DESIGNED
-  implementation_status: NOT_IMPLEMENTED
-  validation_status: NOT_RUN
+  implementation_status: PARTIAL
+  validation_status: PARTIAL
+  qualification_status: NOT_ASSESSED
   activation_status: INACTIVE
+
+status_evidence:
+  implementation:
+    - subject_id: engineering-evidence-toolkit
+      status_axis: implementation
+      evidence_kind: IMPLEMENTATION_ARTIFACT
+      path: tools/windows_precheck_mvp.py
+      content_id: sha256:1d18fb1ac02b062367216f84967a35d5b824e6c3ae9f779f85cbdb5bd0c18b17
+      result: PARTIAL
+      observed_at: "2026-09-01T23:51:11Z"
+    - subject_id: engineering-evidence-toolkit
+      status_axis: implementation
+      evidence_kind: IMPLEMENTATION_ARTIFACT
+      path: tools/profile_runner_mvp.py
+      content_id: sha256:69b6418f24a62e39b87c4140d28e1d9a11bd99dfd85895e4ae1567441ef1b441
+      result: PARTIAL
+      observed_at: "2026-09-02T06:51:02+08:00"
+  validation:
+    - subject_id: engineering-evidence-toolkit
+      status_axis: validation
+      evidence_kind: TEST_RECEIPT
+      path: acceptance/status-receipts/toolkit-validation.json
+      content_id: sha256:e1f6e61a70a23046df1b69fdf26999b9261ae6a0d5b76d79be05b77c4cdfce5d
+      result: PARTIAL
+      observed_at: "2026-09-02T01:17:01Z"
 
 architecture:
   style: COMPOSABLE_CAPABILITIES
@@ -31,14 +57,30 @@ shared_contracts:
   - contracts/capability-manifest.schema.json
   - contracts/profile-manifest.schema.json
   - contracts/workspace-snapshot.schema.json
+  - contracts/collaboration-snapshot.schema.json
   - contracts/evidence-bundle.schema.json
   - contracts/claim.schema.json
   - contracts/receipt.schema.json
   - contracts/instance-state.schema.json
+  - contracts/run-policy.schema.json
+  - contracts/run-bundle.schema.json
+  - contracts/waiver.schema.json
+  - contracts/provider-adoption-decision.schema.json
+  - contracts/provider-source-receipt.schema.json
+  - contracts/provider-qualification.schema.json
+  - contracts/provider-qualification-artifact.schema.json
+  - contracts/trusted-authority-registry.schema.json
+  - contracts/profile-runner-mvp-record.schema.json
   - contracts/lifecycle-manifest.schema.json
   - contracts/install-plan.schema.json
   - contracts/install-state.schema.json
   - contracts/harness-support-matrix.schema.json
+  - contracts/harness-runtime-observation.schema.json
+
+assurance_policies:
+  - policies/quick.yaml
+  - policies/balanced.yaml
+  - policies/strict.yaml
 
 capabilities:
   - id: evidence-kernel

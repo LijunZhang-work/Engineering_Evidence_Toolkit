@@ -2,13 +2,14 @@ api_version: eet/v1
 kind: ToolkitState
 
 toolkit_id: engineering-evidence-toolkit
-toolkit_version: 0.6.0
-recorded_at: 2026-09-01T11:34:47Z
+toolkit_version: 0.7.0
+recorded_at: 2026-09-02T09:17:01+08:00
 
 status_dimensions:
   specification_status: SPECIFIED
-  implementation_status: NOT_IMPLEMENTED
-  validation_status: NOT_RUN
+  implementation_status: PARTIAL
+  validation_status: PARTIAL
+  qualification_status: NOT_ASSESSED
   activation_status: INACTIVE
   migration_status: SPECIFICATION_SUPERSEDED_FOR_NEW_WORK
 
@@ -18,34 +19,53 @@ truthful_summary:
   capability_specs_written: true
   profile_specs_written: true
   specification_validator_implemented: true
-  specification_validator_last_result: PASS_WITH_LIMITATION
-  specification_validator_limitation: jsonschema_engine_unavailable_builtin_checks_passed
-  executable_runtime_present: false
+  specification_validator_last_result: PASS
+  specification_validator_limitation: none_jsonschema_is_mandatory
+  executable_runtime_present: true
+  executable_runtime_scope:
+    - specification_validator
+    - run_bundle_semantic_validator
+    - windows_precheck_vertical_mvp
+    - isolated_profile_runner_acceptance_mvp
   acceptance_tests_executed: false
+  acceptance_test_subset_executed: true
+  toolkit_full_test_suite_last_result: 95_PASS
+  run_bundle_validator_focused_tests_last_result: 8_PASS_62_NEGATIVE_CASES_REJECTED
+  status_promotion_focused_tests_last_result: 10_PASS
+  windows_precheck_mvp_focused_tests_last_result: 25_PASS
+  profile_runner_mvp_focused_tests_last_result: 4_PASS
   company_environment_qualified: false
   real_project_validation_executed: false
+  real_project_static_subset_executed: true
+  real_project_static_subset_record: acceptance/cpp-target-selection/REAL_VALIDATION.yaml
+  real_project_formal_build_executed: false
   provider_bindings_active: false
   experience_memory_specified: true
   experience_memory_provider_selected: false
   experience_memory_mvp_executed: false
   outer_runtime_boundary_specified: true
   outer_runtime_boundary_enforced: false
+  authority_registry_external_trust_anchor_required: true
+  company_authority_registry_external_anchor_configured: false
   capability_progress_dashboard_renderer_implemented: true
   capability_progress_dashboard_last_render_result: PASS
   capability_progress_dashboard_last_render_scope: 20_registered_capabilities
   capability_progress_dashboard_current_summary: 0_complete_20_in_progress_0_not_started_0_unknown
-  capability_progress_dashboard_focused_tests_last_result: 9_PASS
-  capability_progress_dashboard_negative_checks_last_result: stale_and_false_green_detected
+  capability_progress_dashboard_focused_tests_last_result: 12_PASS
+  capability_progress_dashboard_negative_checks_last_result: stale_false_green_and_coordinated_100_percent_tamper_detected
   toolkit_lifecycle_specified: true
   toolkit_doctor_implemented: true
-  toolkit_doctor_focused_tests_last_result: 9_PASS
-  lifecycle_and_harness_contract_focused_tests_last_result: 5_PASS
+  toolkit_doctor_focused_tests_last_result: 10_PASS
+  lifecycle_and_harness_contract_focused_tests_last_result: 14_PASS
   toolkit_install_plan_generator_implemented: false
   toolkit_apply_implemented: false
   toolkit_repair_implemented: false
   toolkit_uninstall_implemented: false
   harness_capability_matrix_specified: true
   deepseek_harness_runtime_compatibility_validated: false
+  deepseek_harness_runtime_observation_status: PARTIAL
+  deepseek_harness_capability_acceptance_executed: false
+  deepseek_harness_read_only_tempfile_blocker_observed: true
   safe_automation_hook_policy_specified: true
   safe_automation_hook_runtime_implemented: false
   canonical_adapter_projection_policy_specified: true
@@ -57,11 +77,21 @@ allowed_claims:
   - 规范目录自检工具已实现，但尚不构成业务检查能力
   - Experience Memory 的独立能力、MVP判定和Provider候选已设计
   - 公司网络、模型API、密钥、外发、下载和制品来源策略已收敛到单一外层运行边界规格
-  - 能力拼图进度看板可从Manifest和状态证据重新渲染，当前20项能力均为20%规格阶段
-  - 能力拼图看板的9项聚焦测试通过，包含卡片进度条几何、汇总语义与桌面详情关闭状态回归；过期页面与伪绿色反例可被拒绝；这不等于Capability验收已执行
-  - 工具集只读doctor已实现并通过9项聚焦断言（含不修改受保护状态）；它只体检规范包，不检查业务代码
+  - 能力拼图进度看板可从Manifest、各能力真实状态维度和已解析状态证据重新渲染；不同能力可处于不同进度，不再宣称统一20%
+  - 能力拼图看板的12项聚焦测试通过，包含证据依赖、新鲜度、卡片进度条几何、汇总语义与桌面详情关闭状态回归；过期页面与伪绿色反例可被拒绝；这不等于Capability验收已执行
+  - 工具集只读doctor已实现并通过10项聚焦断言（含不修改受保护状态）；它只体检规范包，不检查业务代码
   - 安装计划、归属状态、Harness兼容矩阵与安全Hook边界已形成机器契约或唯一策略
-  - DeepSeek Harness当前只有code-fact与experience-memory达到接口设计状态；全部运行兼容性仍未验证
+  - DeepSeek Harness已在固定源码修订上观察到项目Skill发现、外部自定义GLM模型选择、Windows工作区注册、中文/路径显示和只读Validator调用；运行层状态为PARTIAL，Capability验收仍为NOT_RUN
+  - Harness完全只读预设会阻断Python临时目录，因此Doctor和依赖tempfile的测试只能记为ENVIRONMENT_BLOCKED；可执行验证必须采用“源码只读、OS临时目录与外部运行目录可写”的分离权限边界
+  - 快速探索、平衡取证、严格门禁已展开为独立Run Policy轴；降低检查强度会同步降低结论权限
+  - RunBundle语义校验器已实现；正向严格样本通过，62个伪证据、越权结论、Authority跨环境、Mutation伪复验和错误Provider决策反例被拒绝；另有缺失和错误仓外Registry信任锚负例
+  - Windows预检纵向MVP已通过25项静态夹具测试；QUICK只冻结目标可达输入，Balanced与Strict冻结完整工作区，Custom可通过内容寻址Policy文件执行独立轴并重算结论权限；有界/手工目标不能伪装F2 PASS；端到端主动Canary、公司资格、产品编译和DT仍未实现或验证
+  - 状态晋级、Provider资格、Provider来源、Waiver与Mutation使用统一可信Authority注册表；RunBundle绑定注册表版本及环境，来源、修改授权、豁免、状态资格与激活回执必须被对应Authority固定
+  - 状态证据的observed_at必须带时区且不得晚于验证时钟加五分钟容差；未来时间不能用于伪造新鲜度
+  - Authority Registry只提供内容可寻址目录，正式RunBundle必须由外层运行边界提供仓外固定摘要或独立签名；仓内fixture pin不授予公司资格
+  - C++ FINAL选型要求不同角色的typed selection、environment discovery和build measurement Receipt；所有回执必须绑定同一环境摘要、原始日志工件并由活动C++验收Authority固定；声明的本地外部证据根不存在时验证失败而非静默跳过
+  - 隔离Profile Runner MVP已通过4项测试，打通BOOTSTRAPPING、首个Workspace Snapshot、Solo Collaboration Snapshot、固定验收编辑、diff、后置静态复验和三报告；修改只允许OS临时目录复制件，不授予真实项目写权限或ACCEPT权限
+  - Catch2已按固定commit在五个隔离场景上执行真实源码静态子集：少右括号、截断文件尾和目标未接线被发现并静态复验；缺include暴露为静态盲区；外部错误只作为验收夹具保留。MSVC/CMake/Ninja缺失，因此该记录不产生正式构建、测试、资格或激活结论
 
 forbidden_claims:
   - 工具已经实现
@@ -78,6 +108,7 @@ forbidden_claims:
   - DeepSeek Harness已经兼容全部Capability或支持自动Hook
   - doctor通过代表业务代码、编译、DT、Provider或Review通过
   - 自动检查Hook已经安装或激活
+  - Catch2已经通过MSVC构建、CTest、DT或正式公司环境资格验证
 
 activation_requirements:
   - roadmap/RELEASE_GATES.yaml 全部满足

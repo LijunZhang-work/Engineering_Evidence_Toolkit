@@ -52,14 +52,14 @@ def main() -> int:
     report = json.loads(completed.stdout)
     require(report["status"] in {"HEALTHY", "LIMITED"}, "doctor must report an honest non-failing state")
     require(report["scope"] == "TOOLKIT_SPECIFICATION_BUNDLE_ONLY", "doctor scope must be narrow")
-    require(len(report["checks"]) == 5, "doctor must run the declared five checks")
+    require(len(report["checks"]) == 9, "doctor must run the declared nine checks")
     require(report["limitations"], "doctor must retain limitations")
     after = {
         str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
         for path in protected_paths
     }
     require(before == after, "doctor must not mutate protected toolkit state")
-    print("toolkit doctor tests: 9 PASS")
+    print("toolkit doctor tests: 10 PASS")
     return 0
 
 

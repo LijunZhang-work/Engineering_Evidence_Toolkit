@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/provider-qualification.schema.json",
+  "title": "Provider Qualification",
+  "description": "把 Provider 的资格绑定到不可变工件、Capability、采用决策、资格产物、权威和有效期；运行回执不得自行授予资格。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "qualification_id",
+    "capability_id",
+    "provider_id",
+    "provider_version",
+    "provider_artifact_content_id",
+    "status",
+    "authority_tier",
+    "qualified_by",
+    "authority_ref",
+    "trust_domain_id",
+    "decision_ref",
+    "qualification_artifact",
+    "issued_at",
+    "expires_at"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "qualification_id": {"type": "string", "pattern": "^qual_[A-Za-z0-9._-]+$"},
+    "capability_id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "provider_id": {"type": "string", "minLength": 1},
+    "provider_version": {"type": "string", "minLength": 1},
+    "provider_artifact_content_id": {"$ref": "#/$defs/digest_id"},
+    "status": {"enum": ["QUALIFIED", "QUALIFIED_WITH_LIMITS", "UNQUALIFIED", "UNKNOWN"]},
+    "authority_tier": {"type": "string", "minLength": 1},
+    "qualified_by": {"type": "string", "minLength": 1},
+    "authority_ref": {"type": "string", "minLength": 1},
+    "trust_domain_id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "decision_ref": {"type": "string", "pattern": "^pad_[A-Za-z0-9._-]+$"},
+    "qualification_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["location", "content_id"],
+      "properties": {
+        "location": {"type": "string", "minLength": 1},
+        "content_id": {"$ref": "#/$defs/digest_id"}
+      }
+    },
+    "issued_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "limitations": {"type": "array", "items": {"type": "string", "minLength": 1}}
+  },
+  "$defs": {
+    "digest_id": {"type": "string", "pattern": "^[a-z0-9_-]+:[A-Fa-f0-9]{16,}$"}
+  }
+}

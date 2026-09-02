@@ -6,10 +6,12 @@
 Engineering_Evidence_Toolkit/
 ├── 00_START_HERE.md                # 唯一人工入口与任务路由
 ├── TOOLKIT_MANIFEST.yaml           # 可机器发现的模块清单与边界
-├── CURRENT_STATE.yaml              # 规格/实现/验证/激活四维真实状态
+├── CURRENT_STATE.yaml              # 规格/实现/验证/资格/激活五维真实状态
 ├── DIRECTORY_MAP.md                # 本文件
+├── .dsh/skills/                    # DeepSeek Harness项目级薄入口；不拥有事实或Verdict
 ├── governance/                     # 跨模块不变量与权威政策
 ├── contracts/                      # 最小共享对象 Schema
+├── policies/                       # 快速/平衡/严格 Run Policy 预设
 ├── capabilities/                   # 可单独调用的长期能力
 ├── adapters/                       # 外部环境、Harness、源码控制与唯一运行边界接缝
 ├── lifecycle/                      # 工具集自身的计划、体检、修复和卸载生命周期
@@ -39,7 +41,9 @@ Engineering_Evidence_Toolkit/
 
 ## 2. `contracts/`
 
-只保留跨模块交换所需的最小对象：Toolkit、Capability、Profile、Workspace Snapshot、Evidence Bundle、Claim、Receipt 和 Instance State。
+只保留跨模块交换所需的最小对象：Toolkit、Capability、Profile、Run Policy、
+Workspace/Collaboration Snapshot、Typed Receipt、Evidence、Claim、Waiver、Instance、
+Provider Adoption Decision 和完整 RunBundle。
 
 模块自己的细节 Schema 归模块所有。例如信号每一跳的增益和默认值属于 `signal-lineage`，不应污染共享层。
 
@@ -63,7 +67,7 @@ Capability 是长期资产。每个能力都必须：
 | 需求与行为 | `contract-reconciliation`、`behavior-recovery` | 规格原子事实、现状行为与意图差异 |
 | 修改安全 | `change-safety`、`design-fit-review`、`independent-review` | 有没有误删，修复是否在正确责任层，复核是否独立 |
 | 构建近似 | `build-dependency-audit`、`windows-static-precheck` | Target/include/宏/链接/DT 注册及 Windows 预检资格 |
-| 外部与长任务 | `external-evidence`、`autonomous-runner`、`report-renderer` | 用户错误、持续执行、专业版与小白版一致报告 |
+| 外部与长任务 | `external-evidence`、`autonomous-runner`、`report-renderer` | 用户错误、无状态继续/停机策略、三视图一致报告 |
 | 工具供应链 | `third-party-supply-chain` | 固定源码/制品、环境路径清单、构建与执行 Receipt |
 | 下阶段测试衔接 | `signal-lineage`、`observability-planner` | 数据每一跳如何变化、DT/业务侧如何留下可串联记录 |
 | 工程经验 | `experience-memory` | 明确触发的经验写入、范围召回、纠错、失效与替代链 |
@@ -72,7 +76,7 @@ Capability 是长期资产。每个能力都必须：
 
 Adapter 只解决“如何接到具体环境”，不能拥有工程真相或总体 Verdict。
 
-- `deepseek-harness`：工具暴露、fresh session、权限和结构化输出；
+- `deepseek-harness`：通过 `.dsh/skills/engineering-evidence-toolkit/SKILL.md` 暴露项目级薄入口，并约束 fresh session、权限和结构化输出；技能存在不等于运行兼容已验证；
 - `company-source-control`：公司 Python 拉取/工作区/提交脚本、Repo Manifest 与 Revision；
 - `company-runtime-boundary`：唯一拥有网络、模型 API、密钥、数据外发、运行期下载和制品来源策略；
 - 具体 Provider 的命令和版本卡放在对应 Capability 的 Provider 区域。
@@ -90,6 +94,11 @@ Profile 是一个可选配方，只能做四件事：
 
 `recovery-review`、`safe-ai-edit`、`ad-hoc-code-investigation` 和 `test-trace-preparation` 互不从属。删除任何一个 Profile 都不应破坏 Capability。
 
+## 5B. `policies/`
+
+保存三个用户友好的保障预设。它们展开为覆盖、交叉验证、鲜度、Canary、Provider 预算、
+阻断方式和结论权限，不能只保存一个模糊强度数字。高级自定义也必须由机器重新计算结论上限。
+
 ## 5A. `lifecycle/`
 
 这里只管理工具集自身，不管理业务仓。安装、升级、修复和卸载必须经过只读 Plan、范围确认、ownership state 和变更后 doctor。当前仅只读 doctor 已实现；其他动作保持 `NOT_IMPLEMENTED`。
@@ -98,7 +107,9 @@ Harness 是否支持插件、Hook、独立 Reviewer 或长时恢复，不由生�
 
 ## 6. `composition/`
 
-这里定义一个**可选的薄 Runner**，而不是新的单体控制器。没有 Runner 时，Capability 仍能独立调用。Runner 不得实现结构检查、代码搜索、依赖分析或报告事实，只负责调用、状态、重试、Gate 和恢复。
+这里定义一个**可选的薄 Profile Runner**。Capability 可脱离它独立调用；一旦运行 Profile，
+它就是调度、状态、重试、Checkpoint 和 Verdict 的唯一控制面。`autonomous-runner` Capability
+只求值是否应继续/等待/停机，不拥有第二状态机。
 
 ## 7. `acceptance/`
 
@@ -109,6 +120,8 @@ Harness 是否支持插件、Hook、独立 Reviewer 或长时恢复，不由生�
 - 用户给出的错误不会被模型的淡定判断覆盖；
 - stale Provider、缺失 Target 证据和未到齐协作者代码会正确降级；
 - 症状膏药、错误责任层、为了让 DT 绿而改 DT 会被设计审查识别。
+
+当前 `windows-mvp/` 和 `run-bundles/` 已有可执行子集；其余设计用例仍不得冒充已执行。
 
 ## 7A. `dashboard/`
 

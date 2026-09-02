@@ -3,6 +3,7 @@ status_dimensions:
   specification_status: DESIGNED
   implementation_status: NOT_IMPLEMENTED
   validation_status: NOT_RUN
+  qualification_status: NOT_ASSESSED
   activation_status: INACTIVE
 schema_version: "1.0.0"
 kind: ToolkitProfile
@@ -18,8 +19,26 @@ profile_is_optional: true
 standalone_capability_use_allowed: true
 capability_internal_access: forbidden
 direct_provider_access: forbidden
+default_mode: ENFORCE
+supported_modes:
+  - EVIDENCE
+  - ENFORCE
 
 runner_contract: ../../composition/PROFILE_RUNNER_CONTRACT.yaml
+
+edit_authorization:
+  must_be_explicit: true
+  scope_fields:
+    - repositories
+    - allowed_paths
+    - forbidden_paths
+    - maximum_expected_files
+    - maximum_expected_deleted_lines
+  forbidden_without_new_authorization:
+    - broad_generated_file_rewrite
+    - mass_deletion
+    - public_interface_change_outside_scope
+    - destructive_git_operation
 
 mandatory_confirmation:
   exact_phrase: "确认并锁定本次审查，开始自主执行"
@@ -117,6 +136,8 @@ stages:
   - S4_BEHAVIOR_AND_TRACE_RECONSTRUCTION
   - S5_INDEPENDENT_AND_DESIGN_REVIEW
   - S6_WINDOWS_PRECHECK_AND_EVIDENCE_RECONCILIATION
+  - S6A_AUTHORIZED_REMEDIATION
+  - S6B_POST_REMEDIATION_REVERIFY
   - S7_VERDICT_AND_REPORTS
 
 gates:
@@ -133,6 +154,8 @@ gate_result_values:
   - FAIL
   - INCONCLUSIVE
   - NOT_APPLICABLE
+  - WAIVED
+  - NOT_EVALUATED
 
 global_precedence_rules:
   - user_reproducible_error_overrides_conflicting_local_green
@@ -153,10 +176,11 @@ memory_policy:
 repository_reader_policy: ../../governance/REPOSITORY_READER_AND_NAMING_POLICY.yaml
 
 final_verdicts:
-  - PASS
-  - PASS_WITH_LIMITATIONS
-  - FAIL
+  - ACCEPT
+  - ACCEPT_WITH_RISK
+  - REJECT
   - INCOMPLETE
+  - NO_VERDICT
 
 report_views:
   - professional

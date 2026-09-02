@@ -1,0 +1,124 @@
+schema_version: "1.0.0"
+kind: CppAcceptanceTargetSelection
+measured_at: "2026-09-02T04:46:00Z"
+
+measurement_tool:
+  path: tools/measure_cpp_candidate.py
+  content_id: sha256:57863fceaf51aa8ce35171c50986ea4a17e60d77092dac2664139764bca0484a
+  definition: >-
+    Metrics come from tracked Git files at each pinned commit. Physical LOC retains comments;
+    product scope excludes test, benchmark, example, external, vendor, tool, utility and CMake-support paths.
+
+selection_criteria:
+  product_physical_loc: {minimum: 20000, maximum: 100000}
+  product_compilation_units: {minimum: 40, maximum: 200}
+  minimum_test_cpp_files: 50
+
+candidates:
+  - candidate_id: yaml-cpp
+    origin: https://github.com/jbeder/yaml-cpp.git
+    branch: master
+    commit: e5fe9f2cddbd1a9a8b423bbe40cca661aec6208a
+    commit_time: "2026-08-24T07:32:57+02:00"
+    license_id: MIT
+    license_content_id: sha256:c06fd4ee9241e3b6841fcee5d471475be412c822ddf2876af17127acd426c011
+    metrics:
+      product_physical_loc: 16837
+      product_nonblank_loc: 14206
+      product_compilation_units: 32
+      product_headers: 62
+      all_cpp_files: 274
+      test_cpp_files: 176
+      cmake_files: 11
+      cmake_targets: 9
+      cmake_modules: 4
+      cmake_test_registrations: 5
+      code_roots: 3
+      declared_dependencies: [GTest, Python3, Threads, absl, re2, yaml-cpp]
+    build_measurement: &blocked_build
+      status: BLOCKED_BY_ENVIRONMENT
+      generator: null
+      configuration: null
+      clean_build_ms: null
+      incremental_build_ms: null
+      test_status: BLOCKED_BY_ENVIRONMENT
+      receipt: null
+    disposition: ALTERNATE
+    reason: Active, permissive and CMake-based, but its measured product scope is smaller than the desired medium target.
+
+  - candidate_id: catch2
+    origin: https://github.com/catchorg/Catch2.git
+    branch: devel
+    commit: 317ac1ed4c0bb6e6b91eafc817e05c488feffcb3
+    commit_time: "2026-08-25T09:32:22+02:00"
+    license_id: BSL-1.0
+    license_content_id: sha256:beb8e42e9d6b4284e03304d05a81a0755200a965fc8d0a5e0aea1e84cf805d6e
+    metrics:
+      product_physical_loc: 55322
+      product_nonblank_loc: 45131
+      product_compilation_units: 103
+      product_headers: 161
+      all_cpp_files: 416
+      test_cpp_files: 97
+      cmake_files: 23
+      cmake_targets: 54
+      cmake_modules: 13
+      cmake_test_registrations: 147
+      code_roots: 2
+      declared_dependencies: [Catch2, Gcov, Lcov, Python3, codecov]
+    build_measurement: *blocked_build
+    disposition: PROVISIONALLY_SELECTED
+    reason: >-
+      Best current scale-and-complexity fit: materially larger than the alternatives while still bounded,
+      with a real CMake target graph, extensive tests, an official Windows build-and-test script and a permissive license.
+
+  - candidate_id: google-benchmark
+    origin: https://github.com/google/benchmark.git
+    branch: main
+    commit: 04b5f41ec7e3b68b28a2379bc19804a48953117d
+    commit_time: "2026-08-28T03:18:00+03:00"
+    license_id: Apache-2.0
+    license_content_id: sha256:3ddf9be5c28fe27dad143a5dc76eea25222ad1dd68934a047064e56ed2fa40c5
+    metrics:
+      product_physical_loc: 8513
+      product_nonblank_loc: 7354
+      product_compilation_units: 22
+      product_headers: 21
+      all_cpp_files: 120
+      test_cpp_files: 58
+      cmake_files: 14
+      cmake_targets: 11
+      cmake_modules: 11
+      cmake_test_registrations: 3
+      code_roots: 2
+      declared_dependencies: [Doxygen, GTest, Git, LLVMAr, LLVMNm, LLVMRanLib, PFM, Threads]
+    build_measurement: *blocked_build
+    disposition: ALTERNATE
+    reason: Active, permissive and MSVC-aware, but its measured product scope is too small for the requested medium target.
+
+selected_candidate_id: catch2
+selection_status: PROVISIONAL
+selection_gate_status: INCONCLUSIVE
+
+environment:
+  environment_scope: LOCAL_DEVELOPMENT
+  context_content_id: sha256:c6beaf9e0b655a156040b9bdf3a434e13b0acb3c50abf3fc7a1ea4394b407c09
+  os: Windows
+  msvc: NOT_AVAILABLE
+  cmake: NOT_AVAILABLE
+  ninja: NOT_AVAILABLE
+  build_timing_status: BLOCKED_BY_ENVIRONMENT
+  discovery_receipt: null
+  install_attempts:
+    - package: Microsoft.VisualStudio.2022.BuildTools
+      version: 17.14.39
+      result: CANCELLED
+      reason: Windows UAC elevation was cancelled or unavailable to the background task; installer exit code 1602.
+      installer_sha256: 236367b68ba9a51708263ab10a1c85546cc4a8eca78b365168811d19c4fb2f29
+
+unresolved_requirements:
+  - Install or expose an authentic MSVC x64 toolchain and Windows SDK.
+  - Measure clean and no-op incremental Release builds for every candidate under the same generator and hardware.
+  - Configure, build and execute Catch2 tests before changing selection_status to FINAL.
+
+selection_receipt: null

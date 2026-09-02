@@ -7,6 +7,7 @@ status_dimensions:
   specification_status: DESIGNED
   implementation_status: PARTIAL
   validation_status: PARTIAL
+  qualification_status: NOT_ASSESSED
   activation_status: INACTIVE
 
 canonical_source: TOOLKIT_MANIFEST.yaml
@@ -39,7 +40,8 @@ operations:
     validation_status: PASSED
     side_effect: READ_ONLY
     dry_run_required: false
-    command: [python3, tools/toolkit_doctor.py, --json]
+    command: [python, tools/toolkit_doctor.py, --json]
+    evidence_refs: [tools/toolkit_doctor.py, tools/test_toolkit_doctor.py]
     description: Run read-only specification, dashboard and dependency diagnostics for this checkout.
 
   - id: repair

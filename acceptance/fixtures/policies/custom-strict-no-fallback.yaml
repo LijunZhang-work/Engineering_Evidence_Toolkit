@@ -1,0 +1,35 @@
+schema_version: "1.0.0"
+kind: AssuranceRunPolicy
+id: custom-strict-no-fallback
+version: 1.0.0
+display_name: 自定义严格证据（无备用 Provider）
+description: 保留严格证据要求，但不预先要求备用 Provider；实际证据不足时仍然只能得到 INCOMPLETE。
+preset: CUSTOM
+base_preset: STRICT
+base_policy_content_id: sha256:974e5f69ab899b7dedac57562607b08238554e58fedbb30f6ab1b8f96981e646
+customization_reason: 主 Provider 成功时不强制额外调用备用 Provider；失败时不得把缺失证据升级为通过。
+mode: ENFORCE
+outcome_authority: FINAL_VERDICT
+enforcement: BLOCKING
+allowed_final_verdicts: [ACCEPT, ACCEPT_WITH_RISK, REJECT, INCOMPLETE]
+evidence_requirements:
+  coverage_requirement: COMPLETE_DECLARED_SCOPE
+  corroboration: REQUIRED_FOR_CRITICAL_CLAIMS
+  minimum_independent_sources: 2
+  high_risk_minimum_independent_sources: 2
+  fresh_workspace_binding: true
+  active_negative_canary: true
+  user_error_reconciliation: true
+provider_strategy:
+  selection: QUALIFIED_ACCURACY_FIRST
+  fallback_required: false
+  provider_chain_is_hint: true
+  max_provider_invocations_per_claim: 4
+  timeout_budget_seconds: 2400
+  preferred_provider_classes: [compiler_or_parser, qualified_index, structural_search, lexical_search]
+invariants:
+  no_fabrication: true
+  no_hidden_conflicts: true
+  user_errors_are_first_class: true
+  no_unauthorized_mutation: true
+  no_overclaiming: true

@@ -10,7 +10,30 @@
 
 它不是一篇更大的总文档，也不是一个默认强制执行的工作流。它是一组可以单独调用、也可以被 Profile 组合的工程能力。旧文档保留为历史来源证据，不再作为新的运行入口。
 
-> 当前版本交付的是**规范与建设蓝图**。所有 Capability、Profile 和 Adapter 的真实状态以 `CURRENT_STATE.yaml` 为准；在实现和验收完成前，不得声称工具已经可用、检查已经生效或项目没有问题。
+> 当前版本交付的是**规范与明确受限的可执行子集**。所有 Capability、Profile 和 Adapter 的真实状态以 `CURRENT_STATE.yaml` 为准；某个子集实现或测试通过，不得被扩写成整个工具已可用、完整检查已生效或项目没有问题。
+
+## 0. Windows 首次使用
+
+在 Toolkit 仓库根目录、获批的依赖获取环境中依次执行三步：
+
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r .\requirements-validation.txt
+.\.venv\Scripts\python.exe .\tools\toolkit_doctor.py
+```
+
+然后可以用仓内 clean fixture 做一次可复制的 PowerShell 烟测；输出只写入系统临时目录：
+
+```powershell
+$eetSmokeOutput = Join-Path $env:TEMP "eet-clean-smoke"
+.\.venv\Scripts\python.exe .\tools\windows_precheck_mvp.py `
+  --workspace .\acceptance\fixtures\windows-mvp\clean `
+  --target-manifest .\acceptance\fixtures\windows-mvp\clean\target.yaml `
+  --policy balanced `
+  --output $eetSmokeOutput
+```
+
+预期进程退出码为 0，机器输出的 `final_verdict` 仍为 `NO_VERDICT`；这只证明受限烟测可执行，不是产品编译、链接、DT 或公司环境通过。
 
 ## 1. 先选择入口，不要通读整个目录
 
@@ -26,7 +49,7 @@
 | 处理用户给出的真实错误或运行日志 | `capabilities/external-evidence/` | 用本地“绿”覆盖外部“红” |
 | 让 AI 记住、召回或纠正工程经验 | `capabilities/experience-memory/` | 把旧记忆当当前代码事实 |
 | 首次核对 CodeGraph、Memory、clangd 等工具源码/制品路径 | `capabilities/third-party-supply-chain/ENVIRONMENT_ASSET_INVENTORY_TEMPLATE.md` | 擅自下载或因一个可选工具缺失冻结全部工作 |
-| 体检本工具集自身结构、看板和Schema依赖 | `python tools/toolkit_doctor.py`、`lifecycle/README.md` | 把doctor成功解释成业务检查通过 |
+| 体检本工具集自身结构、看板和Schema依赖 | `.\.venv\Scripts\python.exe tools\toolkit_doctor.py`、`lifecycle/README.md` | 把doctor成功解释成业务检查通过 |
 | 判断DeepSeek Harness当前到底支持哪些能力 | `adapters/HARNESS_CAPABILITY_MATRIX.yaml` | 根据其他Harness能力推断等价支持 |
 | 一眼查看各能力建设百分比和证据缺口 | `dashboard/capability-progress.html` | 让 AI 主观填写一个好看的进度数字 |
 | 正式审查一批遗留 AI 改动 | `profiles/recovery-review/` | 直接调用 Provider 私有接口 |
@@ -61,15 +84,33 @@ Recovery Review 的标志性确认语句是：
 
 读取 `runs/README.md` 与对应外部运行目录。运行状态、Receipt、索引、缓存和报告不写回本规范目录，也不写入业务仓。
 
-## 3. 三种模式不是三个质量等级
+## 3. 用户可以选择快或严，但不能选择过度声称
 
-| 模式 | 用途 | 正式结论资格 |
-|---|---|---|
-| `EXPLORE` | 日常查找、理解和提出候选线索 | 不得支撑“没有问题” |
-| `EVIDENCE` | 绑定快照、覆盖、新鲜度和 Receipt 的事实采集 | 可支撑限定范围的 Claim |
-| `ENFORCE` | 由 Profile 将能力输出映射为 Gate | 只有 Profile 可以给总体 Verdict |
+默认界面只需要三个按钮：
 
-一个 Capability 可以支持前两种模式；`ENFORCE` 是组合层行为，不代表 Provider 有裁决权。
+| 用户选项 | 机器模式 | 适合什么情况 | 结论上限 |
+|---|---|---|---|
+| 快速探索 | `EXPLORE` | 尽快找到符号、候选根因和下一步 | 只给线索，`NO_VERDICT` |
+| 平衡取证 | `EVIDENCE` | 按风险决定是否交叉验证 | 给证据与风险报告，不签发 `ACCEPT` |
+| 严格门禁 | `ENFORCE` | 正式审查、交付或高风险修改 | 完整 RunBundle 通过后才可能给 Verdict |
+
+高级 `Custom` 必须绑定基础预设及其内容哈希，并由机器重新推导结论上限。完整 RunBundle 可内嵌它；Windows MVP 使用 `--policy-file <custom-policy.yaml>`，不会把 Custom 压回单一强度数字。
+
+开发者若要验证“启动→快照→修改→复验→三报告”的 Runner 代码路径，运行
+`.\.venv\Scripts\python.exe -m unittest tools.test_profile_runner_mvp -v`。它只修改 OS 临时目录的
+固定验收夹具复制件；不能拿来修改真实项目，也不产生 `ACCEPT`、资格或激活结论。
+
+这三个按钮不是只保存一个“强度百分比”的模糊滑块。每次运行都会把选择展开并冻结为
+`RunPolicy`：覆盖要求、独立来源数、鲜度、负向 Canary、Provider 选择、调用/时间预算、
+阻断方式和最终结论权限分别记录。高级用户可以单独调整这些轴；任何降级都必须同步降低
+结论上限。
+
+例如，`zg → CodeGraph → rg` 只能是某类“广泛发现”查询的 Provider 偏好，不是每次查询
+都强制执行的链。快速模式可以在第一个合格结果后停止；严格模式要求的是与 Claim 风险匹配
+的独立证据，而不是机械地把所有工具都跑一遍。
+
+无论选择哪一档，五条规则不可关闭：不得编造、不得隐藏冲突、用户错误是一等证据、不得
+越权修改、不得把较少检查包装成更高结论。
 
 ## 4. 不可绕过的证据规则
 
@@ -88,6 +129,8 @@ Recovery Review 的标志性确认语句是：
 13. 公司网络、模型 API、密钥、数据外发、运行期下载与制品来源只由 `adapters/company-runtime-boundary/ADAPTER.yaml` 决定；Capability 和其他 Adapter 不得复制或放宽。
 14. 自动检查与Hook只能产生Receipt、发现或阻断信号，不能自行提升总体结论；默认不得自动修改业务源码。
 15. Harness兼容性必须逐能力登记和验证；`DESIGNED`、`NOT_ASSESSED`、`VERIFIED`与`UNSUPPORTED`不得互相替代。
+16. `PASS`、`PROVEN`和最终 Verdict 必须来自完整 RunBundle 的结构与语义校验；单个文件合法、退出码 0 或报告写成绿色都不够。
+17. Authority Registry 只是 Authority 目录，不是自认证信任根；正式 RunBundle 必须由外层运行边界提供仓外固定摘要或独立签名，缺失时不得产生 Verdict。
 
 ## 5. 文件类型的权威顺序
 
@@ -105,15 +148,16 @@ Recovery Review 的标志性确认语句是：
 
 - 目录架构：已设计；
 - 共享契约：已设计；
-- Capability/Profile/Adapter：规范已设计，尚未实现；
+- Capability/Profile/Adapter：大多数仍只有规范；`windows-static-precheck` 有受限纵向 MVP，其余状态逐项见看板；
 - Experience Memory：能力、Provider候选与MVP标准已设计，尚未安装或运行；
 - 公司运行边界：单一外层规格已设计，尚未在真实环境强制执行；
-- 能力拼图看板：自动渲染器已实现；当前20个Capability均为20%，只表示规格完成；9项聚焦回归测试通过；
+- 能力拼图看板：自动渲染器已实现；Windows MVP 使对应能力进入部分实现/验证，其余能力仍在规格阶段；完整快照防协同伪绿测试已加入；
 - 工具集生命周期：只读doctor已实现并通过聚焦测试；自动安装、修复和卸载尚未实现；
-- DeepSeek Harness：逐能力兼容矩阵已建立，运行环境兼容性尚未验证；
+- DeepSeek Harness：项目Skill发现、自定义GLM选择、Windows工作区和只读命令调用已有PARTIAL运行观察；完全只读预设会阻断临时目录，Capability验收仍为NOT_RUN；
 - 自动检查：安全策略已定义，Harness Hook运行时尚未实现或激活；
-- 自动化验收：用例已定义，尚未运行；
-- 公司真实项目验证：未运行；
+- 自动化验收：完整矩阵尚未运行；RunBundle 红队、状态晋级和 Windows 纵向 MVP 子集已经执行；
+- 真实开源项目：固定 commit 的 Catch2 已执行五个隔离场景静态子集并保留修复前后哈希记录；缺 include 仍是静态盲区，外部错误仅为验收夹具；
+- 正式 Windows 构建/测试与公司真实项目资格：未运行（本机缺 MSVC/CMake/Ninja）；
 - 旧文档：历史保留，新的执行入口已迁移到本目录。
 
 开始任何实际工作前，先读 `CURRENT_STATE.yaml`。如果状态与文件文字冲突，以更保守的状态为准。

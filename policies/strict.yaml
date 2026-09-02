@@ -1,0 +1,32 @@
+schema_version: "1.0.0"
+kind: AssuranceRunPolicy
+id: strict
+version: 1.0.0
+display_name: 严格门禁
+description: 对声明范围执行阻断式机器门禁；关键 Claim 必须有独立交叉证据、有效 Canary 和完整语义校验。
+preset: STRICT
+mode: ENFORCE
+outcome_authority: FINAL_VERDICT
+enforcement: BLOCKING
+allowed_final_verdicts: [ACCEPT, ACCEPT_WITH_RISK, REJECT, INCOMPLETE]
+evidence_requirements:
+  coverage_requirement: COMPLETE_DECLARED_SCOPE
+  corroboration: REQUIRED_FOR_CRITICAL_CLAIMS
+  minimum_independent_sources: 2
+  high_risk_minimum_independent_sources: 2
+  fresh_workspace_binding: true
+  active_negative_canary: true
+  user_error_reconciliation: true
+provider_strategy:
+  selection: QUALIFIED_ACCURACY_FIRST
+  fallback_required: true
+  provider_chain_is_hint: true
+  max_provider_invocations_per_claim: 6
+  timeout_budget_seconds: 3600
+  preferred_provider_classes: [compiler_or_parser, qualified_index, structural_search, lexical_search]
+invariants:
+  no_fabrication: true
+  no_hidden_conflicts: true
+  user_errors_are_first_class: true
+  no_unauthorized_mutation: true
+  no_overclaiming: true

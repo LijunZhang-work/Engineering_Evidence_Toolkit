@@ -3,6 +3,7 @@ status_dimensions:
   specification_status: DESIGNED
   implementation_status: NOT_IMPLEMENTED
   validation_status: NOT_RUN
+  qualification_status: NOT_ASSESSED
   activation_status: INACTIVE
 schema_version: "1.0.0"
 kind: ToolkitProfile
@@ -17,6 +18,9 @@ intent: >-
 profile_is_optional: true
 capability_internal_access: forbidden
 direct_provider_access: forbidden
+default_mode: EVIDENCE
+supported_modes:
+  - EVIDENCE
 runner_contract: ../../composition/PROFILE_RUNNER_CONTRACT.yaml
 capabilities:
   required:

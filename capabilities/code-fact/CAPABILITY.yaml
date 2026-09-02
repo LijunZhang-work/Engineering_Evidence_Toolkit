@@ -7,6 +7,7 @@ status_dimensions:
   specification_status: DESIGNED
   implementation_status: NOT_IMPLEMENTED
   validation_status: NOT_RUN
+  qualification_status: NOT_ASSESSED
   activation_status: INACTIVE
 kind: independent_capability
 spec: README.md
@@ -93,13 +94,17 @@ evidence_axes:
 
 provider_policy:
   built_in_providers: [native-search, ripgrep, git]
-  optional_local_providers: [clangd]
+  optional_local_providers: [clangd, ast-grep, zg]
   external_provider_rule: replaceable_and_receipted
   no_provider_is_mandatory: true
-  selection_owner: caller_profile_or_explicit_request
+  selection_owner: run_policy_then_query_family_then_explicit_user_override
+
+provider_strategy_ref: providers/SELECTION_STRATEGY.yaml
 
 invariants:
   - A missing external provider never disables native-search, ripgrep, or Git.
+  - QUICK may stop after one qualified provider; BALANCED and STRICT add corroboration only when their explicit policy axes require it.
+  - A preferred provider sequence is a query-family hint, never a universal forced chain.
   - A provider result is evidence only after snapshot, location, derivation, and ceiling are recorded.
   - Content identity and provenance identity are recorded separately.
   - Provider claims never become authoritative merely because a graph or index returned them.
