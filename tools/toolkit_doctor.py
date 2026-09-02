@@ -60,6 +60,7 @@ def build_report() -> dict[str, Any]:
         dependency_status("yaml", required=True),
         dependency_status("jsonschema", required=True),
         run_script("tools/test_capability_dashboard.py"),
+        run_script("tools/test_workset_control.py"),
         run_script("tools/test_lifecycle_and_harness_contracts.py"),
         run_script("tools/test_run_bundle_validator.py"),
         run_script("tools/test_windows_precheck_mvp.py"),

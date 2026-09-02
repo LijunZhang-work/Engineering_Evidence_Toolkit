@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Render an evidence-bound, single-file capability progress dashboard.
+"""Render the evidence-bound desktop capability-maturity page.
 
 The renderer reads the toolkit and capability manifests. It never asks a model
-to estimate percentages. A successful render proves only that the dashboard was
-generated from parseable inputs; it does not validate or activate a capability.
+to estimate completion percentages. A successful render proves only that the
+page was generated from parseable inputs; it does not validate or activate a
+capability.
 """
 
 from __future__ import annotations
@@ -28,50 +29,52 @@ ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "dashboard/capability-progress.html"
 
 STAGES = (
-    {"key": "specification", "label": "规格", "weight": 20},
-    {"key": "implementation", "label": "实现", "weight": 35},
-    {"key": "validation", "label": "验证", "weight": 30},
-    {"key": "qualification", "label": "资格", "weight": 10},
-    {"key": "activation", "label": "激活", "weight": 5},
+    {"key": "specification", "label": "规格"},
+    {"key": "implementation", "label": "实现"},
+    {"key": "validation", "label": "验证"},
+    {"key": "qualification", "label": "资格"},
+    {"key": "activation", "label": "激活"},
 )
 
-STATUS_SCORES = {
+# Maturity is categorical. PARTIAL is deliberately not converted to “50%”,
+# because evidence that something started does not prove half of the work is done.
+STAGE_STATES = {
     "specification": {
-        "MISSING": 0,
-        "DRAFT": 50,
-        "DESIGNED": 100,
-        "SPECIFIED": 100,
-        "REVIEWED": 100,
-        "BASELINED": 100,
+        "MISSING": ("unknown", "缺少规格"),
+        "DRAFT": ("partial", "草拟中"),
+        "DESIGNED": ("complete", "完成"),
+        "SPECIFIED": ("complete", "完成"),
+        "REVIEWED": ("complete", "完成"),
+        "BASELINED": ("complete", "完成"),
     },
     "implementation": {
-        "NOT_IMPLEMENTED": 0,
-        "NOT_STARTED": 0,
-        "PARTIAL": 50,
-        "IMPLEMENTED": 100,
+        "NOT_IMPLEMENTED": ("idle", "未开始"),
+        "NOT_STARTED": ("idle", "未开始"),
+        "PARTIAL": ("partial", "部分"),
+        "IMPLEMENTED": ("complete", "完成"),
     },
     "validation": {
-        "NOT_RUN": 0,
-        "NOT_VALIDATED": 0,
-        "PARTIAL": 50,
-        "FAILED": 50,
-        "STALE": 25,
-        "PASSED": 100,
-        "VALIDATED": 100,
+        "NOT_RUN": ("idle", "未运行"),
+        "NOT_VALIDATED": ("idle", "未验证"),
+        "PARTIAL": ("partial", "部分"),
+        "FAILED": ("failed", "失败"),
+        "STALE": ("failed", "已失效"),
+        "PASSED": ("complete", "通过"),
+        "VALIDATED": ("complete", "通过"),
     },
     "qualification": {
-        "NOT_ASSESSED": 0,
-        "NOT_RUN": 0,
-        "UNQUALIFIED": 0,
-        "QUALIFIED_WITH_LIMITS": 50,
-        "QUALIFIED": 100,
+        "NOT_ASSESSED": ("idle", "未评估"),
+        "NOT_RUN": ("idle", "未评估"),
+        "UNQUALIFIED": ("failed", "不合格"),
+        "QUALIFIED_WITH_LIMITS": ("partial", "受限合格"),
+        "QUALIFIED": ("complete", "合格"),
     },
     "activation": {
-        "INACTIVE": 0,
-        "ACTIVE_ON_DEMAND": 75,
-        "ACTIVE": 100,
-        "SUSPENDED": 50,
-        "RETIRED": 0,
+        "INACTIVE": ("idle", "未激活"),
+        "ACTIVE_ON_DEMAND": ("partial", "按需启用"),
+        "ACTIVE": ("complete", "已激活"),
+        "SUSPENDED": ("failed", "已暂停"),
+        "RETIRED": ("idle", "已退役"),
     },
 }
 
@@ -107,10 +110,10 @@ def load_yaml(path: Path) -> dict[str, Any]:
     return data
 
 
-def stage_score(stage: str, status: str | None) -> int | None:
+def stage_state(stage: str, status: str | None) -> tuple[str, str]:
     if status is None:
-        return None
-    return STATUS_SCORES[stage].get(str(status).upper())
+        return "unknown", "状态未知"
+    return STAGE_STATES[stage].get(str(status).upper(), ("unknown", "状态未知"))
 
 
 def global_fallback(stage: str, state: dict[str, Any]) -> tuple[str | None, str | None]:
@@ -141,23 +144,20 @@ def first_sentence(value: Any) -> str:
     return compact[:180]
 
 
-def classify_progress(stage_results: list[dict[str, Any]]) -> tuple[int, str, str, str, list[str]]:
-    weighted_score = 0.0
-    unknown_stages = []
-    for item in stage_results:
-        score = item["score"]
-        if score is None:
-            unknown_stages.append(item["key"])
-        else:
-            weighted_score += item["weight"] * score / 100
-    score = int(round(weighted_score))
+def classify_maturity(stage_results: list[dict[str, Any]]) -> tuple[str, str, int, list[str]]:
+    unknown_stages = [item["key"] for item in stage_results if item["state_kind"] == "unknown"]
+    completed_axes = sum(item["state_kind"] == "complete" for item in stage_results)
     if unknown_stages:
-        return score, "unknown", "证据不完整", f"≥{score}%", unknown_stages
-    if score == 100 and all(item["score"] == 100 for item in stage_results):
-        return score, "complete", "已完成", "100%", unknown_stages
-    if score == 0 and all(item["score"] == 0 for item in stage_results):
-        return score, "not-started", "未开始", "0%", unknown_stages
-    return score, "in-progress", "进行中", f"{score}%", unknown_stages
+        return "unknown", "状态未知", completed_axes, unknown_stages
+    if any(item["state_kind"] == "failed" for item in stage_results):
+        return "blocked", "受阻", completed_axes, unknown_stages
+    if completed_axes == len(stage_results):
+        return "active", "已激活", completed_axes, unknown_stages
+    by_key = {item["key"]: item for item in stage_results}
+    downstream = [by_key[key]["state_kind"] for key in ("implementation", "validation", "qualification", "activation")]
+    if by_key["specification"]["state_kind"] == "complete" and all(value == "idle" for value in downstream):
+        return "designed", "仅完成设计", completed_axes, unknown_stages
+    return "partial", "部分实现", completed_axes, unknown_stages
 
 
 def build_capability(
@@ -213,21 +213,21 @@ def build_capability(
     for definition in STAGES:
         key = definition["key"]
         status = raw_statuses[key]
-        score = stage_score(key, status)
+        state_kind, state_label = stage_state(key, status)
         stage_results.append(
             {
                 "key": key,
                 "label": definition["label"],
-                "weight": definition["weight"],
                 "status": status or "UNKNOWN",
-                "score": score,
+                "state_kind": state_kind,
+                "state_label": state_label,
                 "evidence": evidence[key],
             }
         )
 
-    score, category, status_label, score_display, unknown_stages = classify_progress(stage_results)
+    category, status_label, completed_axes, unknown_stages = classify_maturity(stage_results)
 
-    incomplete = [item for item in stage_results if item["score"] != 100]
+    incomplete = [item for item in stage_results if item["state_kind"] != "complete"]
     next_action_by_stage = {
         "specification": "补齐并审查独立能力规格",
         "implementation": "实现最小可执行闭环并保存实现 Receipt",
@@ -239,25 +239,26 @@ def build_capability(
 
     limitations = []
     for item in stage_results:
-        if item["score"] is None:
+        if item["state_kind"] == "unknown":
             limitations.append(f"{item['label']}状态缺少可定位证据")
-        elif item["score"] == 0:
+        elif item["state_kind"] == "idle":
             limitations.append(f"{item['label']}尚未开始或未取得有效证据")
-        elif item["score"] < 100:
-            limitations.append(f"{item['label']}仅部分完成：{item['status']}")
+        elif item["state_kind"] == "failed":
+            limitations.append(f"{item['label']}存在失败或失效状态：{item['status']}")
+        elif item["state_kind"] == "partial":
+            limitations.append(f"{item['label']}只有部分证据：{item['status']}")
 
     return {
         "id": capability_id,
         "name": CHINESE_NAMES.get(capability_id, str(manifest.get("name") or capability_id)),
         "english_name": str(manifest.get("name") or capability_id),
         "purpose": first_sentence(manifest.get("purpose")),
-        "score": score,
-        "score_display": score_display,
+        "completed_axes": completed_axes,
         "category": category,
         "status_label": status_label,
         "unknown_stages": unknown_stages,
         "stages": stage_results,
-        "limitations": limitations or ["当前五个进度轴均有完成证据"],
+        "limitations": limitations or ["当前五个证据轴均有完成证据"],
         "next_action": next_action,
         "manifest_path": str(manifest_path.relative_to(ROOT)),
     }
@@ -315,21 +316,20 @@ def build_snapshot() -> dict[str, Any]:
         source_paths.extend(capability_source_paths(entry))
 
     summary = {
-        "complete": sum(item["category"] == "complete" for item in capabilities),
-        "in_progress": sum(item["category"] == "in-progress" for item in capabilities),
-        "not_started": sum(item["category"] == "not-started" for item in capabilities),
+        "active": sum(item["category"] == "active" for item in capabilities),
+        "partial": sum(item["category"] == "partial" for item in capabilities),
+        "designed": sum(item["category"] == "designed" for item in capabilities),
+        "blocked": sum(item["category"] == "blocked" for item in capabilities),
         "unknown": sum(item["category"] == "unknown" for item in capabilities),
         "total": len(capabilities),
     }
-    known_scores = [item["score"] for item in capabilities if item["category"] != "unknown"]
-    summary["average"] = int(round(sum(known_scores) / len(known_scores))) if known_scores else None
 
     metadata = toolkit.get("metadata", {})
     return {
         "toolkit_version": metadata.get("version", "UNKNOWN") if isinstance(metadata, dict) else "UNKNOWN",
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "source_digest": data_digest(list(dict.fromkeys(source_paths))),
-        "formula": [dict(item) for item in STAGES],
+        "axes": [dict(item) for item in STAGES],
         "summary": summary,
         "capabilities": capabilities,
     }
@@ -347,309 +347,88 @@ def snapshots_match(left: dict[str, Any], right: dict[str, Any]) -> bool:
     return stable_snapshot(left) == stable_snapshot(right)
 
 
-def static_card_html(item: dict[str, Any], selected: bool = False) -> str:
-    labels = "".join(f"<span>{html.escape(str(stage['label']))}</span>" for stage in item["stages"])
-    points = []
-    for stage in item["stages"]:
-        score = stage["score"]
-        point_class = "unknown-point" if score is None else "done" if score == 100 else "partial" if score > 0 else ""
-        title = html.escape(f"{stage['label']}: {stage['status']}", quote=True)
-        points.append(f'<span class="point {point_class}" title="{title}"></span>')
-    selected_class = " selected" if selected else ""
+def maturity_row_html(item: dict[str, Any], selected: bool = False) -> str:
+    cells = "".join(
+        f'<td><span class="axis-state {html.escape(stage["state_kind"])}" title="{html.escape(stage["status"], quote=True)}">{html.escape(stage["state_label"])}</span></td>'
+        for stage in item["stages"]
+    )
     return (
-        f'<button class="card {html.escape(item["category"])}{selected_class}" '
-        f'data-id="{html.escape(item["id"], quote=True)}" style="--progress:{item["score"]}%" '
-        f'aria-label="{html.escape(item["name"], quote=True)}，进度 {html.escape(item["score_display"], quote=True)}">'
-        f'<span class="card-name"><strong>{html.escape(item["name"])}</strong>'
-        f'<span>{html.escape(item["id"])}</span></span>'
-        f'<span class="score">{html.escape(item["score_display"])}</span>'
-        '<span class="progress"><span></span></span>'
-        f'<span class="stage-labels">{labels}</span>'
-        f'<span class="stage-points">{"".join(points)}</span>'
-        f'<span class="card-status"><span class="status-dot"></span>{html.escape(item["status_label"])}</span>'
-        '</button>'
+        f'<tr class="maturity-row {html.escape(item["category"])}{" selected" if selected else ""}" data-id="{html.escape(item["id"], quote=True)}">'
+        f'<td>{html.escape(item["name"])}<br><span class="section-note">{html.escape(item["id"])}</span></td>'
+        f'{cells}<td><span class="maturity-label">{html.escape(item["status_label"])}</span></td></tr>'
     )
 
 
-def static_drawer_html(item: dict[str, Any]) -> str:
-    stage_rows = []
+def maturity_detail_html(item: dict[str, Any]) -> str:
+    axes = []
     for stage in item["stages"]:
-        score = "未知" if stage["score"] is None else f"{stage['score']}%"
         if stage["evidence"]:
             links = []
             for evidence_ref in stage["evidence"]:
                 path = str(evidence_ref).split("#", 1)[0].replace("\\", "/")
                 links.append(f'<li><a href="../{html.escape(path, quote=True)}">{html.escape(str(evidence_ref))}</a></li>')
-            refs = f'<ul class="evidence-list">{"".join(links)}</ul>'
+            evidence = f'<ul class="evidence-list">{"".join(links)}</ul>'
         else:
-            refs = '<span class="stage-status">无可定位证据</span>'
-        stage_rows.append(
-            '<div class="detail-stage">'
-            f'<strong>{html.escape(stage["label"])}</strong><span class="stage-score">{score}</span>'
-            f'<div><div class="stage-status">{html.escape(str(stage["status"]))} · 权重 {stage["weight"]}%</div>{refs}</div>'
-            '</div>'
+            evidence = '<span class="section-note">无可定位证据</span>'
+        axes.append(
+            '<div class="detail-axis">'
+            f'<strong>{html.escape(stage["label"])}</strong>'
+            f'<span class="axis-state {html.escape(stage["state_kind"])}">{html.escape(stage["state_label"])}</span>'
+            f'<div><span class="section-note">{html.escape(stage["status"])}</span>{evidence}</div></div>'
         )
-    limitations = "".join(f"<li>{html.escape(text)}</li>" for text in item["limitations"])
+    limitations = "".join(f'<li>{html.escape(text)}</li>' for text in item["limitations"])
     return (
-        '<div class="drawer-head"><button class="drawer-close" aria-label="关闭详情">×</button>'
-        f'<h2>{html.escape(item["name"])}</h2><div class="english">{html.escape(item["english_name"])} · {html.escape(item["id"])}</div>'
-        f'<div class="drawer-score"><strong class="score">{html.escape(item["score_display"])}</strong><span>{html.escape(item["status_label"])}</span></div></div>'
-        f'<div class="drawer-section"><h3>职责</h3><p>{html.escape(item["purpose"])}</p></div>'
-        f'<div class="drawer-section"><h3>五轴得分与证据</h3>{"".join(stage_rows)}</div>'
-        f'<div class="drawer-section"><h3>当前局限</h3><ul class="limitation-list">{limitations}</ul></div>'
-        f'<div class="drawer-section"><h3>下一步</h3><div class="next-action">{html.escape(item["next_action"])}</div></div>'
+        '<div class="detail-head"><button class="detail-close" aria-label="关闭详情">×</button>'
+        f'<h2>{html.escape(item["name"])}</h2><p>{html.escape(item["english_name"])} · {html.escape(item["id"])}</p></div>'
+        f'<div class="detail-section"><h3>当前成熟度</h3><p><strong>{html.escape(item["status_label"])}</strong> · {item["completed_axes"]}/5 个证据轴完成</p></div>'
+        f'<div class="detail-section"><h3>职责</h3><p>{html.escape(item["purpose"])}</p></div>'
+        f'<div class="detail-section"><h3>五个证据轴</h3>{"".join(axes)}</div>'
+        f'<div class="detail-section"><h3>当前局限</h3><ul class="limitation-list">{limitations}</ul></div>'
+        f'<div class="detail-section"><h3>下一步</h3><div class="next-action">{html.escape(item["next_action"])}</div></div>'
     )
 
 
 def html_document(snapshot: dict[str, Any]) -> str:
     encoded = json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
-    initial_cards = "".join(static_card_html(item, selected=index == 0) for index, item in enumerate(snapshot["capabilities"]))
-    initial_drawer = static_drawer_html(snapshot["capabilities"][0]) if snapshot["capabilities"] else ""
+    rows = "".join(maturity_row_html(item, selected=index == 0) for index, item in enumerate(snapshot["capabilities"]))
+    detail = maturity_detail_html(snapshot["capabilities"][0]) if snapshot["capabilities"] else ""
     summary = snapshot["summary"]
-    average = "—" if summary["average"] is None else f"{summary['average']}%"
+    version = html.escape(str(snapshot["toolkit_version"]))
     generated = html.escape(snapshot["generated_at"])
     digest = html.escape(snapshot["source_digest"][:12])
-    version = html.escape(str(snapshot["toolkit_version"]))
     return f'''<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <title>能力拼图进度 · Engineering Evidence Toolkit</title>
-  <style>
-    :root {{
-      --bg:#f5f7fa; --surface:#ffffff; --surface-2:#f9fafc; --ink:#0d2345;
-      --muted:#637089; --line:#dbe1ea; --line-strong:#c7d0dd; --navy:#0b2247;
-      --green:#21833b; --green-soft:#eaf6ed; --amber:#d77a00; --amber-soft:#fff4e2;
-      --red:#c8242f; --red-soft:#fff0f1; --gray:#6f7888; --gray-soft:#eef1f5;
-      --focus:#2f6fed; --radius:10px; --shadow:0 12px 40px rgba(13,35,69,.09);
-    }}
-    * {{ box-sizing:border-box; }}
-    html {{ background:var(--bg); }}
-    body {{ margin:0; min-height:100vh; color:var(--ink); background:var(--bg); font-family:Inter,"SF Pro Display","Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }}
-    button,input {{ font:inherit; }}
-    button {{ color:inherit; }}
-    .shell {{ max-width:1540px; margin:0 auto; padding:28px 30px 44px; }}
-    .header {{ display:flex; align-items:flex-start; justify-content:space-between; gap:24px; margin-bottom:22px; }}
-    h1 {{ margin:0 0 7px; font-size:31px; line-height:1.16; letter-spacing:-.04em; }}
-    .subtitle {{ color:var(--muted); font-size:13px; line-height:1.6; }}
-    .header-meta {{ text-align:right; color:var(--muted); font-size:12px; line-height:1.7; }}
-    .header-meta strong {{ color:var(--ink); font-weight:650; }}
-    .summary {{ display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); margin-bottom:22px; }}
-    .summary-item {{ min-height:102px; padding:21px 24px 18px; position:relative; }}
-    .summary-item + .summary-item::before {{ content:""; position:absolute; left:0; top:22px; bottom:22px; width:1px; background:var(--line); }}
-    .summary-value {{ font-size:30px; line-height:1; font-weight:760; letter-spacing:-.035em; }}
-    .summary-label {{ margin-left:8px; font-weight:650; font-size:13px; }}
-    .summary-note {{ display:block; margin-top:10px; color:var(--muted); font-size:12px; }}
-    .summary-item.complete .summary-value {{ color:var(--green); }}
-    .summary-item.in-progress .summary-value {{ color:var(--amber); }}
-    .summary-item.not-started .summary-value {{ color:var(--red); }}
-    .summary-item.unknown .summary-value {{ color:var(--gray); }}
-    .toolbar {{ display:flex; gap:14px; align-items:center; justify-content:space-between; margin:0 0 18px; }}
-    .filters {{ display:flex; gap:8px; flex-wrap:wrap; }}
-    .filter {{ border:1px solid var(--line-strong); background:var(--surface); border-radius:7px; padding:9px 14px; font-size:13px; cursor:pointer; transition:.18s ease; }}
-    .filter:hover {{ border-color:#9aa8bc; }}
-    .filter.active {{ background:var(--navy); border-color:var(--navy); color:#fff; }}
-    .search {{ width:min(360px,42vw); position:relative; }}
-    .search input {{ width:100%; border:1px solid var(--line-strong); border-radius:7px; background:var(--surface); color:var(--ink); padding:10px 13px 10px 38px; outline:none; }}
-    .search input:focus {{ border-color:var(--focus); box-shadow:0 0 0 3px rgba(47,111,237,.12); }}
-    .search svg {{ position:absolute; left:12px; top:11px; width:17px; height:17px; color:var(--muted); }}
-    .main {{ display:grid; grid-template-columns:minmax(0,1fr) 390px; gap:18px; align-items:start; }}
-    .main.drawer-closed {{ grid-template-columns:minmax(0,1fr); }}
-    .grid {{ display:grid; grid-template-columns:repeat(4,minmax(205px,1fr)); gap:13px; }}
-    .card {{ min-height:230px; text-align:left; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); padding:18px; cursor:pointer; transition:border-color .18s ease, transform .18s ease, box-shadow .18s ease; }}
-    .card:hover {{ transform:translateY(-2px); border-color:#aeb9c9; box-shadow:0 7px 18px rgba(13,35,69,.07); }}
-    .card.selected {{ border-color:var(--focus); box-shadow:0 0 0 2px rgba(47,111,237,.11); }}
-    .card:focus-visible,.filter:focus-visible,.drawer-close:focus-visible {{ outline:3px solid rgba(47,111,237,.26); outline-offset:2px; }}
-    .card-name {{ display:block; min-height:49px; }}
-    .card-name strong {{ display:block; font-size:16px; line-height:1.3; }}
-    .card-name span {{ display:block; margin-top:4px; color:var(--muted); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }}
-    .score {{ display:block; margin:14px 0 8px; font-size:29px; line-height:1; font-weight:770; letter-spacing:-.03em; }}
-    .complete .score,.complete .status-dot {{ color:var(--green); }}
-    .in-progress .score,.in-progress .status-dot {{ color:var(--amber); }}
-    .not-started .score,.not-started .status-dot {{ color:var(--red); }}
-    .unknown .score,.unknown .status-dot {{ color:var(--gray); }}
-    .progress {{ display:block; width:100%; height:6px; border-radius:99px; background:#e4e8ee; overflow:hidden; }}
-    .progress > span {{ display:block; height:100%; border-radius:inherit; width:var(--progress); background:var(--amber); }}
-    .complete .progress > span {{ background:var(--green); }}
-    .not-started .progress > span {{ background:var(--red); }}
-    .unknown .progress > span {{ background:var(--gray); }}
-    .stage-labels,.stage-points {{ display:grid; grid-template-columns:repeat(5,1fr); }}
-    .stage-labels {{ margin-top:13px; color:var(--muted); font-size:10px; text-align:center; }}
-    .stage-points {{ position:relative; margin-top:7px; }}
-    .stage-points::before {{ content:""; position:absolute; left:10%; right:10%; top:6px; height:1px; background:var(--line-strong); }}
-    .point {{ width:13px; height:13px; border:2px solid var(--line-strong); border-radius:50%; background:var(--surface); justify-self:center; z-index:1; }}
-    .point.done {{ border-color:currentColor; background:currentColor; }}
-    .point.partial {{ border-color:currentColor; background:linear-gradient(90deg,currentColor 50%,var(--surface) 50%); }}
-    .point.unknown-point {{ border-style:dashed; }}
-    .card-status {{ display:flex; gap:7px; align-items:center; margin-top:18px; color:var(--muted); font-size:12px; }}
-    .status-dot {{ width:7px; height:7px; border-radius:50%; background:currentColor; }}
-    .drawer {{ position:sticky; top:18px; max-height:calc(100vh - 36px); overflow:auto; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); }}
-    .drawer.closed {{ display:none; }}
-    .drawer-head {{ padding:20px 22px 17px; border-bottom:1px solid var(--line); position:relative; }}
-    .drawer-head h2 {{ margin:0 36px 5px 0; font-size:20px; line-height:1.25; }}
-    .drawer-head .english {{ color:var(--muted); font-size:11px; }}
-    .drawer-score {{ display:flex; align-items:center; gap:12px; margin-top:16px; }}
-    .drawer-score strong {{ font-size:34px; letter-spacing:-.04em; }}
-    .drawer-close {{ position:absolute; top:15px; right:15px; border:0; background:transparent; font-size:24px; cursor:pointer; color:var(--muted); }}
-    .drawer-section {{ padding:18px 22px; border-bottom:1px solid var(--line); }}
-    .drawer-section:last-child {{ border-bottom:0; }}
-    .drawer-section h3 {{ margin:0 0 12px; font-size:14px; }}
-    .drawer-section p {{ margin:0; color:#43516a; font-size:12px; line-height:1.75; }}
-    .detail-stage {{ display:grid; grid-template-columns:50px 48px minmax(0,1fr); gap:8px; align-items:start; padding:9px 0; border-top:1px solid #edf0f4; font-size:11px; }}
-    .detail-stage > div {{ min-width:0; }}
-    .detail-stage:first-of-type {{ border-top:0; }}
-    .detail-stage .stage-score {{ font-weight:750; }}
-    .detail-stage .stage-status {{ color:var(--muted); word-break:break-word; }}
-    .evidence-list,.limitation-list {{ margin:0; padding-left:17px; color:#43516a; font-size:11px; line-height:1.65; }}
-    .evidence-list a {{ color:#245fc7; text-decoration:none; overflow-wrap:anywhere; word-break:normal; }}
-    .evidence-list a:hover {{ text-decoration:underline; }}
-    .next-action {{ padding:12px 14px; border-left:3px solid var(--focus); background:#f4f7fe; color:#203b6d; font-size:12px; line-height:1.65; }}
-    .empty {{ grid-column:1/-1; padding:52px; border:1px dashed var(--line-strong); background:var(--surface); text-align:center; color:var(--muted); border-radius:var(--radius); }}
-    .footer {{ margin-top:18px; color:var(--muted); font-size:11px; line-height:1.7; }}
-    @media (max-width:1240px) {{ .grid {{ grid-template-columns:repeat(3,minmax(210px,1fr)); }} .main {{ grid-template-columns:minmax(0,1fr) 360px; }} }}
-    @media (max-width:980px) {{ .main {{ display:block; }} .grid {{ grid-template-columns:repeat(2,minmax(230px,1fr)); }} .drawer {{ position:fixed; inset:5vh 4vw; max-height:90vh; z-index:10; display:none; }} .drawer.open {{ display:block; }} .drawer::before {{ content:""; position:fixed; inset:0; background:rgba(13,35,69,.28); z-index:-1; }} }}
-    @media (max-width:680px) {{ .shell {{ padding:20px 15px 32px; }} .header {{ display:block; }} .header-meta {{ text-align:left; margin-top:10px; }} .summary {{ grid-template-columns:repeat(2,1fr); }} .summary-item:last-child {{ grid-column:1/-1; }} .summary-item:nth-child(3)::before,.summary-item:nth-child(5)::before {{ display:none; }} .toolbar {{ align-items:stretch; flex-direction:column; }} .search {{ width:100%; }} .grid {{ grid-template-columns:1fr; }} .card {{ min-height:214px; }} .drawer {{ inset:2vh 3vw; max-height:96vh; }} }}
-  </style>
+  <title>能力成熟度 · Engineering Evidence Toolkit</title>
+  <link rel="stylesheet" href="assets/console.css">
 </head>
 <body>
-  <main class="shell">
-    <header class="header">
-      <div>
-        <h1>能力拼图进度</h1>
-        <div class="subtitle">每块能力都按规格、实现、验证、环境资格和激活证据计算；不是 AI 主观打分。</div>
-      </div>
-      <div class="header-meta"><strong>Toolkit <span id="toolkitVersion">{version}</span></strong><br>渲染时间：<span id="generatedAt">{generated}</span><br>事实快照：<span id="digest">{digest}</span></div>
-    </header>
-
-    <section class="summary" aria-label="进度汇总">
-      <div class="summary-item complete"><span class="summary-value"><b id="completeCount">{summary['complete']}</b></span><span class="summary-label">项已完成</span><span class="summary-note">五个证据轴均为 100%</span></div>
-      <div class="summary-item in-progress"><span class="summary-value"><b id="progressCount">{summary['in_progress']}</b></span><span class="summary-label">项进行中</span><span class="summary-note">已开始但尚未全部完成</span></div>
-      <div class="summary-item not-started"><span class="summary-value"><b id="notStartedCount">{summary['not_started']}</b></span><span class="summary-label">项未开始</span><span class="summary-note">五个证据轴均为 0%</span></div>
-      <div class="summary-item unknown"><span class="summary-value"><b id="unknownCount">{summary['unknown']}</b></span><span class="summary-label">项未知</span><span class="summary-note">至少一个证据轴无法判定</span></div>
-      <div class="summary-item"><span class="summary-value" id="averageScore">{average}</span><span class="summary-label">已知项均值</span><span class="summary-note">未知项不参与均值</span></div>
+  <header class="app-header"><div class="app-header-inner">
+    <a class="brand" href="workset-planner.html"><span class="brand-mark">E</span>工程取证工具集</a>
+    <nav class="primary-nav" aria-label="主导航"><a href="workset-planner.html">工作集</a><a href="run-console.html">当前运行</a><a href="capability-progress.html" aria-current="page">能力成熟度</a></nav>
+    <div class="header-meta">桌面控制台</div>
+  </div></header>
+  <main class="page-shell">
+    <div class="page-heading"><div><h1>能力成熟度</h1><p>这是工具集长期建设状态，不是某次任务进度；部分状态不换算成虚假的完成百分比。</p></div><div class="fact-meta">Toolkit {version}<br>渲染时间 {generated}<br>事实快照 {digest}</div></div>
+    <section class="maturity-summary" aria-label="成熟度汇总">
+      <div><strong id="activeCount">{summary["active"]}</strong><span>已激活</span></div>
+      <div><strong id="partialCount">{summary["partial"]}</strong><span>部分实现</span></div>
+      <div><strong id="designedCount">{summary["designed"]}</strong><span>仅完成设计</span></div>
+      <div><strong id="blockedCount">{summary["blocked"]}</strong><span>受阻</span></div>
+      <div><strong id="unknownCount">{summary["unknown"]}</strong><span>状态未知</span></div>
     </section>
-
-    <div class="toolbar">
-      <div class="filters" role="group" aria-label="状态筛选">
-        <button class="filter active" data-filter="all">全部</button>
-        <button class="filter" data-filter="complete">已完成</button>
-        <button class="filter" data-filter="in-progress">进行中</button>
-        <button class="filter" data-filter="not-started">未开始</button>
-        <button class="filter" data-filter="unknown">未知</button>
-      </div>
-      <label class="search">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
-        <input id="searchInput" type="search" placeholder="搜索能力名称或 ID" aria-label="搜索能力">
-      </label>
-    </div>
-
-    <section class="main" id="mainLayout">
-      <div class="grid" id="capabilityGrid" aria-live="polite">{initial_cards}</div>
-      <aside class="drawer {html.escape(snapshot['capabilities'][0]['category']) if snapshot['capabilities'] else ''}" id="detailDrawer" aria-label="能力详情">{initial_drawer}</aside>
+    <div class="maturity-toolbar"><div class="filter-row"><button class="filter-button selected" data-filter="all">全部</button><button class="filter-button" data-filter="active">已激活</button><button class="filter-button" data-filter="partial">部分实现</button><button class="filter-button" data-filter="designed">仅完成设计</button><button class="filter-button" data-filter="blocked">受阻</button><button class="filter-button" data-filter="unknown">未知</button></div><input class="maturity-search" id="maturitySearch" type="search" placeholder="搜索能力名称或 ID" aria-label="搜索能力"></div>
+    <section class="maturity-layout" id="maturityLayout">
+      <div class="maturity-table-wrap"><table class="maturity-table"><thead><tr><th>能力</th><th>规格</th><th>实现</th><th>验证</th><th>资格</th><th>激活</th><th>综合状态</th></tr></thead><tbody id="maturityRows">{rows}</tbody></table></div>
+      <aside class="maturity-detail" id="maturityDetail" aria-label="能力详情">{detail}</aside>
     </section>
-    <footer class="footer">绿色仅表示五个证据轴全部完成；红色仅表示五轴均为 0。渲染成功不等于 Capability 已实现、已验证或已激活。</footer>
+    <p class="footer-note">失败、失效和不合格是问题状态，不贡献正向进度。页面只呈现 Manifest 与证据，不替代实现、测试、资格或激活 Receipt。</p>
   </main>
   <script id="capabilityData" type="application/json">{encoded}</script>
-  <script>
-    const snapshot = JSON.parse(document.getElementById('capabilityData').textContent);
-    let activeFilter = 'all';
-    let query = '';
-    let selectedId = snapshot.capabilities[0]?.id || null;
-
-    const $ = (selector) => document.querySelector(selector);
-    const escapeHtml = (value) => String(value).replace(/[&<>"]/g, c => ({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}}[c]));
-    const localTime = new Date(snapshot.generated_at).toLocaleString('zh-CN', {{hour12:false}});
-    $('#toolkitVersion').textContent = snapshot.toolkit_version;
-    $('#generatedAt').textContent = localTime;
-    $('#digest').textContent = snapshot.source_digest.slice(0, 12);
-    $('#completeCount').textContent = snapshot.summary.complete;
-    $('#progressCount').textContent = snapshot.summary.in_progress;
-    $('#notStartedCount').textContent = snapshot.summary.not_started;
-    $('#unknownCount').textContent = snapshot.summary.unknown;
-    $('#averageScore').textContent = snapshot.summary.average === null ? '—' : snapshot.summary.average + '%';
-
-    function pointClass(stage) {{
-      if (stage.score === null) return 'unknown-point';
-      if (stage.score === 100) return 'done';
-      if (stage.score > 0) return 'partial';
-      return '';
-    }}
-
-    function cardHtml(item) {{
-      const labels = item.stages.map(stage => `<span>${{escapeHtml(stage.label)}}</span>`).join('');
-      const points = item.stages.map(stage => `<span class="point ${{pointClass(stage)}}" title="${{escapeHtml(stage.label + ': ' + stage.status)}}"></span>`).join('');
-      return `<button class="card ${{item.category}} ${{selectedId === item.id ? 'selected' : ''}}" data-id="${{escapeHtml(item.id)}}" style="--progress:${{item.score}}%" aria-label="${{escapeHtml(item.name)}}，进度 ${{escapeHtml(item.score_display)}}">
-        <span class="card-name"><strong>${{escapeHtml(item.name)}}</strong><span>${{escapeHtml(item.id)}}</span></span>
-        <span class="score">${{escapeHtml(item.score_display)}}</span>
-        <span class="progress"><span></span></span>
-        <span class="stage-labels">${{labels}}</span>
-        <span class="stage-points">${{points}}</span>
-        <span class="card-status"><span class="status-dot"></span>${{escapeHtml(item.status_label)}}</span>
-      </button>`;
-    }}
-
-    function filteredItems() {{
-      return snapshot.capabilities.filter(item => {{
-        const categoryMatch = activeFilter === 'all' || item.category === activeFilter;
-        const text = `${{item.name}} ${{item.english_name}} ${{item.id}}`.toLowerCase();
-        return categoryMatch && text.includes(query.toLowerCase());
-      }});
-    }}
-
-    function renderGrid() {{
-      const items = filteredItems();
-      $('#capabilityGrid').innerHTML = items.length ? items.map(cardHtml).join('') : '<div class="empty">没有符合当前筛选条件的能力。</div>';
-      document.querySelectorAll('.card').forEach(card => card.addEventListener('click', () => {{
-        selectedId = card.dataset.id;
-        renderGrid();
-        renderDrawer(true);
-      }}));
-    }}
-
-    function evidenceHref(ref) {{
-      const path = ref.split('#')[0];
-      return '../' + path.replace(/\\\\/g, '/');
-    }}
-
-    function renderDrawer(forceOpen = false) {{
-      const item = snapshot.capabilities.find(cap => cap.id === selectedId);
-      if (!item) return;
-      if (forceOpen) $('#mainLayout').classList.remove('drawer-closed');
-      const stageRows = item.stages.map(stage => {{
-        const score = stage.score === null ? '未知' : stage.score + '%';
-        const refs = stage.evidence.length ? `<ul class="evidence-list">${{stage.evidence.map(ref => `<li><a href="${{escapeHtml(evidenceHref(ref))}}">${{escapeHtml(ref)}}</a></li>`).join('')}}</ul>` : '<span class="stage-status">无可定位证据</span>';
-        return `<div class="detail-stage"><strong>${{escapeHtml(stage.label)}}</strong><span class="stage-score">${{score}}</span><div><div class="stage-status">${{escapeHtml(stage.status)}} · 权重 ${{stage.weight}}%</div>${{refs}}</div></div>`;
-      }}).join('');
-      const limitations = item.limitations.map(text => `<li>${{escapeHtml(text)}}</li>`).join('');
-      $('#detailDrawer').className = `drawer ${{item.category}}${{forceOpen ? ' open' : ''}}`;
-      $('#detailDrawer').innerHTML = `<div class="drawer-head">
-        <button class="drawer-close" aria-label="关闭详情">×</button>
-        <h2>${{escapeHtml(item.name)}}</h2><div class="english">${{escapeHtml(item.english_name)}} · ${{escapeHtml(item.id)}}</div>
-        <div class="drawer-score"><strong class="score">${{escapeHtml(item.score_display)}}</strong><span>${{escapeHtml(item.status_label)}}</span></div>
-      </div>
-      <div class="drawer-section"><h3>职责</h3><p>${{escapeHtml(item.purpose)}}</p></div>
-      <div class="drawer-section"><h3>五轴得分与证据</h3>${{stageRows}}</div>
-      <div class="drawer-section"><h3>当前局限</h3><ul class="limitation-list">${{limitations}}</ul></div>
-      <div class="drawer-section"><h3>下一步</h3><div class="next-action">${{escapeHtml(item.next_action)}}</div></div>`;
-      $('.drawer-close').addEventListener('click', () => {{
-        $('#detailDrawer').classList.remove('open');
-        $('#detailDrawer').classList.add('closed');
-        $('#mainLayout').classList.add('drawer-closed');
-      }});
-    }}
-
-    document.querySelectorAll('.filter').forEach(button => button.addEventListener('click', () => {{
-      document.querySelectorAll('.filter').forEach(item => item.classList.remove('active'));
-      button.classList.add('active');
-      activeFilter = button.dataset.filter;
-      renderGrid();
-    }}));
-    $('#searchInput').addEventListener('input', event => {{ query = event.target.value.trim(); renderGrid(); }});
-    renderGrid();
-    renderDrawer(false);
-  </script>
+  <script src="assets/maturity.js"></script>
 </body>
 </html>
 '''
@@ -667,9 +446,10 @@ def main() -> int:
     print(f"Rendered {summary['total']} capabilities to {output}")
     print(
         "Summary: "
-        f"complete={summary['complete']} "
-        f"in_progress={summary['in_progress']} "
-        f"not_started={summary['not_started']} "
+        f"active={summary['active']} "
+        f"partial={summary['partial']} "
+        f"designed={summary['designed']} "
+        f"blocked={summary['blocked']} "
         f"unknown={summary['unknown']}"
     )
     print("Render success does not validate or activate any capability.")

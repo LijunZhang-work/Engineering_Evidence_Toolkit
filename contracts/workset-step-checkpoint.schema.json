@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/workset-step-checkpoint.schema.json",
+  "title": "Workset Step Checkpoint",
+  "description": "把一个工作集协调步骤绑定到具体请求、运行和实际可打开工件；它不是 Gate 或 Verdict。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "kind", "checkpoint_id", "created_at", "request_id",
+    "request_intent_digest", "run_id", "step_id", "operation", "producer",
+    "summary", "artifacts"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "kind": {"const": "WorksetStepCheckpoint"},
+    "checkpoint_id": {"type": "string", "pattern": "^wscp_[a-f0-9]{24}$"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "request_id": {"type": "string", "pattern": "^wsr_[a-f0-9]{24}$"},
+    "request_intent_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "run_id": {"type": "string", "pattern": "^wsrun_[a-f0-9]{24}$"},
+    "step_id": {"type": "string", "minLength": 1},
+    "operation": {"enum": ["USE_AVAILABLE", "BUILD_MISSING"]},
+    "producer": {"enum": ["AI", "PROFILE_RUNNER", "SYSTEM"]},
+    "summary": {"type": "string", "minLength": 1},
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "ref"],
+        "properties": {
+          "kind": {"enum": ["IMPLEMENTATION_ARTIFACT", "TEST_RECEIPT", "EVIDENCE_BUNDLE", "RUNNER_CHECKPOINT", "LOG", "REPORT"]},
+          "ref": {"type": "string", "pattern": "^(repo|runtime):[^#]+#sha256:[a-f0-9]{64}$"}
+        }
+      }
+    }
+  }
+}

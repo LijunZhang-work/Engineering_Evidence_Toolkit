@@ -17,7 +17,8 @@ Engineering_Evidence_Toolkit/
 ├── lifecycle/                      # 工具集自身的计划、体检、修复和卸载生命周期
 ├── profiles/                       # 可选能力组合；不是默认入口
 ├── composition/                    # 薄 Runner 的公开契约与实例结构
-├── dashboard/                      # 由证据状态自动生成的轻量能力拼图看板
+├── worksets/                       # 用户目标到最小能力闭包的目录
+├── dashboard/                      # 工作集、当前运行、能力成熟度三个桌面页面
 ├── acceptance/                     # 事故样本、负向题与预期结果
 ├── migration/                      # 三份旧文档的冻结、映射与退役凭证
 ├── roadmap/                        # 从 DESIGNED 到 ACTIVE 的建设计划
@@ -41,7 +42,7 @@ Engineering_Evidence_Toolkit/
 
 ## 2. `contracts/`
 
-只保留跨模块交换所需的最小对象：Toolkit、Capability、Profile、Run Policy、
+只保留跨模块交换所需的最小对象：Toolkit、Capability、Profile、Run Policy、Workset Request/Run State/Step Checkpoint、
 Workspace/Collaboration Snapshot、Typed Receipt、Evidence、Claim、Waiver、Instance、
 Provider Adoption Decision 和完整 RunBundle。
 
@@ -111,6 +112,12 @@ Harness 是否支持插件、Hook、独立 Reviewer 或长时恢复，不由生�
 它就是调度、状态、重试、Checkpoint 和 Verdict 的唯一控制面。`autonomous-runner` Capability
 只求值是否应继续/等待/停机，不拥有第二状态机。
 
+## 6A. `worksets/`
+
+这里保存“用户现在想完成什么”到最小 Capability 闭包的稳定映射。工作集明确记录纳入、排除、
+步骤和默认控制值；`USE_AVAILABLE` 与 `BUILD_MISSING` 是操作选择，`QUICK / BALANCED / STRICT`
+是保障选择，时间和权限是另外两条轴。任何工作集都不得偷偷退化为全部已登记能力。
+
 ## 7. `acceptance/`
 
 把真实事故转成可复现的负向题。尤其要证明：
@@ -125,7 +132,10 @@ Harness 是否支持插件、Hook、独立 Reviewer 或长时恢复，不由生�
 
 ## 7A. `dashboard/`
 
-只放由规范和状态证据生成的只读视图。`capability-progress.html` 是单文件静态页面；`tools/render_capability_dashboard.py` 扫描 Toolkit Manifest、Current State 和各 Capability Manifest 后重新生成。百分比由五个固定证据轴计算，页面不得成为新的状态事实源。
+保存三个由 Canonical 数据生成的桌面页面：`workset-planner.html` 选择本次最小工作集，
+`run-console.html` 展示外部 Runtime 的实际步骤与人机活动，`capability-progress.html` 展示长期
+五轴成熟度。成熟度使用“已完成/部分/未开始/失败/未知”等离散事实，不再把不同证据轴加权成
+百分比或半圆。控制台只记录意图和可见性，不成为新的工程事实源或 Verdict 权威。
 
 ## 8. `migration/`
 
@@ -137,4 +147,5 @@ Harness 是否支持插件、Hook、独立 Reviewer 或长时恢复，不由生�
 
 ## 10. `runs/`
 
-规范仓内只保留说明。真正的实例写入经批准的外部 Runtime 根目录，按 run ID 不可变保存：输入、快照、证据、Claim、Receipt、日志、状态和报告。不得覆盖前一次 Receipt。
+规范仓内只保留说明。工作集请求、运行可见状态和真正实例均写入经批准的外部 Runtime 根目录，
+按 request/run/instance ID 保存：输入、快照、证据、Claim、Receipt、日志、状态和报告。不得覆盖前一次 Receipt。

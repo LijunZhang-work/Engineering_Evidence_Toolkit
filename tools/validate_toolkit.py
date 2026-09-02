@@ -48,6 +48,7 @@ SCHEMA_BINDINGS = {
     "harness_support_matrix": ROOT / "contracts/harness-support-matrix.schema.json",
     "harness_runtime_observation": ROOT / "contracts/harness-runtime-observation.schema.json",
     "run_policy": ROOT / "contracts/run-policy.schema.json",
+    "workset_catalog": ROOT / "contracts/workset-catalog.schema.json",
     "cpp_candidate_selection": ROOT / "acceptance/cpp-target-selection/candidate-selection.schema.json",
     "cpp_real_validation": ROOT / "acceptance/cpp-target-selection/real-validation.schema.json",
 }
@@ -149,14 +150,26 @@ def require_paths(findings: Findings) -> None:
         "lifecycle/TOOLKIT_LIFECYCLE.yaml",
         "profiles",
         "composition",
+        "worksets/README.md",
+        "worksets/WORKSET_CATALOG.yaml",
         "dashboard/README.md",
+        "dashboard/index.html",
+        "dashboard/workset-planner.html",
+        "dashboard/run-console.html",
         "dashboard/capability-progress.html",
+        "dashboard/assets/console.css",
+        "dashboard/assets/worksets.js",
+        "dashboard/assets/run-console.js",
+        "dashboard/assets/maturity.js",
         "acceptance",
         "migration",
         "roadmap",
         "runs/README.md",
         "tools/render_capability_dashboard.py",
+        "tools/render_toolkit_console.py",
         "tools/test_capability_dashboard.py",
+        "tools/workset_control.py",
+        "tools/test_workset_control.py",
         "tools/toolkit_doctor.py",
         "tools/test_toolkit_doctor.py",
         "tools/test_lifecycle_and_harness_contracts.py",
@@ -172,6 +185,10 @@ def require_paths(findings: Findings) -> None:
         "tools/test_capture_git_worktree_state.py",
         "tools/test_cpp_acceptance_records.py",
         "requirements-validation.txt",
+        "contracts/workset-catalog.schema.json",
+        "contracts/workset-request.schema.json",
+        "contracts/workset-run-state.schema.json",
+        "contracts/workset-step-checkpoint.schema.json",
         "policies/quick.yaml",
         "policies/balanced.yaml",
         "policies/strict.yaml",
@@ -245,6 +262,11 @@ def validate_machine_contracts(findings: Findings) -> None:
         except Exception as exc:
             findings.error("INVALID_SCHEMA", f"{rel(schema_path)}: {exc}")
     validate_with_jsonschema(ROOT / "TOOLKIT_MANIFEST.yaml", SCHEMA_BINDINGS["toolkit"], findings)
+    validate_with_jsonschema(
+        ROOT / "worksets/WORKSET_CATALOG.yaml",
+        SCHEMA_BINDINGS["workset_catalog"],
+        findings,
+    )
     for path in sorted((ROOT / "capabilities").glob("*/CAPABILITY.yaml")):
         validate_with_jsonschema(path, SCHEMA_BINDINGS["capability"], findings)
     for path in sorted((ROOT / "profiles").glob("*/PROFILE.yaml")):
@@ -1761,6 +1783,156 @@ def validate_harness_support_matrix(findings: Findings) -> None:
                 )
 
 
+def validate_workset_catalog(findings: Findings) -> None:
+    catalog_path = ROOT / "worksets/WORKSET_CATALOG.yaml"
+    manifest_path = ROOT / "TOOLKIT_MANIFEST.yaml"
+    if not catalog_path.exists() or not manifest_path.exists():
+        return
+    catalog = load_yaml(catalog_path, findings)
+    manifest = load_yaml(manifest_path, findings)
+    if not isinstance(catalog, dict) or not isinstance(manifest, dict):
+        return
+
+    registered = {
+        item.get("id")
+        for item in manifest.get("capabilities", [])
+        if isinstance(item, dict) and isinstance(item.get("id"), str)
+    }
+    worksets = catalog.get("worksets", [])
+    if not isinstance(worksets, list):
+        return
+    seen_worksets: set[str] = set()
+    for workset in worksets:
+        if not isinstance(workset, dict):
+            continue
+        workset_id = workset.get("id")
+        if not isinstance(workset_id, str):
+            continue
+        if workset_id in seen_worksets:
+            findings.error("WORKSET_DUPLICATE", f"duplicate workset id {workset_id}")
+        seen_worksets.add(workset_id)
+
+        capability_entries = workset.get("capabilities", [])
+        selected_list = [
+            item.get("id")
+            for item in capability_entries
+            if isinstance(item, dict) and isinstance(item.get("id"), str)
+        ] if isinstance(capability_entries, list) else []
+        selected = set(selected_list)
+        if len(selected_list) != len(selected):
+            findings.error("WORKSET_CAPABILITY_DUPLICATE", f"{workset_id} repeats a capability")
+        unknown = sorted(selected - registered)
+        if unknown:
+            findings.error("WORKSET_UNKNOWN_CAPABILITY", f"{workset_id} references {unknown}")
+        if not selected:
+            findings.error("WORKSET_EMPTY", f"{workset_id} has no selected capabilities")
+        if registered and selected == registered:
+            findings.error(
+                "WORKSET_SCOPE_EXPANSION",
+                f"{workset_id} selects every registered capability instead of a goal-scoped minimum closure",
+            )
+
+        supported = set(workset.get("supported_operations", []))
+        default_operation = workset.get("default_operation")
+        default_permission = workset.get("default_permission")
+        ceilings = workset.get("conclusion_ceiling", {})
+        if default_operation not in supported:
+            findings.error("WORKSET_DEFAULT_OPERATION", f"{workset_id} default operation is not supported")
+        if isinstance(ceilings, dict) and set(ceilings) != supported:
+            findings.error(
+                "WORKSET_CEILING_COVERAGE",
+                f"{workset_id} must declare a conclusion ceiling for every supported operation",
+            )
+        if "BUILD_MISSING" in supported and isinstance(ceilings, dict) and ceilings.get("BUILD_MISSING") != "NO_VERDICT":
+            findings.error("WORKSET_BUILD_VERDICT", f"{workset_id} BUILD_MISSING must remain NO_VERDICT")
+        if default_operation == "BUILD_MISSING" and default_permission != "TOOLKIT_ONLY":
+            findings.error("WORKSET_BUILD_PERMISSION", f"{workset_id} BUILD_MISSING default must be TOOLKIT_ONLY")
+        if default_operation == "USE_AVAILABLE" and default_permission == "TOOLKIT_ONLY":
+            findings.error("WORKSET_USE_PERMISSION", f"{workset_id} USE_AVAILABLE cannot default to TOOLKIT_ONLY")
+
+        steps = workset.get("steps", [])
+        step_ids: list[str] = []
+        covered: set[str] = set()
+        if isinstance(steps, list):
+            for step in steps:
+                if not isinstance(step, dict):
+                    continue
+                if isinstance(step.get("id"), str):
+                    step_ids.append(step["id"])
+                refs = {value for value in step.get("capability_ids", []) if isinstance(value, str)}
+                outside = sorted(refs - selected)
+                if outside:
+                    findings.error("WORKSET_STEP_SCOPE", f"{workset_id}/{step.get('id')} escapes workset scope: {outside}")
+                covered.update(refs)
+        if len(step_ids) != len(set(step_ids)):
+            findings.error("WORKSET_STEP_DUPLICATE", f"{workset_id} repeats a step id")
+        missing_from_steps = sorted(selected - covered)
+        if missing_from_steps:
+            findings.error("WORKSET_STEP_COVERAGE", f"{workset_id} never schedules {missing_from_steps}")
+
+
+def validate_toolkit_console(findings: Findings) -> None:
+    planner_path = ROOT / "dashboard/workset-planner.html"
+    index_path = ROOT / "dashboard/index.html"
+    run_path = ROOT / "dashboard/run-console.html"
+    css_path = ROOT / "dashboard/assets/console.css"
+    renderer_path = ROOT / "tools/render_toolkit_console.py"
+    required = [planner_path, index_path, run_path, css_path, renderer_path]
+    if any(not path.exists() for path in required):
+        return
+    try:
+        planner = planner_path.read_text(encoding="utf-8")
+        index = index_path.read_text(encoding="utf-8")
+        run_html = run_path.read_text(encoding="utf-8")
+        css = css_path.read_text(encoding="utf-8")
+    except Exception as exc:
+        findings.error("CONSOLE_READ", str(exc))
+        return
+
+    if planner != index:
+        findings.error("CONSOLE_INDEX_DRIFT", "dashboard/index.html must be the generated workset entry page")
+    pages = {"workset": planner, "run": run_html, "maturity": (ROOT / "dashboard/capability-progress.html").read_text(encoding="utf-8")}
+    expected_links = {"workset-planner.html", "run-console.html", "capability-progress.html"}
+    for name, page in pages.items():
+        if re.search(r"<(?:script|link)[^>]+(?:src|href)=[\"']https?://", page, re.IGNORECASE):
+            findings.error("CONSOLE_EXTERNAL_DEPENDENCY", f"{name} page must remain zero-network")
+        missing_links = sorted(link for link in expected_links if f'href="{link}"' not in page)
+        if missing_links:
+            findings.error("CONSOLE_NAVIGATION", f"{name} page is missing navigation links {missing_links}")
+
+    if "提交给 AI" not in planner or "当前运行" not in run_html:
+        findings.error("CONSOLE_CORE_FLOW", "workset submission and current-run visibility must remain separate visible flows")
+    if any(token in css.lower() for token in ("#0b2247", "#f5f7fa", "#6b7280")):
+        findings.error("CONSOLE_PALETTE_REGRESSION", "deprecated navy or cool-gray palette returned")
+    for token in ("--canvas: #f5ecd8", "--forest: #123d31", "--gold: #ad8133"):
+        if token not in css.lower():
+            findings.error("CONSOLE_BRAND_TOKENS", f"missing approved warm-ivory/forest/gold token {token}")
+
+    match = re.search(r'<script id="worksetData" type="application/json">(.*?)</script>', planner, re.DOTALL)
+    if not match:
+        findings.error("CONSOLE_WORKSET_DATA", "workset planner is missing embedded worksetData")
+        return
+    try:
+        embedded = json.loads(match.group(1))
+        module_spec = importlib.util.spec_from_file_location("eet_console_renderer", renderer_path)
+        if module_spec is None or module_spec.loader is None:
+            raise RuntimeError("could not create module spec")
+        console_renderer = importlib.util.module_from_spec(module_spec)
+        module_spec.loader.exec_module(console_renderer)
+        fresh = console_renderer.build_snapshot()
+    except Exception as exc:
+        findings.error("CONSOLE_RENDERER", f"console snapshot could not be recomputed: {exc}")
+        return
+    embedded_compare = dict(embedded) if isinstance(embedded, dict) else embedded
+    fresh_compare = dict(fresh) if isinstance(fresh, dict) else fresh
+    if isinstance(embedded_compare, dict):
+        embedded_compare.pop("generated_at", None)
+    if isinstance(fresh_compare, dict):
+        fresh_compare.pop("generated_at", None)
+    if embedded_compare != fresh_compare:
+        findings.error("CONSOLE_STALE_OR_TAMPERED", "workset planner differs from a fresh catalog recomputation; rerender it")
+
+
 def validate_capability_progress_dashboard(findings: Findings) -> None:
     dashboard_path = ROOT / "dashboard/capability-progress.html"
     renderer_path = ROOT / "tools/render_capability_dashboard.py"
@@ -1805,23 +1977,20 @@ def validate_capability_progress_dashboard(findings: Findings) -> None:
             f"expected={sorted(expected_ids)} actual={sorted(actual_ids)}",
         )
 
-    formula = snapshot.get("formula", []) if isinstance(snapshot, dict) else []
-    if not isinstance(formula, list) or sum(item.get("weight", 0) for item in formula if isinstance(item, dict)) != 100:
-        findings.error("DASHBOARD_FORMULA", "progress formula weights must total 100")
-    weight_by_key = {
-        item.get("key"): item.get("weight")
-        for item in formula
+    axes = snapshot.get("axes", []) if isinstance(snapshot, dict) else []
+    axis_keys = {
+        item.get("key")
+        for item in axes
         if isinstance(item, dict) and isinstance(item.get("key"), str)
     }
     expected_stage_keys = {"specification", "implementation", "validation", "qualification", "activation"}
-    if set(weight_by_key) != expected_stage_keys:
-        findings.error("DASHBOARD_FORMULA", f"progress formula axes must be {sorted(expected_stage_keys)}")
+    if axis_keys != expected_stage_keys:
+        findings.error("DASHBOARD_AXES", f"maturity axes must be {sorted(expected_stage_keys)}")
 
-    computed_summary = {"complete": 0, "in_progress": 0, "not_started": 0, "unknown": 0}
+    computed_summary = {"active": 0, "partial": 0, "designed": 0, "blocked": 0, "unknown": 0}
     for item in capabilities:
         if not isinstance(item, dict):
             continue
-        score = item.get("score")
         category = item.get("category")
         stages = item.get("stages", [])
         stage_by_key = {
@@ -1832,33 +2001,35 @@ def validate_capability_progress_dashboard(findings: Findings) -> None:
         if set(stage_by_key) != expected_stage_keys:
             findings.error("DASHBOARD_STAGE_PARITY", f"{item.get('id')} does not contain exactly five evidence axes")
             continue
-        stage_scores = [stage_by_key[key].get("score") for key in expected_stage_keys]
-        known_score = int(round(sum(
-            weight_by_key.get(key, 0) * stage_by_key[key].get("score", 0) / 100
-            for key in expected_stage_keys
-            if stage_by_key[key].get("score") is not None
-        )))
-        has_unknown = any(value is None for value in stage_scores)
+        state_kinds = {key: stage_by_key[key].get("state_kind") for key in expected_stage_keys}
+        allowed_state_kinds = {"complete", "partial", "idle", "failed", "unknown"}
+        invalid_state_kinds = sorted({str(value) for value in state_kinds.values() if value not in allowed_state_kinds})
+        if invalid_state_kinds:
+            findings.error("DASHBOARD_STAGE_STATE", f"{item.get('id')} has invalid maturity states {invalid_state_kinds}")
+            continue
+        has_unknown = any(value == "unknown" for value in state_kinds.values())
+        has_failure = any(value == "failed" for value in state_kinds.values())
+        completed_axes = sum(value == "complete" for value in state_kinds.values())
+        downstream_idle = all(state_kinds[key] == "idle" for key in ("implementation", "validation", "qualification", "activation"))
         expected_category = (
             "unknown" if has_unknown else
-            "complete" if known_score == 100 else
-            "not-started" if known_score == 0 else
-            "in-progress"
+            "blocked" if has_failure else
+            "active" if completed_axes == 5 else
+            "designed" if state_kinds["specification"] == "complete" and downstream_idle else
+            "partial"
         )
-        if score != known_score:
-            findings.error("DASHBOARD_SCORE_DRIFT", f"{item.get('id')} score={score!r}; recomputed={known_score}")
+        if item.get("completed_axes") != completed_axes:
+            findings.error("DASHBOARD_AXIS_COUNT_DRIFT", f"{item.get('id')} completed_axes={item.get('completed_axes')!r}; recomputed={completed_axes}")
         if category != expected_category:
-            code = "DASHBOARD_FALSE_GREEN" if category == "complete" else "DASHBOARD_FALSE_RED" if category == "not-started" else "DASHBOARD_CATEGORY_DRIFT"
+            code = "DASHBOARD_FALSE_ACTIVE" if category == "active" else "DASHBOARD_CATEGORY_DRIFT"
             findings.error(code, f"{item.get('id')} category={category!r}; expected={expected_category!r}")
-        if category == "complete" and any(value != 100 for value in stage_scores):
-            findings.error("DASHBOARD_FALSE_GREEN", f"{item.get('id')} is green without five completed evidence axes")
-        if category == "not-started" and any(value != 0 for value in stage_scores):
-            findings.error("DASHBOARD_FALSE_RED", f"{item.get('id')} is red without five zero evidence axes")
+        if category == "active" and completed_axes != 5:
+            findings.error("DASHBOARD_FALSE_ACTIVE", f"{item.get('id')} is active without five completed evidence axes")
+        if category == "blocked" and not has_failure:
+            findings.error("DASHBOARD_FALSE_BLOCKED", f"{item.get('id')} is blocked without a failed evidence axis")
         if has_unknown and category != "unknown":
-            findings.error("DASHBOARD_UNKNOWN_AS_PRECISE", f"{item.get('id')} hides an unknown stage in {category!r}")
-        summary_key = expected_category.replace("-", "_")
-        if summary_key in computed_summary:
-            computed_summary[summary_key] += 1
+            findings.error("DASHBOARD_UNKNOWN_AS_KNOWN", f"{item.get('id')} hides an unknown stage in {category!r}")
+        computed_summary[expected_category] += 1
 
     embedded_summary = snapshot.get("summary", {}) if isinstance(snapshot, dict) else {}
     for key, expected_count in computed_summary.items():
@@ -1866,12 +2037,12 @@ def validate_capability_progress_dashboard(findings: Findings) -> None:
             findings.error("DASHBOARD_SUMMARY_DRIFT", f"summary.{key}={embedded_summary.get(key)!r}; expected={expected_count}")
 
     static_body = html.split('<script id="capabilityData"', 1)[0]
-    missing_static_cards = sorted(
+    missing_static_rows = sorted(
         capability_id for capability_id in expected_ids
         if f'data-id="{capability_id}"' not in static_body
     )
-    if missing_static_cards:
-        findings.error("DASHBOARD_STATIC_FALLBACK", f"static first view is missing cards: {missing_static_cards}")
+    if missing_static_rows:
+        findings.error("DASHBOARD_STATIC_FALLBACK", f"static first view is missing capability rows: {missing_static_rows}")
 
     try:
         module_spec = importlib.util.spec_from_file_location("eet_dashboard_renderer", renderer_path)
@@ -2115,6 +2286,8 @@ def main(argv: list[str] | None = None) -> int:
     validate_experience_memory(findings)
     validate_lifecycle_manifest(findings)
     validate_harness_support_matrix(findings)
+    validate_workset_catalog(findings)
+    validate_toolkit_console(findings)
     validate_capability_progress_dashboard(findings)
     validate_rule_ids(findings)
     validate_repository_reader_policy(findings)

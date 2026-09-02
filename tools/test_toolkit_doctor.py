@@ -35,6 +35,9 @@ def main() -> int:
     protected_paths = [
         ROOT / "TOOLKIT_MANIFEST.yaml",
         ROOT / "CURRENT_STATE.yaml",
+        ROOT / "dashboard/index.html",
+        ROOT / "dashboard/workset-planner.html",
+        ROOT / "dashboard/run-console.html",
         ROOT / "dashboard/capability-progress.html",
     ]
     before = {
@@ -52,7 +55,7 @@ def main() -> int:
     report = json.loads(completed.stdout)
     require(report["status"] in {"HEALTHY", "LIMITED"}, "doctor must report an honest non-failing state")
     require(report["scope"] == "TOOLKIT_SPECIFICATION_BUNDLE_ONLY", "doctor scope must be narrow")
-    require(len(report["checks"]) == 9, "doctor must run the declared nine checks")
+    require(len(report["checks"]) == 10, "doctor must run the declared ten checks")
     require(report["limitations"], "doctor must retain limitations")
     after = {
         str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()

@@ -1,44 +1,56 @@
-# 能力拼图进度看板
+# 桌面控制台
 
-这是一个零服务、零前端依赖的静态看板。双击 `capability-progress.html` 即可查看；AI 或开发者在工具集根目录运行下面的命令即可重新渲染：
+这里是同一套桌面控制台的三个独立页面，不把所有信息挤在一个屏幕：
 
-```bash
-python tools/render_capability_dashboard.py
-python tools/test_capability_dashboard.py
-python tools/validate_toolkit.py
+- `index.html` / `workset-planner.html`：选择此刻目标、调用还是建设、保障档位、时间和权限；
+- `run-console.html`：只显示本次请求、当前步骤、完成条件、证据引用和人机活动；
+- `capability-progress.html`：只显示全部 Capability 的长期成熟度与证据缺口。
+
+导航栏在三个页面间切换。桌面端最低布局宽度为 1040px；本项目不把手机端适配作为当前验收范围。页面不使用 CDN、远程字体、模型 API 或第三方前端运行时。
+
+## 为什么不再显示“52%”
+
+规格、实现、验证、环境资格和激活是五种不同事实，不能用加权平均伪装成一个精确工程进度。成熟度页因此只显示这些可核验状态：
+
+- `已完成`：该轴达到明确完成状态；
+- `部分`：有可定位产物，但该轴尚未完成；
+- `未开始`：状态明确为未开始；
+- `失败/阻断`：该轴存在失败；
+- `未知`：缺少足够状态或证据。
+
+一个能力只有五个轴都完成才可显示“已激活”。`PARTIAL` 不再画成半圆，也不被换算成 50%。页面由 Manifest 和状态证据生成，不能靠手改 HTML 变绿。
+
+## 直接浏览与共享运行状态
+
+双击 `index.html` 可以浏览、选择并生成请求草稿；静态模式会显式标成“未验证草稿”，复制时包含完整 JSON。若要让人和 AI 读取同一份 Runtime 协调记录，在 Toolkit 根目录启动仅监听本机的服务：
+
+```powershell
+.\.venv\Scripts\python.exe .\tools\workset_control.py serve
 ```
 
-给 AI 的最短指令可以是：
+然后在桌面浏览器打开终端打印的本机地址。服务把请求和运行可见性写到当前用户的外部 Runtime 根，不写 Toolkit 仓，也不写业务仓。可用 `EET_RUNTIME_ROOT` 或 `--runtime-root` 更换位置；程序拒绝 Toolkit 仓及任何其他 Git 工作树内的 Runtime，仓内没有电脑盘符硬编码。
 
-> 先依据Capability状态与可定位证据更新相应Manifest；运行`python tools/render_capability_dashboard.py`；再运行`python tools/validate_toolkit.py`。如果校验不通过，不得把页面当作当前事实，也不得手工把卡片改绿。
+界面提交只创建 `WorksetRequest`，不会假装 AI 已经执行。AI 通过 CLI 接单、更新步骤：
 
-不要直接编辑生成后的百分比。需要改变进度时，应先更新对应 `capabilities/<id>/CAPABILITY.yaml` 的状态维度并附证据；公司环境资格等全局事实只能由其权威状态或 Receipt 提供。
+```powershell
+.\.venv\Scripts\python.exe .\tools\workset_control.py inbox
+.\.venv\Scripts\python.exe .\tools\workset_control.py claim
+.\.venv\Scripts\python.exe .\tools\workset_control.py update --step <step-id> --status RUNNING --message "正在执行的真实动作" --expected-revision <当前 revision>
+.\.venv\Scripts\python.exe .\tools\workset_control.py checkpoint --step <step-id> --summary "完成了什么" --artifact IMPLEMENTATION_ARTIFACT=repo:<相对路径>#sha256:<摘要>
+.\.venv\Scripts\python.exe .\tools\workset_control.py update --step <step-id> --status COMPLETED --message "已形成绑定检查点" --evidence <上一步返回的 checkpoint_ref> --expected-revision <当前 revision>
+.\.venv\Scripts\python.exe .\tools\workset_control.py status
+```
 
-## 进度不是 AI 主观估计
+`COMPLETED` 更新不能直接引用任意文件；它必须引用 `runtime:checkpoints/...` 下的 typed `WorksetStepCheckpoint`。Checkpoint 绑定 request、run、step、operation 和至少一个可打开且摘要相符的实际工件。空串、无关文件、虚构路径、摘要不符、全步骤跳过和并发旧 revision 都不能产生完成状态。运行页只是 Workset 协调投影，不拥有 Profile Runner 的实例状态，也不拥有 Claim、Gate、资格、激活或最终 Verdict 权限。
 
-总体进度由五个互不替代的证据轴计算：
+## 重新生成与验收
 
-| 证据轴 | 权重 | 100% 的含义 |
-|---|---:|---|
-| 规格 | 20% | 独立 Capability Manifest 与规格已形成 |
-| 实现 | 35% | 存在可执行实现，而不是只有文档 |
-| 验证 | 30% | 强制正向/负向用例通过且有 Receipt |
-| 环境资格 | 10% | 在目标公司环境与真实项目范围完成资格验证 |
-| 激活 | 5% | 已按 Release Gate 明确激活 |
+```powershell
+.\.venv\Scripts\python.exe .\tools\render_toolkit_console.py
+.\.venv\Scripts\python.exe .\tools\render_capability_dashboard.py
+.\.venv\Scripts\python.exe .\tools\test_workset_control.py
+.\.venv\Scripts\python.exe .\tools\test_capability_dashboard.py
+.\.venv\Scripts\python.exe .\tools\validate_toolkit.py
+```
 
-例如“规格完成、其余未开始”的能力是 20%，不是 100%。只有五个轴都满足才显示绿色 100%；五个轴都为零才显示红色 0%。1–99% 显示为琥珀色；关键状态缺证据时显示灰色和 `≥x%` 下限，不把未知伪装成精确数字。
-
-阶段枚举到分数的映射在渲染脚本中固定并显示在页面详情中。脚本优先读取每个 `CAPABILITY.yaml` 的 `status_dimensions`；旧 Manifest 缺少某一轴时，只能使用 `CURRENT_STATE.yaml` 中明确的全局否定证据，不能猜测局部完成度。
-
-## 页面能力
-
-- 一眼统计：绿色 100%、进行中、红色 0%、状态未知；
-- 搜索与筛选 Capability；
-- 点击能力块查看五轴得分、证据来源、当前局限和下一步；
-- 页面内嵌本次快照，不依赖服务器、网络、CDN 或 API Key；
-- JavaScript 被禁用时仍能显示完整静态首屏；启用后提供搜索、筛选和详情交互；
-- 手机和桌面均可打开。
-
-## 诚实边界
-
-这个看板展示的是规范中已有状态证据，不替代实现、测试、公司环境资格或激活 Receipt。重新渲染成功只说明页面生成成功，不说明任何 Capability 已通过。
+先更新 Canonical Manifest、Catalog 或证据，再重新渲染。生成成功只证明页面与输入一致，不证明 Capability 已实现、验证、资格化或激活。

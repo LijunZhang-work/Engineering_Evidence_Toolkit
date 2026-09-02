@@ -39,14 +39,28 @@ status_evidence:
       content_id: sha256:69b6418f24a62e39b87c4140d28e1d9a11bd99dfd85895e4ae1567441ef1b441
       result: PARTIAL
       observed_at: "2026-09-02T06:51:02+08:00"
+    - subject_id: engineering-evidence-toolkit
+      status_axis: implementation
+      evidence_kind: IMPLEMENTATION_ARTIFACT
+      path: tools/workset_control.py
+      content_id: sha256:8daaee36d23b517f645530712a4011febc79e7761994153f2a9b9419f9c02091
+      result: PARTIAL
+      observed_at: "2026-09-02T06:55:05Z"
+    - subject_id: engineering-evidence-toolkit
+      status_axis: implementation
+      evidence_kind: IMPLEMENTATION_ARTIFACT
+      path: tools/render_toolkit_console.py
+      content_id: sha256:158516563c36418ff32a282d7ca9831078b2041b4162df08ef83b50f1f47ce4a
+      result: PARTIAL
+      observed_at: "2026-09-02T06:55:05Z"
   validation:
     - subject_id: engineering-evidence-toolkit
       status_axis: validation
       evidence_kind: TEST_RECEIPT
       path: acceptance/status-receipts/toolkit-validation.json
-      content_id: sha256:0495098124bd3b4595ca54440ec149d585065e24c84877973e20819b5d2ad915
+      content_id: sha256:b3510b2a16c8c1375f938b8c551004362a59d59f5039095066bb51cd4c8d545a
       result: PARTIAL
-      observed_at: "2026-09-02T02:32:08Z"
+      observed_at: "2026-09-02T06:55:05Z"
 
 architecture:
   style: COMPOSABLE_CAPABILITIES
@@ -70,6 +84,10 @@ shared_contracts:
   - contracts/receipt.schema.json
   - contracts/instance-state.schema.json
   - contracts/run-policy.schema.json
+  - contracts/workset-catalog.schema.json
+  - contracts/workset-request.schema.json
+  - contracts/workset-run-state.schema.json
+  - contracts/workset-step-checkpoint.schema.json
   - contracts/run-bundle.schema.json
   - contracts/waiver.schema.json
   - contracts/provider-adoption-decision.schema.json

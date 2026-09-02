@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>当前运行 · Engineering Evidence Toolkit</title>
+  <link rel="stylesheet" href="assets/console.css">
+</head>
+<body>
+  <header class="app-header"><div class="app-header-inner"><a class="brand" href="workset-planner.html"><span class="brand-mark">E</span>工程取证工具集</a><nav class="primary-nav" aria-label="主导航"><a href="workset-planner.html">工作集</a><a href="run-console.html" aria-current="page">当前运行</a><a href="capability-progress.html">能力成熟度</a></nav><div class="header-meta">桌面控制台</div></div></header>
+  <main class="page-shell">
+    <div class="page-heading"><div><h1>当前运行</h1><p>这里只显示本次请求、实际步骤和人机活动，不混入能力成熟度。</p></div><div class="fact-meta">Toolkit 0.7.0<br>连接本地服务时每 2.5 秒刷新</div></div>
+    <div class="run-layout" id="runRoot"><section class="run-main empty-state"><h2>正在读取运行状态</h2><p>如果没有请求，会引导你先选择工作集。</p></section></div>
+    <p class="footer-note">运行页面没有最终 Verdict 权限；完成状态必须引用真实检查点或证据。</p>
+  </main>
+  <script src="assets/run-console.js"></script>
+</body>
+</html>

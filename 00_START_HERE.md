@@ -51,26 +51,47 @@ $eetSmokeOutput = Join-Path $env:TEMP "eet-clean-smoke"
 | 首次核对 CodeGraph、Memory、clangd 等工具源码/制品路径 | `capabilities/third-party-supply-chain/ENVIRONMENT_ASSET_INVENTORY_TEMPLATE.md` | 擅自下载或因一个可选工具缺失冻结全部工作 |
 | 体检本工具集自身结构、看板和Schema依赖 | `.\.venv\Scripts\python.exe tools\toolkit_doctor.py`、`lifecycle/README.md` | 把doctor成功解释成业务检查通过 |
 | 判断DeepSeek Harness当前到底支持哪些能力 | `adapters/HARNESS_CAPABILITY_MATRIX.yaml` | 根据其他Harness能力推断等价支持 |
-| 一眼查看各能力建设百分比和证据缺口 | `dashboard/capability-progress.html` | 让 AI 主观填写一个好看的进度数字 |
+| 选择这次只调用或只建设哪些能力 | `dashboard/index.html`、`worksets/WORKSET_CATALOG.yaml` | 用一句“持续推进”默认展开全部能力 |
+| 查看 AI 此刻在做什么、为什么做、何时算完成 | `dashboard/run-console.html` | 把长期能力成熟度和本次运行混成一个页面 |
+| 查看各能力五轴成熟度和证据缺口 | `dashboard/capability-progress.html` | 把 `PARTIAL` 换算成任意百分比或半个圆 |
 | 正式审查一批遗留 AI 改动 | `profiles/recovery-review/` | 直接调用 Provider 私有接口 |
 | 只做一次安全 AI 修改 | `profiles/safe-ai-edit/` | Recovery 的 S0–S7 全阶段 |
 | 建设或升级这套工具 | `roadmap/`、`acceptance/` | 修改业务源码的授权 |
 
-## 2. 四种合法调用方式
+## 2. 五种合法调用方式
 
-### A. 建设或升级工具集
+### A. 先选择目标工作集
 
-读取 `roadmap/IMPLEMENTATION_SEQUENCE.md`，生成本次建设 Manifest，展示范围、制品、风险和验收题。在用户输入下面这句之前，只能设计、盘点和准备：
+具体目标优先于全局路线。用户说“审查代码”“安全修改”“Windows C++ 预检”时，AI 应从
+`worksets/WORKSET_CATALOG.yaml` 解析相应最小能力闭包，并明确列出本次纳入与排除的能力。
+只有“从唯一入口持续推进”这类宽泛指令不能推导出“把 20 个能力全部建设”；AI 应先展示
+可选工作集，或引导用户在 `dashboard/index.html` 选择。
+
+工作集还必须分开记录：
+
+- `USE_AVAILABLE`：先使用当前可用子集，缺失能力明确写为不可用；
+- `BUILD_MISSING`：只建设该工作集缺失的 Toolkit 能力；
+- `QUICK / BALANCED / STRICT`：决定取证深度和结论上限，不决定建设范围；
+- 时间预算与权限：分别记录，不能由一个模糊的“强度滑块”代替。
+
+用户在本机控制台明确选择 `BUILD_MISSING + TOOLKIT_ONLY` 并提交，且该操作能绑定到当前可见
+用户交互后，经 Schema、摘要和 Catalog 闭包复验的 `WorksetRequest` 才可作为**该工作集范围内**
+的建设确认。孤立的 inbox JSON、`source` 标签或可重算摘要不能单独证明人类授权。该确认不授权
+修改业务源码、提交或推送 Git、激活能力、签发 Verdict，也不允许 AI 扩大到未选择的能力。
+
+### B. 建设或升级工具集
+
+读取 `roadmap/IMPLEMENTATION_SEQUENCE.md`，生成本次建设 Manifest，展示范围、制品、风险和验收题。在用户输入下面这句，或按上一节从本机控制台提交等价的受限 `WorksetRequest` 之前，只能设计、盘点和准备：
 
 > **确认并锁定工具集建设基线，开始自主建设。**
 
 该确认只授权建设工具集、Adapter、测试夹具和文档，不授权修改任何业务仓源码。
 
-### B. 单独调用 Capability
+### C. 单独调用 Capability
 
 读取目标目录下的 `CAPABILITY.yaml` 与 `SPEC.md`。Capability 必须能独立使用，不需要先进入 Recovery Review，也不需要知道调用它的是哪个 Profile。
 
-### C. 运行可选 Profile
+### D. 运行可选 Profile
 
 读取目标 `PROFILE.yaml` 与 `RUNBOOK.yaml`。Profile 只能组合 Capability 的公开输入输出，不得复制 Capability 内部规则、读取 Provider 私有数据库或改变证据语义。
 
@@ -80,13 +101,13 @@ Recovery Review 的标志性确认语句是：
 
 该确认只在对齐仓库、Revision、协作代码到齐状态、权威依据、权限和运行范围，并展示 Manifest Hash 后有效。
 
-### D. 查看、恢复或审计实例
+### E. 查看、恢复或审计实例
 
 读取 `runs/README.md` 与对应外部运行目录。运行状态、Receipt、索引、缓存和报告不写回本规范目录，也不写入业务仓。
 
 ## 3. 用户可以选择快或严，但不能选择过度声称
 
-默认界面只需要三个按钮：
+保障档位使用三个清楚的离散选项：
 
 | 用户选项 | 机器模式 | 适合什么情况 | 结论上限 |
 |---|---|---|---|
@@ -100,7 +121,7 @@ Recovery Review 的标志性确认语句是：
 `.\.venv\Scripts\python.exe -m unittest tools.test_profile_runner_mvp -v`。它只修改 OS 临时目录的
 固定验收夹具复制件；不能拿来修改真实项目，也不产生 `ACCEPT`、资格或激活结论。
 
-这三个按钮不是只保存一个“强度百分比”的模糊滑块。每次运行都会把选择展开并冻结为
+这三个选项不是只保存一个“强度百分比”的模糊滑块。每次运行都会把选择展开并冻结为
 `RunPolicy`：覆盖要求、独立来源数、鲜度、负向 Canary、Provider 选择、调用/时间预算、
 阻断方式和最终结论权限分别记录。高级用户可以单独调整这些轴；任何降级都必须同步降低
 结论上限。

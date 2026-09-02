@@ -3,7 +3,7 @@ kind: ToolkitState
 
 toolkit_id: engineering-evidence-toolkit
 toolkit_version: 0.7.0
-recorded_at: 2026-09-02T10:32:08+08:00
+recorded_at: 2026-09-02T14:55:05+08:00
 
 status_dimensions:
   specification_status: SPECIFIED
@@ -27,9 +27,10 @@ truthful_summary:
     - run_bundle_semantic_validator
     - windows_precheck_vertical_mvp
     - isolated_profile_runner_acceptance_mvp
+    - goal_scoped_workset_control_plane
   acceptance_tests_executed: false
   acceptance_test_subset_executed: true
-  toolkit_full_test_suite_last_result: 100_PASS
+  toolkit_full_test_suite_last_result: 126_PASS
   run_bundle_validator_focused_tests_last_result: 8_PASS_62_NEGATIVE_CASES_REJECTED
   status_promotion_focused_tests_last_result: 10_PASS
   windows_precheck_mvp_focused_tests_last_result: 25_PASS
@@ -50,13 +51,18 @@ truthful_summary:
   capability_progress_dashboard_renderer_implemented: true
   capability_progress_dashboard_last_render_result: PASS
   capability_progress_dashboard_last_render_scope: 20_registered_capabilities
-  capability_progress_dashboard_current_summary: 0_complete_20_in_progress_0_not_started_0_unknown
-  capability_progress_dashboard_focused_tests_last_result: 12_PASS
+  capability_progress_dashboard_current_summary: 0_active_1_partial_19_designed_0_blocked_0_unknown
+  capability_progress_dashboard_focused_tests_last_result: 15_PASS
   capability_progress_dashboard_negative_checks_last_result: stale_false_green_and_coordinated_100_percent_tamper_detected
+  goal_scoped_workset_catalog_specified: true
+  desktop_workset_console_implemented: true
+  desktop_console_validation_scope: DESKTOP_ONLY
+  workset_control_plane_focused_tests_last_result: 23_PASS
+  workset_execution_integration_status: MANUAL_AI_CLAIM_AND_STATE_UPDATE
   toolkit_lifecycle_specified: true
   toolkit_doctor_implemented: true
   toolkit_doctor_focused_tests_last_result: 10_PASS
-  lifecycle_and_harness_contract_focused_tests_last_result: 14_PASS
+  lifecycle_and_harness_contract_focused_tests_last_result: 16_PASS
   toolkit_install_plan_generator_implemented: false
   toolkit_apply_implemented: false
   toolkit_repair_implemented: false
@@ -77,8 +83,11 @@ allowed_claims:
   - 规范目录自检工具已实现，但尚不构成业务检查能力
   - Experience Memory 的独立能力、MVP判定和Provider候选已设计
   - 公司网络、模型API、密钥、外发、下载和制品来源策略已收敛到单一外层运行边界规格
-  - 能力拼图进度看板可从Manifest、各能力真实状态维度和已解析状态证据重新渲染；不同能力可处于不同进度，不再宣称统一20%
-  - 能力拼图看板的12项聚焦测试通过，包含证据依赖、新鲜度、卡片进度条几何、汇总语义与桌面详情关闭状态回归；过期页面与伪绿色反例可被拒绝；这不等于Capability验收已执行
+  - 能力成熟度页可从Manifest、各能力真实状态维度和已解析状态证据重新渲染；PARTIAL不再换算成50%、半圆或加权总百分比
+  - 能力成熟度页的15项聚焦测试通过，包含五轴分类、证据依赖、新鲜度、无伪进度几何、导航和桌面详情关闭状态回归；过期页面与协同伪激活反例可被拒绝；这不等于Capability验收已执行
+  - 目标工作集目录和本机桌面控制台已实现受限控制面；用户可分开选择现在使用或优先建设、快速/平衡/严格、时间与权限，并明确看到纳入和排除能力
+  - 工作集控制面的23项聚焦测试通过；请求摘要、Catalog闭包和内容寻址保障策略会重算，USE与BUILD分流，不可用能力不进入执行队列，旧请求、旧运行和旧revision不能覆盖当前状态，全跳过不能变成完成；Runtime拒绝位于任何Git仓内
+  - WorksetRunState只是仓外协调投影，不是Profile Runner实例状态；步骤完成必须引用绑定request、run、step和operation的typed WorksetStepCheckpoint，且其中工件能被打开并通过SHA-256核对；当前AI接单与更新仍通过CLI完成，不是通用自动Runner
   - 工具集只读doctor已实现并通过10项聚焦断言（含不修改受保护状态）；它只体检规范包，不检查业务代码
   - 安装计划、归属状态、Harness兼容矩阵与安全Hook边界已形成机器契约或唯一策略
   - DeepSeek Harness已在固定源码修订上观察到项目Skill发现、外部自定义GLM模型选择、Windows工作区注册、中文/路径显示和只读Validator调用；运行层状态为PARTIAL，Capability验收仍为NOT_RUN

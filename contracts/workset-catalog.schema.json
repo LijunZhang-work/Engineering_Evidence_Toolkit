@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/workset-catalog.schema.json",
+  "title": "Goal-scoped Workset Catalog",
+  "description": "用户目标到最小能力闭包的规范目录。保障强度、时间预算和修改权限是独立轴。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "version", "principles", "worksets"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "kind": {"const": "WorksetCatalog"},
+    "version": {"type": "string", "pattern": "^0\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?$"},
+    "principles": {
+      "type": "array",
+      "minItems": 4,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "worksets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/workset"}
+    }
+  },
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+    "workset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "title", "summary", "supported_operations", "default_operation",
+        "default_policy", "default_budget_minutes", "default_permission",
+        "conclusion_ceiling", "capabilities", "steps"
+      ],
+      "properties": {
+        "id": {"$ref": "#/$defs/identifier"},
+        "title": {"type": "string", "minLength": 1},
+        "summary": {"type": "string", "minLength": 1},
+        "supported_operations": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"enum": ["USE_AVAILABLE", "BUILD_MISSING"]}
+        },
+        "default_operation": {"enum": ["USE_AVAILABLE", "BUILD_MISSING"]},
+        "default_policy": {"enum": ["QUICK", "BALANCED", "STRICT"]},
+        "default_budget_minutes": {"type": "integer", "minimum": 5, "maximum": 1440},
+        "default_permission": {"enum": ["READ_ONLY", "TOOLKIT_ONLY", "REQUEST_SCOPED_BUSINESS_EDIT"]},
+        "conclusion_ceiling": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "USE_AVAILABLE": {"enum": ["HINTS_ONLY", "EVIDENCE_REPORT", "NO_VERDICT"]},
+            "BUILD_MISSING": {"const": "NO_VERDICT"}
+          }
+        },
+        "capabilities": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "reason"],
+            "properties": {
+              "id": {"$ref": "#/$defs/identifier"},
+              "reason": {"type": "string", "minLength": 1}
+            }
+          }
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "title", "capability_ids"],
+            "properties": {
+              "id": {"$ref": "#/$defs/identifier"},
+              "title": {"type": "string", "minLength": 1},
+              "capability_ids": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {"$ref": "#/$defs/identifier"}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

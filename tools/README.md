@@ -43,9 +43,10 @@ py -3 -m venv .venv
 - `RULE_CATALOG.yaml` 中 Rule ID 是否重复；
 - 是否把旧的三份大文档复制进新规范目录；
 - 是否把真实运行产物误写进规范目录的 `runs/`；
-- 能力拼图是否覆盖全部已登记 Capability、五轴权重是否为100%、是否存在伪绿色、伪红色或隐藏的 UNKNOWN；
-- 能力状态源文件变化后，现有 HTML 是否已过期并需要重新渲染；
-- 关闭 JavaScript 时是否仍有完整静态首屏，页面是否依赖外部 CDN 或网络资源。
+- 能力成熟度是否覆盖全部已登记 Capability、是否存在伪激活、伪阻断或隐藏的 UNKNOWN；
+- 工作集是否为目标范围内的严格子集，步骤是否越界，调用/建设、保障、时间和权限是否被分开冻结；
+- 能力或工作集源文件变化后，现有 HTML 是否已过期并需要重新渲染；
+- 关闭 JavaScript 时是否仍有可读首屏，页面是否依赖外部 CDN 或网络资源。
 
 检查通过只表示“规范包内部一致”，不表示 Windows 预检、Code Fact、Recovery Review、编译或 DT 已经运行。
 
@@ -140,14 +141,22 @@ DT 通过。Target Manifest Schema、范围/路径边界、raw string、用户�
 .\.venv\Scripts\python.exe tools\test_windows_precheck_mvp.py
 ```
 
-## 能力拼图看板
+## 桌面工作集与能力成熟度控制台
 
 在工具集根目录运行：
 
 ```powershell
+.\.venv\Scripts\python.exe tools\render_toolkit_console.py
 .\.venv\Scripts\python.exe tools\render_capability_dashboard.py
+.\.venv\Scripts\python.exe tools\test_workset_control.py
 .\.venv\Scripts\python.exe tools\test_capability_dashboard.py
 .\.venv\Scripts\python.exe tools\validate_toolkit.py
 ```
 
-第一条读取 Manifest 与状态证据并重新生成 `dashboard/capability-progress.html`；第二条检查绿/红/UNKNOWN语义、静态首屏、自包含性和快照新鲜度；第三条执行工具集整体一致性检查。页面可直接双击打开，不需要 Web 服务、Node、CDN 或模型 API。渲染成功只证明页面生成成功，不证明任何 Capability 已实现、验证、资格化或激活。
+前两条分别生成“工作集/当前运行”和“能力成熟度”页面；后两条检查最小范围闭包、请求/运行状态约束、五轴分类、导航与快照新鲜度。`dashboard/index.html` 可直接双击浏览；若要让人和 AI 共享真实请求与运行状态，启动只监听本机的控制服务：
+
+```powershell
+.\.venv\Scripts\python.exe tools\workset_control.py serve
+```
+
+Runtime 默认解析到当前用户的外部状态目录，也可通过 `EET_RUNTIME_ROOT` 或 `--runtime-root` 指定，不含电脑专属硬编码路径，并拒绝落入任何 Git 工作树。`COMPLETED` 只能引用绑定 request/run/step 的 typed `WorksetStepCheckpoint`，不能拿任意现存文件冒充。界面和协调状态都没有 Verdict 权限；渲染或提交成功不证明任何 Capability 已实现、验证、资格化或激活。

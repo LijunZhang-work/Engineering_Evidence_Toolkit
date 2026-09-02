@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/workset-run-state.schema.json",
+  "title": "Workset Run State",
+  "description": "外部控制台的运行可见性状态；只表达调度进展，不替代 Receipt、Gate 或 Verdict。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "run_id", "request_id", "request_intent_digest", "catalog_digest", "capability_state_digest", "assurance_policy_ref", "assurance_policy_digest", "goal", "operation", "execution_status", "started_at", "updated_at", "revision", "policy", "permission", "time_budget_minutes", "steps", "omissions", "activity", "conclusion_ceiling", "state_checksum"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "kind": {"const": "WorksetRunState"},
+    "run_id": {"type": "string", "pattern": "^wsrun_[a-f0-9]{24}$"},
+    "request_id": {"type": "string", "pattern": "^wsr_[a-f0-9]{24}$"},
+    "request_intent_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "catalog_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "capability_state_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "assurance_policy_ref": {"enum": ["policies/quick.yaml", "policies/balanced.yaml", "policies/strict.yaml"]},
+    "assurance_policy_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "goal": {"type": "object", "required": ["id", "title"], "properties": {"id": {"type": "string", "minLength": 1}, "title": {"type": "string", "minLength": 1}}, "additionalProperties": false},
+    "operation": {"enum": ["USE_AVAILABLE", "BUILD_MISSING"]},
+    "execution_status": {"enum": ["CLAIMED", "RUNNING", "WAITING_HUMAN", "BLOCKED", "COMPLETED", "FAILED", "CANCELLED", "NO_ACTION"]},
+    "started_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "revision": {"type": "integer", "minimum": 0},
+    "policy": {"enum": ["QUICK", "BALANCED", "STRICT"]},
+    "permission": {"enum": ["READ_ONLY", "TOOLKIT_ONLY", "REQUEST_SCOPED_BUSINESS_EDIT"]},
+    "time_budget_minutes": {"type": "integer", "minimum": 5, "maximum": 1440},
+    "current_step_id": {"type": ["string", "null"]},
+    "steps": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "capability_ids", "status", "why", "done_when", "evidence_refs"],
+        "properties": {
+          "id": {"type": "string"},
+          "title": {"type": "string"},
+          "capability_ids": {"type": "array", "items": {"type": "string"}},
+          "status": {"enum": ["PENDING", "RUNNING", "COMPLETED", "BLOCKED", "SKIPPED", "FAILED"]},
+          "why": {"type": "string"},
+          "done_when": {"type": "string"},
+          "evidence_refs": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^(repo|runtime):[^#]+#sha256:[a-f0-9]{64}$"}}
+        }
+      }
+    },
+    "omissions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "disposition", "reason"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "disposition": {"enum": ["UNAVAILABLE", "REUSE"]},
+          "reason": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "activity": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["at", "actor", "message"],
+        "properties": {
+          "at": {"type": "string", "format": "date-time"},
+          "actor": {"enum": ["HUMAN", "AI", "SYSTEM"]},
+          "message": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "blockers": {"type": "array", "items": {"type": "string", "minLength": 1, "pattern": "\\S"}},
+    "conclusion_ceiling": {"enum": ["HINTS_ONLY", "EVIDENCE_REPORT", "NO_VERDICT"]},
+    "state_checksum": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"}
+  }
+}

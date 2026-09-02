@@ -1,0 +1,217 @@
+schema_version: "1.0.0"
+kind: WorksetCatalog
+version: "0.1.0-draft"
+
+principles:
+  - A workset is a goal-scoped minimum capability closure, not the whole toolkit.
+  - Assurance, time budget, and mutation permission are independent controls.
+  - USE_AVAILABLE never claims unavailable capabilities ran.
+  - BUILD_MISSING authorizes only the selected toolkit workset, never business-source mutation.
+
+worksets:
+  - id: focused-code-review
+    title: 代码审查
+    summary: 核对变更相关代码事实、设计适配和独立复核，不自动进入完整遗留审查。
+    supported_operations: [USE_AVAILABLE, BUILD_MISSING]
+    default_operation: BUILD_MISSING
+    default_policy: BALANCED
+    default_budget_minutes: 45
+    default_permission: TOOLKIT_ONLY
+    conclusion_ceiling:
+      USE_AVAILABLE: EVIDENCE_REPORT
+      BUILD_MISSING: NO_VERDICT
+    capabilities:
+      - id: workspace-snapshot
+        reason: 冻结本次审查的仓库、Revision 和脏文件范围。
+      - id: code-fact
+        reason: 获取定义、引用、调用和影响面事实。
+      - id: design-fit-review
+        reason: 判断实现是否放在正确责任层并符合既有设计。
+      - id: independent-review
+        reason: 用独立视角复查遗漏、偏见和反证。
+      - id: evidence-kernel
+        reason: 把结论绑定到证据并限制过度声称。
+      - id: report-renderer
+        reason: 从同一事实集生成可读和机器视图。
+    steps:
+      - id: freeze-scope
+        title: 冻结审查范围
+        capability_ids: [workspace-snapshot]
+      - id: collect-code-facts
+        title: 收集代码事实
+        capability_ids: [code-fact]
+      - id: review-fit
+        title: 核对设计与实现
+        capability_ids: [design-fit-review]
+      - id: independent-pass
+        title: 独立复核
+        capability_ids: [independent-review]
+      - id: bind-and-report
+        title: 绑定证据并报告
+        capability_ids: [evidence-kernel, report-renderer]
+
+  - id: safe-ai-edit
+    title: 安全修改
+    summary: 先建设安全修改所需的完整能力闭包；当前不把计划请求冒充成业务源码修改授权。
+    supported_operations: [BUILD_MISSING]
+    default_operation: BUILD_MISSING
+    default_policy: BALANCED
+    default_budget_minutes: 60
+    default_permission: TOOLKIT_ONLY
+    conclusion_ceiling:
+      BUILD_MISSING: NO_VERDICT
+    capabilities:
+      - id: workspace-snapshot
+        reason: 在修改前冻结可恢复基线。
+      - id: code-fact
+        reason: 识别符号、调用和影响范围。
+      - id: design-fit-review
+        reason: 先确认根因和正确责任层。
+      - id: change-safety
+        reason: 防止截断、大段误删、缺括号和意外符号丢失。
+      - id: build-dependency-audit
+        reason: 检查目标归属、include、宏和依赖传播。
+      - id: evidence-kernel
+        reason: 约束修改前后结论及证据新鲜度。
+      - id: audit-ledger
+        reason: 记录授权、修改、复验和回退事实。
+      - id: report-renderer
+        reason: 生成共享事实的交付视图。
+      - id: external-evidence
+        reason: 保留用户错误与真实运行日志，避免本地假绿色覆盖外部失败。
+      - id: windows-static-precheck
+        reason: 覆盖 C/C++ 或 Windows 目标触发的条件预检。
+      - id: signal-lineage
+        reason: 覆盖信号、状态或数据流修改触发的条件影响检查。
+    steps:
+      - id: freeze-edit-scope
+        title: 冻结修改范围与权限
+        capability_ids: [workspace-snapshot, audit-ledger]
+      - id: diagnose-before-edit
+        title: 修改前诊断
+        capability_ids: [code-fact, design-fit-review, build-dependency-audit]
+      - id: guarded-edit
+        title: 执行受控修改
+        capability_ids: [change-safety]
+      - id: revalidate-edit
+        title: 修改后重新取证
+        capability_ids: [change-safety, build-dependency-audit, evidence-kernel]
+      - id: deliver-edit
+        title: 生成报告与回退说明
+        capability_ids: [audit-ledger, report-renderer]
+      - id: complete-conditional-safety
+        title: 补齐条件安全能力
+        capability_ids: [external-evidence, windows-static-precheck, signal-lineage]
+
+  - id: windows-cpp-precheck
+    title: Windows C++ 预检
+    summary: 在 Windows 上做快速静态结构和已声明构建元数据预检，不冒充产品构建。
+    supported_operations: [USE_AVAILABLE, BUILD_MISSING]
+    default_operation: USE_AVAILABLE
+    default_policy: BALANCED
+    default_budget_minutes: 20
+    default_permission: READ_ONLY
+    conclusion_ceiling:
+      USE_AVAILABLE: EVIDENCE_REPORT
+      BUILD_MISSING: NO_VERDICT
+    capabilities:
+      - id: workspace-snapshot
+        reason: 绑定实际待检源码快照。
+      - id: windows-static-precheck
+        reason: 执行 Windows 静态结构和目标元数据检查。
+      - id: evidence-kernel
+        reason: 保留环境差异和结论天花板。
+      - id: report-renderer
+        reason: 输出专业、小白和机器视图。
+    steps:
+      - id: freeze-windows-scope
+        title: 冻结 Windows 检查范围
+        capability_ids: [workspace-snapshot]
+      - id: run-windows-precheck
+        title: 执行静态预检
+        capability_ids: [windows-static-precheck]
+      - id: qualify-result
+        title: 核对证据与环境上限
+        capability_ids: [evidence-kernel]
+      - id: report-windows-result
+        title: 生成受限结果
+        capability_ids: [report-renderer]
+
+  - id: external-error-reconciliation
+    title: 外部错误对账
+    summary: 接收用户错误或真实运行日志，与当前代码快照对账，避免本地假绿色覆盖外部失败。
+    supported_operations: [USE_AVAILABLE, BUILD_MISSING]
+    default_operation: BUILD_MISSING
+    default_policy: BALANCED
+    default_budget_minutes: 35
+    default_permission: TOOLKIT_ONLY
+    conclusion_ceiling:
+      USE_AVAILABLE: EVIDENCE_REPORT
+      BUILD_MISSING: NO_VERDICT
+    capabilities:
+      - id: workspace-snapshot
+        reason: 确认外部错误对应的代码版本。
+      - id: external-evidence
+        reason: 接收、保留并分类用户错误和日志。
+      - id: code-fact
+        reason: 在当前快照定位相关实现和候选根因。
+      - id: evidence-kernel
+        reason: 对账冲突证据并限制结论。
+      - id: report-renderer
+        reason: 输出已确认事实、冲突和下一步。
+    steps:
+      - id: ingest-external-error
+        title: 接收外部错误
+        capability_ids: [external-evidence]
+      - id: bind-error-snapshot
+        title: 绑定对应源码快照
+        capability_ids: [workspace-snapshot]
+      - id: investigate-error
+        title: 定位相关代码事实
+        capability_ids: [code-fact]
+      - id: reconcile-error
+        title: 对账本地与外部证据
+        capability_ids: [evidence-kernel]
+      - id: report-error
+        title: 报告冲突与下一步
+        capability_ids: [report-renderer]
+
+  - id: toolkit-review-mvp
+    title: 工具集建设
+    summary: 只建设打通代码审查纵向闭环所需的最小能力，不横向推进全部能力。
+    supported_operations: [BUILD_MISSING]
+    default_operation: BUILD_MISSING
+    default_policy: BALANCED
+    default_budget_minutes: 120
+    default_permission: TOOLKIT_ONLY
+    conclusion_ceiling:
+      BUILD_MISSING: NO_VERDICT
+    capabilities:
+      - id: workspace-snapshot
+        reason: 为纵向闭环提供稳定工作区输入。
+      - id: code-fact
+        reason: 提供代码审查所需的最小事实能力。
+      - id: independent-review
+        reason: 建立独立复核路径。
+      - id: evidence-kernel
+        reason: 让审查结论必须绑定合格证据。
+      - id: autonomous-runner
+        reason: 对持续推进、停止和等待条件作无状态判断。
+      - id: report-renderer
+        reason: 从同一事实集生成用户与机器视图。
+    steps:
+      - id: stabilize-review-contracts
+        title: 稳定审查最小契约
+        capability_ids: [workspace-snapshot, evidence-kernel]
+      - id: implement-review-facts
+        title: 实现代码事实最小路径
+        capability_ids: [code-fact]
+      - id: implement-independent-review
+        title: 实现独立复核路径
+        capability_ids: [independent-review]
+      - id: connect-continuation
+        title: 接入持续推进判断
+        capability_ids: [autonomous-runner]
+      - id: close-review-slice
+        title: 打通报告和负向验收
+        capability_ids: [report-renderer, evidence-kernel]

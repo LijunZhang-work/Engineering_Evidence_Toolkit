@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engineering-evidence.local/schemas/workset-request.schema.json",
+  "title": "Workset Request",
+  "description": "由桌面控制台或等价受信入口生成的目标范围请求；它不是完成证据，也不自行产生 Verdict。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "kind", "request_id", "created_at", "source", "goal",
+    "operation", "assurance_preset", "time_budget_minutes", "permission",
+    "catalog_digest", "capability_state_digest", "assurance_policy_ref", "assurance_policy_digest",
+    "selected_capabilities", "excluded_capabilities", "steps", "conclusion_ceiling",
+    "execution_status", "intent_digest"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "kind": {"const": "WorksetRequest"},
+    "request_id": {"type": "string", "pattern": "^wsr_[a-f0-9]{24}$"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "source": {"enum": ["DESKTOP_CONSOLE", "CLI"]},
+    "goal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "summary"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+        "title": {"type": "string", "minLength": 1},
+        "summary": {"type": "string", "minLength": 1}
+      }
+    },
+    "operation": {"enum": ["USE_AVAILABLE", "BUILD_MISSING"]},
+    "assurance_preset": {"enum": ["QUICK", "BALANCED", "STRICT"]},
+    "time_budget_minutes": {"type": "integer", "minimum": 5, "maximum": 1440},
+    "permission": {"enum": ["READ_ONLY", "TOOLKIT_ONLY", "REQUEST_SCOPED_BUSINESS_EDIT"]},
+    "catalog_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "capability_state_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "assurance_policy_ref": {"enum": ["policies/quick.yaml", "policies/balanced.yaml", "policies/strict.yaml"]},
+    "assurance_policy_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "user_note": {"type": "string", "maxLength": 2000},
+    "selected_capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "reason", "implementation_status", "validation_status", "disposition"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+          "reason": {"type": "string", "minLength": 1},
+          "implementation_status": {"type": "string", "minLength": 1},
+          "validation_status": {"enum": ["NOT_RUN", "PARTIAL", "PASSED", "FAILED", "STALE"]},
+          "disposition": {"enum": ["RUN", "RUN_LIMITED", "REUSE", "BUILD_OR_COMPLETE", "UNAVAILABLE"]}
+        }
+      }
+    },
+    "excluded_capabilities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "reason"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+          "reason": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 0,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "capability_ids", "status"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+          "title": {"type": "string", "minLength": 1},
+          "capability_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+          "status": {"const": "PENDING"}
+        }
+      }
+    },
+    "conclusion_ceiling": {"enum": ["HINTS_ONLY", "EVIDENCE_REPORT", "NO_VERDICT"]},
+    "execution_status": {"const": "REQUESTED"},
+    "intent_digest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"operation": {"const": "BUILD_MISSING"}}, "required": ["operation"]},
+      "then": {"properties": {"permission": {"const": "TOOLKIT_ONLY"}}}
+    },
+    {
+      "if": {"properties": {"permission": {"const": "TOOLKIT_ONLY"}}, "required": ["permission"]},
+      "then": {"properties": {"operation": {"const": "BUILD_MISSING"}}}
+    },
+    {
+      "if": {"properties": {"permission": {"const": "REQUEST_SCOPED_BUSINESS_EDIT"}}, "required": ["permission"]},
+      "then": {"properties": {"goal": {"properties": {"id": {"const": "safe-ai-edit"}}}, "operation": {"const": "USE_AVAILABLE"}}}
+    }
+  ]
+}
